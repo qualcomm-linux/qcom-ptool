@@ -362,7 +362,8 @@ def ShowBackupGPT(sector):
     print " "
 
 def CreateFileOfZeros(filename,num_sectors):
-
+    if OutputFolder:
+        filename = os.path.join(OutputFolder, filename)
     try:
         opfile = open(filename, "w+b")
     except Exception, x:
