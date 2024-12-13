@@ -8,6 +8,10 @@ See [CONTRIBUTING.md file](CONTRIBUTING.md) for instructions on how to send
 code contributions to this project. You can also [report an issue on
 GitHub](../../issues).
 
+# Maintainer(s)
+
+See [CODEOWNERS](.github/CODEOWNERS).
+
 # License
 
 This project is licensed under the [BSD-3-clause
