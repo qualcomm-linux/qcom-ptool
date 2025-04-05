@@ -1,14 +1,15 @@
 TOPDIR := $(PWD)
-PLATFORMS := $(wildcard platforms/*)
+PLATFORMS := $(foreach platform,$(wildcard platforms/*),$(platform)/gpt)
 
-.PHONY: $(PLATFORMS) all
+.PHONY: all
 
-$(PLATFORMS):
-	$(MAKE) -C $@ -f $(PWD)/Makefile all
+all: $(PLATFORMS)
 
-all:
-	$(TOPDIR)/gen_partition.py -i partitions.conf -o partitions.xml
-	$(TOPDIR)/ptool.py -x partitions.xml
+%/gpt: %/partitions.xml
+	cd $(shell dirname $^) && $(TOPDIR)/ptool.py -x partitions.xml
+
+%/partitions.xml: %/partitions.conf
+	$(TOPDIR)/gen_partition.py -i $^ -o $@
 
 check:
 	# W605: invalid escape sequence
