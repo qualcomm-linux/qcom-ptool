@@ -18,3 +18,7 @@ jobs:
         run: |
           make
 
+      - name: Run cargo
+        run: |
+          cd degpt
+          cargo build
