@@ -193,7 +193,7 @@ def HandleNUM_DISK_SECTORS(field):
         #print "returning since this is not a string"
         return field
     
-    m = re.search("NUM_DISK_SECTORS-(\d+)", field)
+    m = re.search(r'NUM_DISK_SECTORS-(\d+)', field)
     if type(m) is not NoneType:
         if DiskSizeInBytes > 0 :
             field           = int((DiskSizeInBytes/SECTOR_SIZE)-int(m.group(1)))   # here I know DiskSizeInBytes
@@ -245,7 +245,7 @@ def ReturnParsedValues(element):
     MyDict['size_in_bytes']             = int(float(MyDict['size_in_bytes']))
 
     # These only affect patching
-    m = re.search("CRC32\((\d+).?,(\d+).?\)", MyDict['value'])
+    m = re.search(r'CRC32\((\d+).?,(\d+).?\)', MyDict['value'])
     if type(m) is not NoneType:
         MyDict['value']          = 0
         MyDict['function']       = "CRC32"
@@ -253,7 +253,7 @@ def ReturnParsedValues(element):
         MyDict['arg1']           = int(float(m.group(2)))   # len_in_bytes
     else:
         ## above didn't match, so try this
-        m = re.search("CRC32\((NUM_DISK_SECTORS-\d+).?,(\d+).?\)", MyDict['value'])
+        m = re.search(r'CRC32\((NUM_DISK_SECTORS-\d+).?,(\d+).?\)', MyDict['value'])
         if type(m) is not NoneType:
             MyDict['value']          = 0
             MyDict['function']       = "CRC32"
@@ -309,9 +309,9 @@ def ParseXML(xml_filename):     ## this function updates all the global arrays
     
 
 def ReturnArrayFromCommaSeparatedList(sz):
-    temp = re.sub("\s+|\n"," ",sz)
-    temp = re.sub("^\s+","",temp)
-    temp = re.sub("\s+$","",temp)
+    temp = re.sub(r'\s+|\n'," ",sz)
+    temp = re.sub(r'^\s+',"",temp)
+    temp = re.sub(r'\s+$',"",temp)
     return temp.split(',')
 
 def find_file(filename, search_paths):
@@ -912,7 +912,7 @@ def GetPartitions():
         for line in output:
             #print line
 
-            m = re.search("(\d+) (sd[a-z])$", line)
+            m = re.search(r'(\d+) (sd[a-z])$', line)
             if type(m) is not NoneType:
                 Size    = int(m.group(1))
                 Device  = "/dev/"+m.group(2)
@@ -943,7 +943,7 @@ def GetPartitions():
 
         response = response.replace('\r', '').strip("\n").split("\n")[1:]
         for line in response:
-            m = re.search("(PHYSICALDRIVE\d+).+ (\d+) ", line)
+            m = re.search(r'(PHYSICALDRIVE\d+).+ (\d+) ', line)
             if type(m) is not NoneType:
                 Size    = int(m.group(2))       # size in bytes
                 Device  = "\\\\.\\"+m.group(1)  # \\.\PHYSICALDRIVE1
