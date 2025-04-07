@@ -35,11 +35,6 @@ import struct
 from types import *
 from time import sleep
 
-if sys.version_info < (2,5):
-    sys.stdout.write("\n\nERROR: This script needs Python version 2.5 or greater, detected as ")
-    print(sys.version_info)
-    sys.exit()  # error
-
 from xml.etree import ElementTree as ET
 #from elementtree.ElementTree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
