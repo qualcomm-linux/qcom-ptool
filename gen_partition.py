@@ -234,7 +234,7 @@ try:
    line = f.readline()
    partition_index = 0
    while line:
-      if not re.search("^\s*#", line) and not re.search("^\s*$", line):
+      if not re.search(r'^\s*#', line) and not re.search(r'^\s*$', line):
          line = line.strip()
          if re.search("^--disk", line):
             if disk_entry == None:

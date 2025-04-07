@@ -190,11 +190,11 @@ def ValidGUIDForm(GUID):
 
     print("Testing if GUID=",GUID)
 
-    m = re.search("0x([a-fA-F\d]{32})$", GUID)     #0xC79926B7B668C0874433B9E5EBD0A0A2
+    m = re.search(r'0x([a-fA-F\d]{32})$', GUID)     #0xC79926B7B668C0874433B9E5EBD0A0A2
     if m is not None:
         return True
 
-    m = re.search("([a-fA-F\d]{8})-([a-fA-F\d]{4})-([a-fA-F\d]{4})-([a-fA-F\d]{2})([a-fA-F\d]{2})-([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})", GUID)
+    m = re.search(r'([a-fA-F\d]{8})-([a-fA-F\d]{4})-([a-fA-F\d]{4})-([a-fA-F\d]{2})([a-fA-F\d]{2})-([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})', GUID)
     if m is not None:
         return True
 
@@ -212,7 +212,7 @@ def ValidateTYPE(Type):
     if type(Type) is not str:
         Type = str(Type)
 
-    m = re.search("^(0x)?([a-fA-F\d][a-fA-F\d]?)$", Type)
+    m = re.search(r'^(0x)?([a-fA-F\d][a-fA-F\d]?)$', Type)
     if m is None:
         print("\tWARNING: Type \"%s\" is not in the form 0x4C" % Type)
         sys.exit(1)
@@ -229,7 +229,7 @@ def ValidateGUID(GUID):
 
     print("Looking to validate GUID=",GUID)
 
-    m = re.search("0x([a-fA-F\d]{32})$", GUID)     #0xC79926B7B668C0874433B9E5EBD0A0A2
+    m = re.search(r'0x([a-fA-F\d]{32})$', GUID)     #0xC79926B7B668C0874433B9E5EBD0A0A2
     if m is not None:
         tempGUID = int(m.group(1),16)
         print("\tGUID \"%s\"" % GUID)
@@ -247,7 +247,7 @@ def ValidateGUID(GUID):
 
     else:
         #ebd0a0a2-b9e5-4433-87c0-68b6b72699c7  --> #0x C7 99 26 B7 B6 68 C087 4433 B9E5 EBD0A0A2
-        m = re.search("([a-fA-F\d]{8})-([a-fA-F\d]{4})-([a-fA-F\d]{4})-([a-fA-F\d]{2})([a-fA-F\d]{2})-([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})", GUID)
+        m = re.search(r'([a-fA-F\d]{8})-([a-fA-F\d]{4})-([a-fA-F\d]{4})-([a-fA-F\d]{2})([a-fA-F\d]{2})-([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})([a-fA-F\d]{2})', GUID)
         if m is not None:
             print("Found more advanced type")
             tempGUID = (int(m.group(4),16)<<64) | (int(m.group(3),16)<<48) | (int(m.group(2),16)<<32) | int(m.group(1),16)
@@ -1080,7 +1080,7 @@ def ParseXML(XMLFile):
 
     if 'SECTOR_SIZE_IN_BYTES' in HashInstructions:
         if type(HashInstructions['SECTOR_SIZE_IN_BYTES']) is str:
-            m = re.search("^(\d+)$", HashInstructions['SECTOR_SIZE_IN_BYTES'])
+            m = re.search(r'^(\d+)$', HashInstructions['SECTOR_SIZE_IN_BYTES'])
             if m is None:
                 ## we didn't match, so assign deafult
                 HashInstructions['SECTOR_SIZE_IN_BYTES'] = 512
@@ -1101,7 +1101,7 @@ def ParseXML(XMLFile):
 
     if 'WRITE_PROTECT_BOUNDARY_IN_KB' in HashInstructions:
         if type(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB']) is str:
-            m = re.search("^(\d+)$", HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB'])
+            m = re.search(r'^(\d+)$', HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB'])
             if m is None:
                 ## we didn't match, so assign deafult
                 HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB'] = 0
@@ -1113,7 +1113,7 @@ def ParseXML(XMLFile):
 
     if 'PERFORMANCE_BOUNDARY_IN_KB' in HashInstructions:
         if type(HashInstructions['PERFORMANCE_BOUNDARY_IN_KB']) is str:
-            m = re.search("^(\d+)$", HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'])
+            m = re.search(r'^(\d+)$', HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'])
             if m is None:
                 ## we didn't match, so assign deafult
                 HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'] = 0
@@ -1178,7 +1178,7 @@ def ParseXML(XMLFile):
 
     if 'DISK_SIGNATURE' in HashInstructions:
         if type(HashInstructions['DISK_SIGNATURE']) is str:
-            m = re.search("^0x([\da-fA-F]+)$", HashInstructions['DISK_SIGNATURE'])
+            m = re.search(r'^0x([\da-fA-F]+)$', HashInstructions['DISK_SIGNATURE'])
             if m is None:
                 print("WARNING: DISK_SIGNATURE is not formed correctly, expected format is 0x12345678\n")
                 HashInstructions['DISK_SIGNATURE'] = 0x00000000
@@ -1190,7 +1190,7 @@ def ParseXML(XMLFile):
 
     if 'ALIGN_BOUNDARY_IN_KB' in HashInstructions:
         if type(HashInstructions['ALIGN_BOUNDARY_IN_KB']) is str:
-            m = re.search("^(\d+)$", HashInstructions['ALIGN_BOUNDARY_IN_KB'])
+            m = re.search(r'^(\d+)$', HashInstructions['ALIGN_BOUNDARY_IN_KB'])
             if m is None:
                 ## we didn't match, so assign deafult
                 HashInstructions['ALIGN_BOUNDARY_IN_KB'] = HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB']
@@ -1541,7 +1541,7 @@ def ParseCommandLine():
         print("\nWill AUTO-DETECT from file")
 
     if len(sys.argv) >= 4:  # Should mean PHY partition was specified
-        m = re.search("^\d+$", sys.argv[3] )
+        m = re.search(r'^\d+$', sys.argv[3] )
         if m is not None:
             PhysicalPartitionNumber = int(sys.argv[3])
             print("PhysicalPartitionNumber specified as %d" % PhysicalPartitionNumber)
@@ -2387,7 +2387,7 @@ for o, a in opts:
 
     elif o in ("-k", "--use128partitions"):
         ## Force there to be 128 partitions in the partition table
-        m = re.search("\d", a)     #mbr|gpt
+        m = re.search(r'\d', a)     #mbr|gpt
         if m is None:
             force128partitions = 0
         else:
@@ -2401,7 +2401,7 @@ for o, a in opts:
 
     elif o in ("-g", "--sequentialguid"):
         ## also allow seperating commas
-        m = re.search("\d", a)     #mbr|gpt
+        m = re.search(r'\d', a)     #mbr|gpt
         if m is None:
             sequentialguid = 0
         else:
@@ -2410,7 +2410,7 @@ for o, a in opts:
     elif o in ("-p", "--partition"):
         UsingGetOpts = True
         PhysicalPartitionNumber = a
-        m = re.search("^(\d)$", a)     #0|1|2
+        m = re.search(r'^(\d)$', a)     #0|1|2
         if m is None:
             PrintBigError("ERROR: PhysicalPartitionNumber (-p) must be a number, you supplied *",a,"*")
         else:
