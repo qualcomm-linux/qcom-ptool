@@ -1726,7 +1726,7 @@ def ShowUsage():
     print("python ptool.py -x partition.xml")
     PrintBanner("Advanced Usage")
     print("%-44s\t\tpython ptool.py -x partition.xml" % ("Basic Usage"))
-    print("%-44s\t\tpython ptool.py -x partition.xml -s c:\windows" % ("Search path to find partition.xml"))
+    print("%-44s\t\tpython ptool.py -x partition.xml -s c:\\windows" % ("Search path to find partition.xml"))
     print("%-44s\tpython ptool.py -x partition.xml -p 0" % ("Specify PHY Partition 0, (creates rawprogram0.xml)"))
     print("%-44s\tpython ptool.py -x partition.xml -p 1" % ("Specify PHY Partition 1, (creates rawprogram1.xml)"))
     print("%-44s\tpython ptool.py -x partition.xml -p 2" % ("Specify PHY Partition 2, (creates rawprogram2.xml)"))
