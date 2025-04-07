@@ -1279,7 +1279,7 @@ def Usage():
     print "\n%-40s\t%s python msp.py -n -r rawprogram.xml -d %s" % ("no prompts (-n) i.e. automation",sudo,drive)
     print "%-40s\t%s python msp.py -i -r rawprogram.xml -d %s " % ("Interactively choose files (-i)",sudo,drive)
     print "%-40s\t%s python msp.py -f sbl1.mbn,sbl2.mbn -r rawprogram.xml -d %s " % ("Specify files from rawprogram.xml (-f)",sudo,drive)
-    print "%-40s\t%s python msp.py -s c:\windows,d:\ -r rawprogram.xml -d %s " % ("Search this path for files (-s)",sudo,drive)
+    print "%-40s\t%s python msp.py -s c:\\windows,d:\\ -r rawprogram.xml -d %s " % ("Search this path for files (-s)",sudo,drive)
     print "\n%-40s\t%s python msp.py -p patch0.xml -d %s" % ("Patch a device (-p)",sudo,drive)
     print "%-40s\t%s python msp.py -p patch0.xml -d singleimage.bin" % ("Patch files to singleimage (-p)",sudo)
     print "%-40s\t%s python msp.py -p patch0.xml -d 16777216" % ("PRE-PATCH images for an 8GB disk (-p)",sudo)
