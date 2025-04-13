@@ -3,7 +3,7 @@ PLATFORMS := $(foreach platform,$(wildcard platforms/*),$(platform)/gpt)
 BINS := gen_partition.py msp.py ptool.py
 PREFIX ?= /usr/local
 
-.PHONY: all
+.PHONY: all check
 
 all: $(PLATFORMS)
 
