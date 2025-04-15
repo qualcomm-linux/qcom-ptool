@@ -14,8 +14,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build all platforms and run integration tests
+      - name: Build all platforms and run tests
         run: |
+          sudo apt install pycodestyle
+          make lint
           make all integration
 
       - name: Run cargo
