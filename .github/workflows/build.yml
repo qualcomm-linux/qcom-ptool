@@ -14,9 +14,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run make
+      - name: Build all platforms and run integration tests
         run: |
-          make
+          make all integration
 
       - name: Run cargo
         run: |
