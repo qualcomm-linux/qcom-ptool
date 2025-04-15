@@ -14,9 +14,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run make
+      - name: Build all platforms and run tests
         run: |
-          make
+          sudo apt install pycodestyle
+          make lint
+          make all integration
 
       - name: Run cargo
         run: |
