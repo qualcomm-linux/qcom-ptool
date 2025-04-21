@@ -64,6 +64,8 @@ partition_entry_defaults = {
 # store entries read from input file
 disk_entry = None
 partition_entries_dict = {}
+# store partition image map passed from command line
+partition_image_map = {}
 input_file = None
 output_xml = None
 
@@ -119,6 +121,8 @@ def partition_options(argv):
          partition_entry["filename"] = arg
       elif opt in ['--sparse']:
          partition_entry["sparse"] = arg
+      if partition_entry["label"] in partition_image_map.keys():
+         partition_entry["filename"] = partition_image_map[partition_entry["label"]]
    return partition_entry
 
 def parse_partition_entry(partition_entry):
@@ -227,6 +231,14 @@ try:
           input_file=arg
         elif opt in ["-o"]:
           output_xml=arg
+        elif opt in ["-m"]:
+          for mapping in arg.split(','):
+            tags=mapping.split("=")
+            if len(tags) > 1:
+              partition_image_map[tags[0]]=tags[1]
+        else:
+          usage()
+
    except Exception as argerr:
       print (str(argerr))
       usage()
