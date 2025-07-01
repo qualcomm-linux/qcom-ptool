@@ -40,6 +40,7 @@ for xml in "$@"; do
           imagefv.elf) ;;
           keymaster.mbn) ;;
           keymaster64.mbn) ;;
+          keymint.mbn) ;;
           km4.mbn) ;;
           multi_image_qti.mbn) ;;
           multi_image.mbn) ;;
@@ -51,6 +52,7 @@ for xml in "$@"; do
           sbc_1.0_8096.bin) ;;
           sbl1.mbn) ;;
           sec.dat) ;;
+          secs2d.mbn) ;;
           sed.dat) ;;
           shrm.elf) ;;
           storsec.mbn) ;;
