@@ -1355,7 +1355,7 @@ def ParseXML(XMLFile):
 
 ##timmy
 
-                        TempSizeInBytes = int(value)*1024
+                        TempSizeInBytes = math.ceil(float(value)) * 1024
                         if TempSizeInBytes < SECTOR_SIZE_IN_BYTES:
                             ## smaller than a sector, which is possible if sector size is 4KB
                             TempSizeInBytes = SECTOR_SIZE_IN_BYTES
