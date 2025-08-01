@@ -780,7 +780,7 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
                                  PhysicalPartitionNumber,
                                  FileOffset[z],
                                  ConvertKBtoSectors(PhyPartition[k][j]['original_size_in_kb'])+LastLBA-FirstLBA+1-FilePartitionOffset[z],
-                                 "zeros_33sectors.bin",
+                                 "zeros_%dsectors.bin" % BackupGPTNumLBAs,
                                  "false",
                                  PartitionLabel,
                                  PhyPartition[k][j]['readbackverify'],
@@ -792,7 +792,7 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
                                  PhysicalPartitionNumber,
                                  FileOffset[z],
                                  LastLBA-FirstLBA+1-FilePartitionOffset[z], # num_partition_sectors
-                                 "zeros_33sectors.bin",
+                                 "zeros_%dsectors.bin" % BackupGPTNumLBAs,
                                  "false",
                                  PartitionLabel,
                                  PhyPartition[k][j]['readbackverify'],
