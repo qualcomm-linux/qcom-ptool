@@ -1000,7 +1000,7 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
     #ShowBackupGPT(32)
 
     UpdateRawProgram(RawProgramXML,0,       PrimaryGPTNumLBAs*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, 0, PrimaryGPTNumLBAs, os.path.basename(GPTMAIN), 'false', 'PrimaryGPT','false','true')
-    UpdateRawProgram(RawProgramXML_Wipe,0,  1*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, 0,  1, "zeros_33sectors.bin", 'false', 'PrimaryGPT','false','true')
+    UpdateRawProgram(RawProgramXML_Wipe,0,  1*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, 0,  1, "zeros_1sector.bin", 'false', 'PrimaryGPT-MBR','false','true')
     UpdateRawProgram(RawProgramXML_Wipe,1, BackupGPTNumLBAs*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, 0, BackupGPTNumLBAs, "zeros_%dsectors.bin" % BackupGPTNumLBAs, 'false', 'PrimaryGPT','false','true')
 
     #print "szStartSector=%s" % szStartSector
