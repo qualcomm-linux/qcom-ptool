@@ -493,14 +493,10 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
 
         print("\n"+"="*78)
 
-        PhyPartition[k][j]['size_in_kb'] = int(PhyPartition[k][j]['size_in_kb'])
-        print("\n\n%d of %d \"%s\" (readonly=%s) and size=%dKB (%dMB) (%i sectors with %i bytes/sector)" %(j+1, len(PhyPartition[k]), PhyPartition[k][j]['label'], PhyPartition[k][j]['readonly'], PhyPartition[k][j]['size_in_kb'], PhyPartition[k][j]['size_in_kb']/1024, ConvertKBtoSectors(PhyPartition[k][j]['size_in_kb']), SECTOR_SIZE_IN_BYTES))
-
-        if (PhyPartition[k][j]['size_in_kb']*1024)%SECTOR_SIZE_IN_BYTES>0:
-            ## Have a remainder, need to round up to next full sector
-            TempResult = (PhyPartition[k][j]['size_in_kb']*1024)/SECTOR_SIZE_IN_BYTES
-            TempResult +=1
-            PhyPartition[k][j]['size_in_kb'] = (TempResult * SECTOR_SIZE_IN_BYTES)/1024
+        size_kb = float(PhyPartition[k][j]['size_in_kb'])
+        size_bytes = math.ceil(size_kb * 1024)                                      #Count the number of bytes    
+        sectors = math.ceil(size_bytes / SECTOR_SIZE_IN_BYTES)                      #Calculate the number of sectors rounded up 
+        PhyPartition[k][j]['size_in_kb'] = sectors * SECTOR_SIZE_IN_BYTES / 1024
 
             ##import pdb; pdb.set_trace() ## verifying sizes
 
