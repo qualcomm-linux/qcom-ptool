@@ -799,7 +799,7 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
                                  PhyPartition[k][j]['partofsingleimage'])
 
             if j==0:
-                UpdateRawProgram(RawProgramXML_Blank,0, 33*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, FileOffset[z], 33, "gpt_empty%d.bin" % k, "false", "PrimaryGPT", "false", "false")
+                UpdateRawProgram(RawProgramXML_Blank,0, PrimaryGPTNumLBAs*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, FileOffset[z], PrimaryGPTNumLBAs, "gpt_empty%d.bin" % k, "false", "PrimaryGPT", "false", "false")
 
 
         LastLBA += 1    ## move to the next free sector, also, 0 to 9 inclusive means it's 10
