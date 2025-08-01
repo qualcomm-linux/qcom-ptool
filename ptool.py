@@ -500,7 +500,7 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
 
             ##import pdb; pdb.set_trace() ## verifying sizes
 
-        if HashInstructions['PERFORMANCE_BOUNDARY_IN_KB']>0 and HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY'] is False:
+        if HashInstructions['PERFORMANCE_BOUNDARY_IN_KB']>0:
             PrintBigWarning("WARNING: HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'] is %i KB\n\tbut HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY'] is FALSE!!\n\n" % HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'])
             PrintBigWarning("WARNING: This means partitions will *NOT* be aligned to a HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'] of %i KB !!\n\n" % HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'])
             print("To correct this, partition.xml should look like this\n")
