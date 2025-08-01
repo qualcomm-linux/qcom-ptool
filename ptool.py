@@ -397,7 +397,7 @@ def CreateErasingRawProgramFiles():
         temp.append(Comment('NOTE: Sector size is %ibytes'%SECTOR_SIZE_IN_BYTES))
 
         CreateFileOfZeros("zeros_33sectors.bin",33)
-        UpdateRawProgram(temp,0, 0.5, i, 0, 1, "zeros_33sectors.bin", "false", "Overwrite MBR sector")
+        UpdateRawProgram(temp,0, 1*SECTOR_SIZE_IN_BYTES/1024.0, i, 0, 1, "zeros_1sector.bin", "false", "Overwrite MBR sector")
         UpdateRawProgram(temp,1, BackupGPTNumLBAs*SECTOR_SIZE_IN_BYTES/1024.0, i, 0, BackupGPTNumLBAs, "zeros_%dsectors.bin" % BackupGPTNumLBAs, "false", "Overwrite Primary GPT Sectors")
 
         backup_gpt_lba = -BackupGPTNumLBAs
