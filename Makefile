@@ -1,17 +1,21 @@
 TOPDIR := $(PWD)
 PLATFORMS := $(foreach platform,$(wildcard platforms/*),$(platform)/gpt)
-BINS := gen_partition.py msp.py ptool.py
+CONTENTS := $(foreach template,$(wildcard platforms/*/contents.in), $(patsubst %.in,%,$(template)))
+BINS := gen_contents.py gen_partition.py msp.py ptool.py
 PREFIX ?= /usr/local
 
 .PHONY: all check clean lint integration
 
-all: $(PLATFORMS)
+all: $(PLATFORMS) $(CONTENTS)
 
 %/gpt: %/partitions.xml
 	cd $(shell dirname $^) && $(TOPDIR)/ptool.py -x partitions.xml
 
 %/partitions.xml: %/partitions.conf
 	$(TOPDIR)/gen_partition.py -i $^ -o $@
+
+%/contents: %/partitions.xml
+	$(TOPDIR)/gen_contents.py -p $^ -t $@.in -o $@.xml
 
 lint:
 	# W605: invalid escape sequence
