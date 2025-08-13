@@ -3,7 +3,7 @@ PLATFORMS := $(foreach platform,$(wildcard platforms/*),$(platform)/gpt)
 BINS := gen_partition.py msp.py ptool.py
 PREFIX ?= /usr/local
 
-.PHONY: all check lint integration
+.PHONY: all check clean lint integration
 
 all: $(PLATFORMS)
 
@@ -26,3 +26,9 @@ check: lint integration
 install: $(BINS)
 	install -d $(DESTDIR)$(PREFIX)/bin
 	install -m 755 $^ $(DESTDIR)$(PREFIX)/bin
+
+clean:
+	@rm -f platforms/*/*.xml platforms/*/*.bin
+
+# preserve intermediate (partitions.xml etc.) targets
+.SECONDARY:
