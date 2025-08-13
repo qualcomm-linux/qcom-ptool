@@ -1,0 +1,471 @@
+<?xml version="1.0" ?>
+<!--
+========================================================================
+  contents.in
+
+  General Description
+     Contains information about component builds for this target.
+     It will clone as contents.xml during build compilation process.
+
+  Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
+  SPDX-License-Identifier: BSD-3-Clause-Clear
+
+========================================================================
+--!>
+
+<contents>
+  <product_flavors cmm_pf_var="PRODUCT_FLAVORS">
+    <pf>
+      <name>QCS6490-RB3Gen2</name>
+      <component>
+        <name>common</name>
+        <flavor>QCM6490_fw</flavor>
+      </component>
+      <component>
+        <name>adsp</name>
+        <flavor>QCM6490_fw</flavor>
+      </component>
+      <component>
+        <name>cdsp</name>
+        <flavor>QCM6490_fw</flavor>
+      </component>
+      <component>
+        <name>tz</name>
+        <flavor>QCM6490_fw</flavor>
+      </component>
+      <component>
+        <name>apps</name>
+        <flavor>QCM6490_fw</flavor>
+      </component>
+    </pf>
+  </product_flavors>
+  <product_info>
+    <product_name>QCM6490.LE.1.0</product_name>
+    <hlos_type cmm_var="HLOS_TYPE">LE</hlos_type>
+    <chipid cmm_var="CHIPID">QCM6490</chipid>
+    <additional_chipid clean_for_release="true">SM7325,QCS6490</additional_chipid>
+    <meta_type cmm_var="META_VARIANT">FULL_STACK</meta_type>
+    <default flavor="QCM6490_fw" storage_type="ufs"/>
+    <build_type>K2L</build_type>
+    <meta_type cmm_var="META_VARIANT">SPF</meta_type>
+  </product_info>
+  <partition_info>
+    <partition fastboot_erase="true">modemst1</partition>
+    <partition fastboot_erase="true">modemst2</partition>
+    <partition fastboot_erase="true">fsg</partition>
+  </partition_info>
+  <builds_flat>
+    <build>
+      <name>apps</name>
+      <role>apps</role>
+      <chipset>QCM6490</chipset>
+      <build_id>LE.QCLINUX.1.0.r1-07900-K2C.0-1</build_id>
+      <windows_root_path cmm_root_path_var="APPS_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="APPS_BUILDROOT">./</linux_root_path>
+      <image_dir>apps_proc</image_dir>
+      <download_file ignore="true" cmm_file_var="APPSBOOT_BINARY" fastboot="efi" minimized="true">
+        <file_name>efi.bin</file_name>
+        <file_path flavor="QCM6490_fw">.</file_path>
+      </download_file>
+      <download_file ignore="true" fastboot="dtb_a" backup_partition="dtb_b" minimized="true">
+        <file_name>dtb.bin</file_name>
+        <file_path flavor="QCM6490_fw">.</file_path>
+      </download_file>
+    </build>
+    <build>
+      <name>apps_LKP1</name>
+      <role>apps_LKP1</role>
+      <chipset>QCM6490</chipset>
+      <build_id>LKP.QCLINUX.1.0.r1-05600-kernel.0-1</build_id>
+      <windows_root_path cmm_root_path_var="APPS_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="APPS_BUILDROOT">./</linux_root_path>
+      <image_dir>kernel_platform</image_dir>
+    </build>
+    <build>
+      <name>aop</name>
+      <role>aop</role>
+      <chipset>QCM6490</chipset>
+      <build_id>AOP.HO.3.6-00010-KODIAK_E-1</build_id>
+      <windows_root_path cmm_root_path_var="AOP_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="AOP_BUILDROOT">./</linux_root_path>
+      <image_dir>aop_proc</image_dir>
+      <download_file oem_imageid="AOP" qti_imageid="AOP" cmm_file_var="AOP_BINARY" minimized="true" backup_partition="aop_b" fastboot_complete="aop_a">
+        <file_name>aop.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+    </build>
+    <build>
+      <name>boot</name>
+      <role>boot</role>
+      <chipset>QCM6490</chipset>
+      <build_id>BOOT.MXF.1.0.c1-00364-KODIAKLA-1</build_id>
+      <windows_root_path cmm_root_path_var="BOOT_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="BOOT_BUILDROOT">./</linux_root_path>
+      <image_dir>boot_images</image_dir>
+      <download_file oem_imageid="XBL" cmm_file_var="BOOT_BINARY" minimized="true" backup_partition="xbl_b" fastboot_complete="xbl_a">
+        <file_name>xbl.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file oem_imageid="XBL-CONFIG" cmm_file_var="BOOT_CONFIG" minimized="true" backup_partition="xbl_config_b" fastboot_complete="xbl_config_a" xbl_config="true">
+        <file_name>xbl_config.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file oem_imageid="SHRM" qti_imageid="SHRM" cmm_file_var="DDRFW_BINARY" minimized="true" backup_partition="shrm_b" fastboot_complete="shrm_a">
+        <file_name>shrm.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file cmm_file_var="IMAGEFV_BINARY" minimized="true" backup_partition="imagefv_b" fastboot="imagefv_a">
+        <file_name>imagefv.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file oem_imageid="UEFI" cmm_file_var="UEFI_BINARY" minimized="true" backup_partition="uefi_b" fastboot_complete="uefi_a">
+        <file_name>uefi.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file oem_imageid="XBL-RAM-DUMP" minimized="true" backup_partition="xbl_ramdump_b" fastboot="xbl_ramdump_a">
+        <file_name>XblRamdump.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file cmm_file_var="TOOLSFV_BINARY" fastboot="toolsfv" minimized="true">
+        <file_name>tools.fv</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <device_programmer oem_imageid="DEVICE-PROGRAMMER" cmm_file_var="FIREHOSE_DDR_ELF" minimized="true">
+        <file_name>prog_firehose_ddr.elf</file_name>
+        <file_path>.</file_path>
+      </device_programmer>
+      <device_programmer cmm_file_var="FIREHOSE_LITE_ELF" firehose_type="lite" minimized="true">
+        <file_name>prog_firehose_lite.elf</file_name>
+        <file_path>.</file_path>
+      </device_programmer>
+    </build>
+    <build>
+      <name>tz</name>
+      <role>tz</role>
+      <chipset>QCM6490</chipset>
+      <build_id>TZ.XF.5.29.1-00084-KODIAKAAAAANAAZT-1</build_id>
+      <short_build_path cmm_var="TZ_BUILDID">EACAANAA</short_build_path>
+      <windows_root_path cmm_root_path_var="TZ_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="TZ_BUILDROOT">./</linux_root_path>
+      <image_dir>trustzone_images</image_dir>
+      <download_file oem_imageid="TZ" cmm_file_var="TZ_BINARY" minimized="true" backup_partition="tz_b" fastboot_complete="tz_a">
+        <file_name>tz.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file oem_imageid="QHEE" cmm_file_var="HYP_BINARY" minimized="true" backup_partition="hyp_b" fastboot_complete="hyp_a">
+        <file_name>hypvm.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file oem_imageid="TZ-DEVCFG" cmm_file_var="TZDEVCFG_BINARY" minimized="true" backup_partition="devcfg_b" fastboot_complete="devcfg_a">
+        <file_name>devcfg.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+    </build>
+    <build>
+      <name>tz_apps</name>
+      <role>tz_apps</role>
+      <chipset>QCM6490</chipset>
+      <build_id>TZ.APPS.1.29-00208-KODIAKAAAAANAZT-1</build_id>
+      <short_build_path cmm_var="TZAPPS_BUILDID">IAGAANAA</short_build_path>
+      <windows_root_path cmm_root_path_var="TZAPPS_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="TZAPSS_BUILDROOT">./</linux_root_path>
+      <image_dir>qtee_tas</image_dir>
+      <download_file oem_imageid="TZ-APP-OEM" cmm_file_var="UEFISEC_BINARY" minimized="true" backup_partition="uefisecapp_b" fastboot_complete="uefisecapp_a">
+        <file_name>uefi_sec.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+    </build>
+    <build>
+      <name>adsp</name>
+      <role>adsp</role>
+      <chipset>QCM6490</chipset>
+      <build_id>ADSP.HT.5.5.c8-00217-KODIAK-1</build_id>
+      <windows_root_path cmm_root_path_var="ADSP_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="ADSP_BUILDROOT">./</linux_root_path>
+      <image_dir>adsp_proc</image_dir>
+      <download_file oem_imageid="ADSP" cmm_file_var="ADSP_BINARY" pil_split="adsp" minimized="true" k2c_dspbin="true" k2c_adsp_mbn="true">
+        <file_name>adsp.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file cmm_file_var="ADSP_BINARY" pil_split_core="adsp" minimized="true">
+        <file_name>adsp.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file ac_bin="true" minimized="true">
+        <file_name>ad.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+    </build>
+    <build>
+      <name>cdsp</name>
+      <role>cdsp</role>
+      <chipset>QCM6490</chipset>
+      <build_id>CDSP.HT.2.5.c3-00103-KODIAK-1</build_id>
+      <windows_root_path cmm_root_path_var="CDSP_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="CDSP_BUILDROOT">./</linux_root_path>
+      <image_dir>cdsp_proc</image_dir>
+      <download_file oem_imageid="CDSP" cmm_file_var="CDSP_BINARY" pil_split="cdsp" minimized="true" ignore="true" k2c_dspbin="true" k2c_cdsp_mbn="true">
+        <file_name>cdsp.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file cmm_file_var="CDSP_BINARY" pil_split_core="cdsp" minimized="true">
+        <file_name>cdsp.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file ac_bin="true" minimized="true">
+        <file_name>cd.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+    </build>
+    <build>
+      <name>cpucp</name>
+      <role>cpucp</role>
+      <chipset>QCM6490</chipset>
+      <build_id>CPUCP.FW.1.0-00017-K2C.EXT-1</build_id>
+      <windows_root_path cmm_root_path_var="CPUCP_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="CPUCP_BUILDROOT">./</linux_root_path>
+      <image_dir>cpucp_proc</image_dir>
+      <download_file oem_imageid="CPUCP" cmm_file_var="CPUCP_BINARY" minimized="true" backup_partition="cpucp_b" fastboot_complete="cpucp_a">
+        <file_name>cpucp.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+    </build>
+    <build>
+      <name>wlan</name>
+      <role>wlan</role>
+      <chipset>QCM6490</chipset>
+      <build_id>WLAN.MSL.2.0.c2-00396-QCAMSLSWPLZ-1</build_id>
+      <windows_root_path cmm_root_path_var="WPSS_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="WPSS_BUILDROOT">./</linux_root_path>
+      <image_dir>wlan_proc</image_dir>
+      <download_file fat_file="true" minimized="true" sub_dir="qca6750" k2c="true">
+        <file_name>Data.msc</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file oem_imageid="WPSS" cmm_file_var="WPSS_BINARY" ignore="true" pil_split="wpss" minimized="true" k2c="true">
+        <file_name>wpss.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file cmm_file_var="WPSS_BINARY" ignore="true" minimized="true" pil_split_core="wpss">
+        <file_name>wpss.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file cmm_file_var="WPSS_QDB_BINARY" ignore="true" fat_file="true" minimized="true" sub_dir="qca6750">
+        <file_name>wpss.qdb</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file k2c_wlan="true" ignore="true">
+        <file_name>board-2.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file fat_file_core="true" minimized="true" ignore="true">
+        <file_name>*</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file cmm_file_var="BDWLAN_BINARY" fat_file="true" minimized="true" sub_dir="qca6750" k2c="true">
+        <file_name>bdwlan.b*</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file cmm_file_var="BDWLANE_BINARY" fat_file="true" minimized="true" sub_dir="qca6750" k2c="true">
+        <file_name>bdwlan.e*</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file ignore="true" fat_file="true" minimized="true" sub_dir="qca6750" k2c="true">
+        <file_name>regdb.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+    </build>
+    <build>
+      <name>wlan_hsp</name>
+      <role>wlan_hsp</role>
+      <chipset>QCM6490</chipset>
+      <build_id>WLAN.HSP.1.1-04685-QCAHSPSWPL_V1_V2_SILICONZ_IOE-1</build_id>
+      <windows_root_path cmm_root_path_var="WLAN_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="WLAN_BUILDROOT">./</linux_root_path>
+      <image_dir>wlan_proc</image_dir>
+    </build>
+    <build>
+      <name>btfm_msl</name>
+      <role>btfm_msl</role>
+      <chipset>QCM6490</chipset>
+      <build_id>BTFW.MOSELLE.1.1.3-00091-MSL_PATCHZ-1</build_id>
+      <windows_root_path cmm_root_path_var="BTFM_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="BTFM_BUILDROOT">./</linux_root_path>
+      <image_dir>btfw_proc</image_dir>
+    </build>
+    <build>
+      <name>btfm_hsp</name>
+      <role>btfm_hsp</role>
+      <chipset>QCM6490</chipset>
+      <build_id>BTFW.HSP.2.1.1-00476-PATCHZ-2</build_id>
+      <windows_root_path cmm_root_path_var="BTFM_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="BTFM_BUILDROOT">./</linux_root_path>
+      <image_dir>btfw_proc</image_dir>
+    </build>
+    <build>
+      <name>btfw_hsp</name>
+      <role>btfw_hsp</role>
+      <chipset>QCM6490</chipset>
+      <build_id>BTFW.HSP.2.1.0-00659-USB_UART_PATCHZ-1</build_id>
+      <windows_root_path cmm_root_path_var="BTFM_BUILDROOT">.\</windows_root_path>
+      <linux_root_path cmm_root_path_var="BTFM_BUILDROOT">./</linux_root_path>
+      <image_dir>btfw_proc</image_dir>
+    </build>
+    <build>
+      <name>common</name>
+      <role>common</role>
+      <chipset>QCM6490</chipset>
+      <build_id>QCM6490.LE.1.0-00376-STD.PROD-1</build_id>
+      <windows_root_path>.\</windows_root_path>
+      <linux_root_path>./</linux_root_path>
+      <image_dir>common</image_dir>
+      <download_file oem_imageid="QUPV3" cmm_file_var="QUP_BINARY" minimized="true" backup_partition="qupfw_b" fastboot_complete="qupfw_a" qup_bin="true">
+        <file_name>qupv3fw.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file fastboot="system" minimized="true">
+        <file_name>rootfs.img</file_name>
+        <file_path flavor="QCM6490_fw">.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" minimized="true" fastboot_complete="ddr_a" backup_partition="ddr_b">
+        <file_name>zeros_5sectors.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file oem_imageid="OEM-MISC" cmm_file_var="MULTIIMGOEM_BINARY" fastboot_complete="multiimgoem_a" backup_partition="multiimgoem_b" minimized="true">
+        <file_name>multi_image.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" minimized="true">
+        <file_name>*.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" minimized="true">
+        <file_name>*.xml</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" minimized="true">
+        <file_name>gpt_main0.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" minimized="true">
+        <file_name>gpt_main1.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" minimized="true">
+        <file_name>gpt_main2.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" minimized="true">
+        <file_name>gpt_main3.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" minimized="true">
+        <file_name>gpt_main4.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" minimized="true">
+        <file_name>gpt_main5.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" gpt_file="partition:0" minimized="true">
+        <file_name>gpt_both0.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" gpt_file="partition:1" minimized="true">
+        <file_name>gpt_both1.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" gpt_file="partition:2" minimized="true">
+        <file_name>gpt_both2.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" minimized="true">
+        <file_name>gpt_both3.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" gpt_file="partition:4" minimized="true">
+        <file_name>gpt_both4.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file storage_type="ufs" gpt_file="partition:5" minimized="true">
+        <file_name>gpt_both5.bin</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <partition_file storage_type="ufs">
+        <file_name>rawprogram0.xml</file_name>
+        <file_path>.</file_path>
+      </partition_file>
+      <partition_patch_file storage_type="ufs">
+        <file_name>patch0.xml</file_name>
+        <file_path>.</file_path>
+      </partition_patch_file>
+      <partition_file storage_type="ufs">
+        <file_name>rawprogram1.xml</file_name>
+        <file_path>.</file_path>
+      </partition_file>
+      <partition_patch_file storage_type="ufs">
+        <file_name>patch1.xml</file_name>
+        <file_path>.</file_path>
+      </partition_patch_file>
+      <partition_file storage_type="ufs">
+        <file_name>rawprogram2.xml</file_name>
+        <file_path>.</file_path>
+      </partition_file>
+      <partition_patch_file storage_type="ufs">
+        <file_name>patch2.xml</file_name>
+        <file_path>.</file_path>
+      </partition_patch_file>
+      <partition_file storage_type="ufs">
+        <file_name>rawprogram3.xml</file_name>
+        <file_path>.</file_path>
+      </partition_file>
+      <partition_patch_file storage_type="ufs">
+        <file_name>patch3.xml</file_name>
+        <file_path>.</file_path>
+      </partition_patch_file>
+      <partition_file storage_type="ufs">
+        <file_name>rawprogram4.xml</file_name>
+        <file_path>.</file_path>
+      </partition_file>
+      <partition_patch_file storage_type="ufs">
+        <file_name>patch4.xml</file_name>
+        <file_path>.</file_path>
+      </partition_patch_file>
+      <partition_file storage_type="ufs">
+        <file_name>rawprogram5.xml</file_name>
+        <file_path>.</file_path>
+      </partition_file>
+      <partition_patch_file storage_type="ufs">
+        <file_name>patch5.xml</file_name>
+        <file_path>.</file_path>
+      </partition_patch_file>
+    </build>
+    <build>
+      <name>glue</name>
+      <role>glue</role>
+      <chipset>QCM6490</chipset>
+      <build_id>GLUE.QCM6490_LE.1.0-00477-NOOP_TEST-1</build_id>
+      <windows_root_path>.\</windows_root_path>
+      <linux_root_path>./</linux_root_path>
+      <image_dir>common</image_dir>
+    </build>
+  </builds_flat>
+  <external_tools>
+    <tool>
+      <name>trace32</name>
+      <version cmm_var="T32_VER_EXT">N.2020.10.000127069</version>
+    </tool>
+    <tool>
+      <name>qpst</name>
+      <version>QPST 2.7.477</version>
+    </tool>
+    <tool>
+      <name>qxdm</name>
+      <version>QXDM 04.00.232</version>
+    </tool>
+    <tool>
+      <name>python</name>
+      <version>3.X</version>
+    </tool>
+  </external_tools>
+</contents>
