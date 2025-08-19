@@ -397,7 +397,7 @@ def CreateErasingRawProgramFiles():
         temp.append(Comment('NOTE: Sector size is %ibytes'%SECTOR_SIZE_IN_BYTES))
 
         CreateFileOfZeros("zeros_33sectors.bin",33)
-        UpdateRawProgram(temp,0, 0.5, i, 0, 1, "zeros_33sectors.bin", "false", "Overwrite MBR sector")
+        UpdateRawProgram(temp,0, 1*SECTOR_SIZE_IN_BYTES/1024.0, i, 0, 1, "zeros_1sector.bin", "false", "Overwrite MBR sector")
         UpdateRawProgram(temp,1, BackupGPTNumLBAs*SECTOR_SIZE_IN_BYTES/1024.0, i, 0, BackupGPTNumLBAs, "zeros_%dsectors.bin" % BackupGPTNumLBAs, "false", "Overwrite Primary GPT Sectors")
 
         backup_gpt_lba = -BackupGPTNumLBAs
@@ -493,23 +493,19 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
 
         print("\n"+"="*78)
 
-        PhyPartition[k][j]['size_in_kb'] = int(PhyPartition[k][j]['size_in_kb'])
-        print("\n\n%d of %d \"%s\" (readonly=%s) and size=%dKB (%dMB) (%i sectors with %i bytes/sector)" %(j+1, len(PhyPartition[k]), PhyPartition[k][j]['label'], PhyPartition[k][j]['readonly'], PhyPartition[k][j]['size_in_kb'], PhyPartition[k][j]['size_in_kb']/1024, ConvertKBtoSectors(PhyPartition[k][j]['size_in_kb']), SECTOR_SIZE_IN_BYTES))
+        size_kb = float(PhyPartition[k][j]['size_in_kb'])
+        size_bytes = math.ceil(size_kb * 1024)                                      #Count the number of bytes
+        sectors = math.ceil(size_bytes / SECTOR_SIZE_IN_BYTES)                      #Calculate the number of sectors rounded up
+        PhyPartition[k][j]['size_in_kb'] = sectors * SECTOR_SIZE_IN_BYTES / 1024
 
-        if (PhyPartition[k][j]['size_in_kb']*1024)%SECTOR_SIZE_IN_BYTES>0:
-            ## Have a remainder, need to round up to next full sector
-            TempResult = (PhyPartition[k][j]['size_in_kb']*1024)/SECTOR_SIZE_IN_BYTES
-            TempResult +=1
-            PhyPartition[k][j]['size_in_kb'] = (TempResult * SECTOR_SIZE_IN_BYTES)/1024
+        ##import pdb; pdb.set_trace() ## verifying sizes
 
-            ##import pdb; pdb.set_trace() ## verifying sizes
-
-        if HashInstructions['PERFORMANCE_BOUNDARY_IN_KB']>0 and HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY'] is False:
+        if HashInstructions['PERFORMANCE_BOUNDARY_IN_KB']>0:
             PrintBigWarning("WARNING: HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'] is %i KB\n\tbut HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY'] is FALSE!!\n\n" % HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'])
             PrintBigWarning("WARNING: This means partitions will *NOT* be aligned to a HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'] of %i KB !!\n\n" % HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'])
             print("To correct this, partition.xml should look like this\n")
             print("\t<parser_instructions>")
-            print("\t\tPERFORMANCE_BOUNDARY_IN_KB = %i" % Partition['PERFORMANCE_BOUNDARY_IN_KB'])
+            print("\t\tPERFORMANCE_BOUNDARY_IN_KB = %i" % HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'])
             print("\t\tALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY=true")
             print("\t</parser_instructions>\n\n")
 
@@ -784,7 +780,7 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
                                  PhysicalPartitionNumber,
                                  FileOffset[z],
                                  ConvertKBtoSectors(PhyPartition[k][j]['original_size_in_kb'])+LastLBA-FirstLBA+1-FilePartitionOffset[z],
-                                 "zeros_33sectors.bin",
+                                 "zeros_%dsectors.bin" % BackupGPTNumLBAs,
                                  "false",
                                  PartitionLabel,
                                  PhyPartition[k][j]['readbackverify'],
@@ -796,14 +792,14 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
                                  PhysicalPartitionNumber,
                                  FileOffset[z],
                                  LastLBA-FirstLBA+1-FilePartitionOffset[z], # num_partition_sectors
-                                 "zeros_33sectors.bin",
+                                 "zeros_%dsectors.bin" % BackupGPTNumLBAs,
                                  "false",
                                  PartitionLabel,
                                  PhyPartition[k][j]['readbackverify'],
                                  PhyPartition[k][j]['partofsingleimage'])
 
             if j==0:
-                UpdateRawProgram(RawProgramXML_Blank,0, 33*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, FileOffset[z], 33, "gpt_empty%d.bin" % k, "false", "PrimaryGPT", "false", "false")
+                UpdateRawProgram(RawProgramXML_Blank,0, PrimaryGPTNumLBAs*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, FileOffset[z], PrimaryGPTNumLBAs, "gpt_empty%d.bin" % k, "false", "PrimaryGPT", "false", "false")
 
 
         LastLBA += 1    ## move to the next free sector, also, 0 to 9 inclusive means it's 10
@@ -1004,7 +1000,7 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
     #ShowBackupGPT(32)
 
     UpdateRawProgram(RawProgramXML,0,       PrimaryGPTNumLBAs*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, 0, PrimaryGPTNumLBAs, os.path.basename(GPTMAIN), 'false', 'PrimaryGPT','false','true')
-    UpdateRawProgram(RawProgramXML_Wipe,0,  1*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, 0,  1, "zeros_33sectors.bin", 'false', 'PrimaryGPT','false','true')
+    UpdateRawProgram(RawProgramXML_Wipe,0,  1*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, 0,  1, "zeros_1sector.bin", 'false', 'PrimaryGPT-MBR','false','true')
     UpdateRawProgram(RawProgramXML_Wipe,1, BackupGPTNumLBAs*SECTOR_SIZE_IN_BYTES/1024.0, PhysicalPartitionNumber, 0, BackupGPTNumLBAs, "zeros_%dsectors.bin" % BackupGPTNumLBAs, 'false', 'PrimaryGPT','false','true')
 
     #print "szStartSector=%s" % szStartSector
@@ -1359,7 +1355,7 @@ def ParseXML(XMLFile):
 
 ##timmy
 
-                        TempSizeInBytes = int(value)*1024
+                        TempSizeInBytes = math.ceil(float(value)) * 1024
                         if TempSizeInBytes < SECTOR_SIZE_IN_BYTES:
                             ## smaller than a sector, which is possible if sector size is 4KB
                             TempSizeInBytes = SECTOR_SIZE_IN_BYTES
