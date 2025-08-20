@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # ===========================================================================*/
 #Copyright (c) 2015, The Linux Foundation. All rights reserved.
 
@@ -68,41 +68,41 @@ disk_size = None
 def reset_device_log():
     try:
         log_fp = open('log_msp.txt', 'w')
-    except Exception, x:
-        print "\nERROR: Can't create the file log_msp.txt"
-        print "REASON: %s" % x
-        print "This might be because the file is open and locked"
-        print "Or because you are running this from a read-only location\n"
+    except Exception as x:
+        print("\nERROR: Can't create the file log_msp.txt")
+        print("REASON: %s" % x)
+        print("This might be because the file is open and locked")
+        print("Or because you are running this from a read-only location\n")
         sys.exit()
 
-    print "\nCREATED log_msp.txt\n"
+    print("\nCREATED log_msp.txt\n")
     log_fp.close()
 
 def device_log(message, display=1):
     try:
         log_fp = open('log_msp.txt', 'a')
-    except Exception, x:
-        print "ERROR: could not open 'log_msp.txt'"
-        print "REASON: %s" % x
+    except Exception as x:
+        print("ERROR: could not open 'log_msp.txt'")
+        print("REASON: %s" % x)
         return
 
     try:
         log_fp.write("%s %s\n" % (strftime("%H:%M:%S", localtime()),message))
-    except Exception, x:
-        print "ERROR: could not write to 'log_msp.txt'"
-        print "REASON: %s" % x
+    except Exception as x:
+        print("ERROR: could not write to 'log_msp.txt'")
+        print("REASON: %s" % x)
         return
 
 
     if display==1:
-        print message
+        print(message)
 
     log_fp.close()
 
 def ReadSectors(opfile,NumSectors):
     try:
         return opfile.read(NumSectors*SECTOR_SIZE)
-    except Exception, x:
+    except Exception as x:
         PrintBigError("Could not complete the read")
         device_log("REASON: %s" % (x))
 
@@ -115,7 +115,7 @@ def EnsureDirectoryExists(filename):
 
     try:
         os.stat(dir)
-    except Exception, x:
+    except Exception as x:
         os.makedirs(dir)
 
 
@@ -150,7 +150,7 @@ def PrettyPrintArray(bytes_read):
     Bytes = struct.unpack("%dB" % len(bytes_read),bytes_read)
 
     for k in range(len(Bytes)/SECTOR_SIZE):
-        print "-"*78
+        print("-"*78)
         for j in range(32):
             for i in range(16):
                 sys.stdout.write("%.2X " % Bytes[i+j*16])
@@ -159,8 +159,8 @@ def PrettyPrintArray(bytes_read):
     
             for i in range(16):
                 sys.stdout.write("%c" % Bytes[i+j*16])
-            print " "
-    print " "
+            print(" ")
+    print(" ")
 
 def external_call(command, capture_output=True):
     errors = None
@@ -174,8 +174,8 @@ def external_call(command, capture_output=True):
             output, errors = p.communicate()
         else:
             os.system(command)
-    except Exception, e:
-        print output
+    except Exception as e:
+        print(output)
         device_log("Error executing command '%s' (%s)" % (str(command), e))
         #clean_up()
         device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
@@ -224,7 +224,7 @@ def ReturnParsedValues(element):
                 'physical_partition_number':'0','size_in_KB':'0','sparse':'false','start_byte_hex':'0x0','start_sector':'0',
                 'function':'none','arg0':'0','arg1':'0','value':'0','byte_offset':'0','size_in_bytes':'4','SECTOR_SIZE_IN_BYTES':'512'    }
 
-    for name, value in element.items():
+    for name, value in list(element.items()):
         ##device_log("\t\tName: '%s'=>'%s' " % (name,value))
         MyDict[name]=value
 
@@ -275,24 +275,24 @@ def ParseXML(xml_filename):     ## this function updates all the global arrays
         # Parse out include files
 
         if element.tag=="read":
-            if element.keys():
+            if list(element.keys()):
                 ReadArray.append( ReturnParsedValues(element) )
             else:
-                print "ERROR: Your <read> tag is not formed correctly\n"
+                print("ERROR: Your <read> tag is not formed correctly\n")
                 sys.exit(1)
 
         elif element.tag=="program":
-            if element.keys():
+            if list(element.keys()):
                 WriteArray.append( ReturnParsedValues(element) )
             else:
-                print "ERROR: Your <program> tag is not formed correctly\n"
+                print("ERROR: Your <program> tag is not formed correctly\n")
                 sys.exit(1)
                 
         elif element.tag=="patch":
-            if element.keys():
+            if list(element.keys()):
                 PatchArray.append( ReturnParsedValues(element) )
             else:
-                print "ERROR: Your <patch> tag is not formed correctly\n"
+                print("ERROR: Your <patch> tag is not formed correctly\n")
                 sys.exit(1)
 
 
@@ -363,7 +363,7 @@ def DoubleCheckDiskSize():
 
                 count += 1
 
-        except Exception, x:
+        except Exception as x:
             TrueSize = fp.tell()
         fp.close()
     
@@ -407,7 +407,7 @@ def PerformRead():
 
         if interactive is True:
             device_log("Do you want to perform this read? (Y|n|q)",0)
-            loadfile = raw_input("Do you want to perform this read? (Y|n|q)")
+            loadfile = input("Do you want to perform this read? (Y|n|q)")
             if loadfile=='Y' or loadfile=='y' or loadfile=='':
                 pass
             elif loadfile=='q' or loadfile=='Q':
@@ -429,12 +429,12 @@ def PerformRead():
             device_log("Could not open Filename=%s, cwd=%s" % (Filename, os.getcwd() ))
 
             if sys.platform.startswith("linux"):
-                print "\t               _      ___"  
-                print "\t              | |    |__ \\" 
-                print "\t ___ _   _  __| | ___   ) |"
-                print "\t/ __| | | |/ _` |/ _ \\ / /" 
-                print "\t\\__ \\ |_| | (_| | (_) |_|"  
-                print "\t|___/\\__,_|\\__,_|\\___/(_)\n"
+                print("\t               _      ___")
+                print("\t              | |    |__ \\")
+                print("\t ___ _   _  __| | ___   ) |")
+                print("\t/ __| | | |/ _` |/ _ \\ / /")
+                print("\t\\__ \\ |_| | (_| | (_) |_|")
+                print("\t|___/\\__,_|\\__,_|\\___/(_)\n")
                 device_log("\tDon't forget you need SUDO with this program")
                 device_log("\tsudo python msp.py partition.xml /dev/sdx (where x is the device node)")
             else:
@@ -567,7 +567,7 @@ def PerformWrite():
 
         if interactive is True:
             device_log("Do you want to load this file? (Y|n|q)",0)
-            loadfile = raw_input("Do you want to load this file? (Y|n|q)")
+            loadfile = input("Do you want to load this file? (Y|n|q)")
             if loadfile=='Y' or loadfile=='y' or loadfile=='':
                 pass
             elif loadfile=='q' or loadfile=='Q':
@@ -597,7 +597,7 @@ def PerformWrite():
             device_log("Please provide a path for this file")
             device_log("Ex. \\\\somepath\\folder OR c:\\somepath\\folder\n")
             device_log("Enter PATH or Q to quit? ",0)
-            temppath = raw_input("Enter PATH or Q to quit? ")
+            temppath = input("Enter PATH or Q to quit? ")
             if temppath=='Q' or temppath=='q' or temppath=='':
                 device_log("\nmsp.py exiting - user pressed Q (quit) - Log is log_msp.txt\n\n")
                 sys.exit()
@@ -611,7 +611,7 @@ def PerformWrite():
                 size = os.path.getsize(FileWithPath)
 
                 device_log("\nShould this path be used to find other files? (Y|n|q)",0)
-                temp = raw_input("\nShould this path be used to find other files? (Y|n|q)")
+                temp = input("\nShould this path be used to find other files? (Y|n|q)")
                 if temp=='Q' or temp=='q':
                     device_log("\nmsp.py exiting - user pressed Q (quit) - Log is log_msp.txt\n\n")
                     sys.exit()
@@ -622,7 +622,7 @@ def PerformWrite():
         if noprompt is False:
             if size==0:
                 device_log("WARNING: This file is 0 bytes, do you want to load this file? (y|N|q)",0)
-                loadfile = raw_input("WARNING: This file is 0 bytes, do you want to load this file? (y|N|q)")
+                loadfile = input("WARNING: This file is 0 bytes, do you want to load this file? (y|N|q)")
                 if loadfile=='N' or loadfile=='n' or loadfile=='':
                     continue
                 elif loadfile=='q' or loadfile=='Q':
@@ -655,13 +655,13 @@ def PerformWrite():
 
         try:
             ipfile = open(FileWithPath, "rb")
-        except Exception, x:
+        except Exception as x:
             PrintBigError("Could not open FileWithPath=%s, cwd=%s\nREASON: %s" % (Write['filename'], os.getcwd(), x ))
 
         device_log("\tAttempting to move to sector %i (file file_sector_offset) in %s" % (Write['file_sector_offset'],Write['filename']))
         try:
             ipfile.seek(int(Write['file_sector_offset']*SECTOR_SIZE))
-        except Exception, x:
+        except Exception as x:
             PrintBigError("Could not move to sector %d in %s\nREASON: %s" % (Write['file_sector_offset'],Write['filename'],x))
 
         device_log("\tAttempting to read %i bytes" % (size))
@@ -670,7 +670,7 @@ def PerformWrite():
                 bytes_read = ipfile.read(size)
             else:
                 device_log("File is too large to read all at once, must be broken up")
-        except Exception, x:
+        except Exception as x:
             PrintBigError("Could not read %d bytes in %s\nREASON: %s" % (size,Write['filename'],x))
             device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
             sys.exit()
@@ -709,19 +709,19 @@ def PerformWrite():
                 Filename = OutputFolder+os.path.basename(Filename)
 
             opfile = open(Filename, "r+b")  ## Filename = '\\.\PHYSICALDRIVE1'
-        except Exception, x:
+        except Exception as x:
 
             PrintBigError("")
             device_log("Could not open Filename=%s, cwd=%s" % (Filename, os.getcwd() ))
             device_log("REASON: %s" % (x))
 
             if sys.platform.startswith("linux"):
-                print "\t               _      ___"  
-                print "\t              | |    |__ \\" 
-                print "\t ___ _   _  __| | ___   ) |"
-                print "\t/ __| | | |/ _` |/ _ \\ / /" 
-                print "\t\\__ \\ |_| | (_| | (_) |_|"  
-                print "\t|___/\\__,_|\\__,_|\\___/(_)\n"
+                print("\t               _      ___") 
+                print("\t              | |    |__ \\")
+                print("\t ___ _   _  __| | ___   ) |")
+                print("\t/ __| | | |/ _` |/ _ \\ / /")
+                print("\t\\__ \\ |_| | (_| | (_) |_|")
+                print("\t|___/\\__,_|\\__,_|\\___/(_)\n")
                 device_log("\tDon't forget you need SUDO with this program")
                 device_log("\tsudo python msp.py partition.xml /dev/sdx (where x is the device node)")
             else:
@@ -760,7 +760,7 @@ def PerformWrite():
         if int(Write['start_sector']) > 0:
             try:
                 opfile.seek(int(Write['start_sector']*SECTOR_SIZE))
-            except Exception, x:
+            except Exception as x:
                 PrintBigError("Could not move to sector %d on %s" % (Write['start_sector'],Filename))
                 device_log("REASON: %s" % (x))
 
@@ -777,7 +777,7 @@ def PerformWrite():
             device_log("\tCalling opfile.write(bytes_read)")
             try:
                 opfile.write(bytes_read)
-            except Exception, x:
+            except Exception as x:
                 PrintBigError("")
                 device_log("Could not write %d bytes to %s" % (len(bytes_read),Filename))
                 device_log("REASON: %s" % (x))
@@ -803,7 +803,7 @@ def PerformWrite():
                 #device_log("read %i bytes" % MAX_FILE_SIZE_BEFORE_SPLIT)
                 try:
                     bytes_read = ipfile.read(MAX_FILE_SIZE_BEFORE_SPLIT)
-                except Exception, x:
+                except Exception as x:
                     PrintBigError("Could not read from %s\nREASON: %s" % (FileWithPath,x))
 
                 ##device_log("\n\t%i) Packing %i Bytes [%i:%i]" % (a+1,MAX_FILE_SIZE_BEFORE_SPLIT,TempSize,TempSize+MAX_FILE_SIZE_BEFORE_SPLIT))
@@ -811,7 +811,7 @@ def PerformWrite():
                 device_log("\t%.2i) Writing %i Bytes [%i:%i]" % (a+1,MAX_FILE_SIZE_BEFORE_SPLIT,TempSize,TempSize+MAX_FILE_SIZE_BEFORE_SPLIT))
                 try:
                     opfile.write(bytes_read)
-                except Exception, x:
+                except Exception as x:
                     PrintBigError("Could not write to %s\nREASON: %s" % (Filename,x))
 
                 TempSize += MAX_FILE_SIZE_BEFORE_SPLIT
@@ -827,7 +827,7 @@ def PerformWrite():
                 device_log("\t%.2i) Writing %i Bytes [%i:%i]" % (a+1,(size-TempSize),TempSize,size))
                 try:
                     bytes_read = ipfile.read(size-TempSize)
-                except Exception, x:
+                except Exception as x:
                     PrintBigError("Could not read from %s\nREASON: %s" % (FileWithPath,x))
 
                 ##device_log("len(bytes_read)=",len(bytes_read))
@@ -850,7 +850,7 @@ def PerformWrite():
                 #device_log("This is the final write")
                 try:
                     opfile.write(bytes_read)
-                except Exception, x:
+                except Exception as x:
                     PrintBigError("Could not write to %s\nREASON: %s" % (Filename,x))
 
             ipfile.close()
@@ -866,7 +866,7 @@ def PerformWrite():
         try:
             ##print opfile
             opfile.close()
-        except Exception, x:
+        except Exception as x:
             device_log("\tWARNING: Can't close the file?")
             device_log("REASON: %s" % (x))
             #sys.exit()
@@ -951,7 +951,7 @@ def GetPartitions():
                 AvailablePartitions[Device] = Size
 
 
-    Devices = AvailablePartitions.keys()
+    Devices = list(AvailablePartitions.keys())
     Devices.sort()
 
     device_log("--------------------------------Partitions Detected--------------------------------------")
@@ -1012,7 +1012,7 @@ def PerformPatching():
         else:
             if var=='N' or var=='n':
                 device_log("\nWARNING: Are you sure you want to PATCH to '%s' of size %s (y|N) " % (Filename,ReturnSizeString(DiskSizeInBytes)),0)
-                var = raw_input("\nWARNING: Are you sure you want to PATCH to '%s' of size %s (y|N) " % (Filename,ReturnSizeString(DiskSizeInBytes)))
+                var = input("\nWARNING: Are you sure you want to PATCH to '%s' of size %s (y|N) " % (Filename,ReturnSizeString(DiskSizeInBytes)))
                 if var=='Y' or var=='y':
                     pass
                 else:
@@ -1048,7 +1048,7 @@ def PerformPatching():
             device_log("Please provide a path for this file")
             device_log("Ex. \\\\somepath\\folder OR c:\\somepath\\folder\n")
             device_log("Enter PATH or Q to quit? ",0)
-            temppath = raw_input("Enter PATH or Q to quit? ")
+            temppath = input("Enter PATH or Q to quit? ")
             if temppath=='Q' or temppath=='q' or temppath=='':
                 device_log("\nmsp.py exiting - user pressed Q (quit) - Log is log_msp.txt\n\n")
                 sys.exit()
@@ -1062,7 +1062,7 @@ def PerformPatching():
                 size = os.path.getsize(FileWithPath)
 
                 device_log("\nShould this path be used to find other files? (Y|n|q)",0)
-                temp = raw_input("\nShould this path be used to find other files? (Y|n|q)")
+                temp = input("\nShould this path be used to find other files? (Y|n|q)")
                 if temp=='Q' or temp=='q':
                     device_log("\nmsp.py exiting - user pressed Q (quit) - Log is log_msp.txt\n\n")
                     sys.exit()
@@ -1073,7 +1073,7 @@ def PerformPatching():
         try:
             opfile = open(FileWithPath, "r+b")
             device_log("Opened %s, cwd=%s" % (FileWithPath,os.getcwd() ))
-        except Exception, x:
+        except Exception as x:
             PrintBigError("Could not open %s, cwd=%s\nREASON: %s" % (FileWithPath,os.getcwd(),x ))
 
         if Patch['function']=="CRC32":
@@ -1095,7 +1095,7 @@ def PerformPatching():
                     device_log("moving to sector %d (byte location %d)" % (Patch['arg0'],Patch['arg0']*SECTOR_SIZE))
                     opfile.seek( int(Patch['arg0']*SECTOR_SIZE))
 
-            except Exception, x:
+            except Exception as x:
                 PrintBigError("Could not complete move in %s\nREASON: %s" % (FileWithPath,x))
 
             device_log("\tMove Successful ")
@@ -1107,7 +1107,7 @@ def PerformPatching():
                 else:
                     device_log("\tTrying to read %d bytes in %s" % (Patch['arg1'],FileWithPath))
                     bytes_read = opfile.read(Patch['arg1'])
-            except Exception, x:
+            except Exception as x:
                 PrintBigError("Could not read in %s\nREASON: %s" % (FileWithPath,x))
 
             device_log("\tlen(bytes_read)=",len(bytes_read))
@@ -1141,7 +1141,7 @@ def PerformPatching():
                 else:
                     device_log("moving to sector %d (byte location %d)" % (Patch['start_sector'],Patch['start_sector']*SECTOR_SIZE))
                     opfile.seek(int(Patch['start_sector']*SECTOR_SIZE))
-            except Exception, x:
+            except Exception as x:
                 PrintBigError("Could not move to sector %d in %s\nREASON: %s" % (Patch['start_sector'],FileWithPath,x))
 
         try:
@@ -1153,7 +1153,7 @@ def PerformPatching():
                 bytes_read = opfile.read(SECTOR_SIZE)
                 if len(bytes_read) != (SECTOR_SIZE):
                     PrintBigError("Didn't get the read size SECTOR_SIZE in '%s'" % FileWithPath)
-        except Exception, x:
+        except Exception as x:
             PrintBigError("Could not read sector %d in %s\nREASON: %s" % (Patch['start_sector'],FileWithPath,x))
 
         device_log("success was able to read len(bytes_read)=%d" % (len(bytes_read)))
@@ -1166,7 +1166,7 @@ def PerformPatching():
             else:
                 #device_log("moving to sector %d (byte location %d)" % (Patch['start_sector'],Patch['start_sector']*SECTOR_SIZE))
                 opfile.seek(int(Patch['start_sector']*SECTOR_SIZE))
-        except Exception, x:
+        except Exception as x:
             PrintBigError("Could not move to sector %d in %s\nREASON: %s" % (Patch['start_sector'],FileWithPath,x))
 
         if Patch['value'] < 0:
@@ -1233,14 +1233,14 @@ def PerformPatching():
         device_log("committing patch of length %d bytes" % len(bytes_read))
         try:
             opfile.write(bytes_read)
-        except Exception, x:
+        except Exception as x:
             PrintBigError("Could not write %d bytes to %s\nREASON: %s" % (len(bytes_read),FileWithPath,x))
 
             #WriteValue(fd, RawProgramInfo.start_sector, RawProgramInfo.byte_offset, RawProgramInfo.value, RawProgramInfo.size_in_bytes);
 
         try:
             opfile.close()
-        except Exception, x:
+        except Exception as x:
             device_log("\tWARNING: Could not close %s" % FileWithPath)
             device_log("REASON: %s" % (x))
             
@@ -1259,7 +1259,7 @@ def PerformPatching():
     device_log("Done patching")
 
 def Usage():
-    print "Usage: Mass Storage Programmer - destructively writes data to disks!!\n"
+    print("Usage: Mass Storage Programmer - destructively writes data to disks!!\n")
 
     sudo = ""
     drive= ""
@@ -1267,27 +1267,27 @@ def Usage():
         sudo = "sudo"
         drive= "/dev/sdb"
     else:
-        print "\tYou must run as Administrator under Win7\n"
+        print("\tYou must run as Administrator under Win7\n")
         drive="\\\\.\\PHYSICALDRIVE1"
 
-    print "%-40s\t python msp.py" % "Display this info"
-    print "%-40s\t%s python msp.py -r wipe_rawprogram_PHY0.xml -d %s" % ("Wipe partition info (-w)",sudo,drive)
-    print "\n%-40s\t%s python msp.py -r rawprogram0.xml -d %s" % ("Write a device (-r)",sudo,drive)
-    print "%-40s\t%s python msp.py -r rawprogram0.xml -d 0" % ("Create a singleimage.bin (-r)",sudo)
-    print "%-40s\t%s python msp.py -r rawprogram0.xml -d 0 -t c:\\temp" % ("singleimage.bin stored to c:\\temp (-r)",sudo)
-    print "%-40s\t%s python msp.py -r rawprogram0.xml -d 16777216" % ("Create an 8GB singleimage.bin (-r)",sudo)
-    print "\n%-40s\t%s python msp.py -n -r rawprogram.xml -d %s" % ("no prompts (-n) i.e. automation",sudo,drive)
-    print "%-40s\t%s python msp.py -i -r rawprogram.xml -d %s " % ("Interactively choose files (-i)",sudo,drive)
-    print "%-40s\t%s python msp.py -f sbl1.mbn,sbl2.mbn -r rawprogram.xml -d %s " % ("Specify files from rawprogram.xml (-f)",sudo,drive)
-    print "%-40s\t%s python msp.py -s c:\\windows,d:\\ -r rawprogram.xml -d %s " % ("Search this path for files (-s)",sudo,drive)
-    print "\n%-40s\t%s python msp.py -p patch0.xml -d %s" % ("Patch a device (-p)",sudo,drive)
-    print "%-40s\t%s python msp.py -p patch0.xml -d singleimage.bin" % ("Patch files to singleimage (-p)",sudo)
-    print "%-40s\t%s python msp.py -p patch0.xml -d 16777216" % ("PRE-PATCH images for an 8GB disk (-p)",sudo)
-    print "\n%-40s\t%s python msp.py -r rawprogram0.xml -p patch0.xml -d %s" % ("ALL IN ONE STEP",sudo,drive)
+    print("%-40s\t python msp.py" % "Display this info")
+    print("%-40s\t%s python msp.py -r wipe_rawprogram_PHY0.xml -d %s" % ("Wipe partition info (-w)",sudo,drive))
+    print("\n%-40s\t%s python msp.py -r rawprogram0.xml -d %s" % ("Write a device (-r)",sudo,drive))
+    print("%-40s\t%s python msp.py -r rawprogram0.xml -d 0" % ("Create a singleimage.bin (-r)",sudo))
+    print("%-40s\t%s python msp.py -r rawprogram0.xml -d 0 -t c:\\temp" % ("singleimage.bin stored to c:\\temp (-r)",sudo))
+    print("%-40s\t%s python msp.py -r rawprogram0.xml -d 16777216" % ("Create an 8GB singleimage.bin (-r)",sudo))
+    print("\n%-40s\t%s python msp.py -n -r rawprogram.xml -d %s" % ("no prompts (-n) i.e. automation",sudo,drive))
+    print("%-40s\t%s python msp.py -i -r rawprogram.xml -d %s " % ("Interactively choose files (-i)",sudo,drive))
+    print("%-40s\t%s python msp.py -f sbl1.mbn,sbl2.mbn -r rawprogram.xml -d %s " % ("Specify files from rawprogram.xml (-f)",sudo,drive))
+    print("%-40s\t%s python msp.py -s c:\\windows,d:\\ -r rawprogram.xml -d %s " % ("Search this path for files (-s)",sudo,drive))
+    print("\n%-40s\t%s python msp.py -p patch0.xml -d %s" % ("Patch a device (-p)",sudo,drive))
+    print("%-40s\t%s python msp.py -p patch0.xml -d singleimage.bin" % ("Patch files to singleimage (-p)",sudo))
+    print("%-40s\t%s python msp.py -p patch0.xml -d 16777216" % ("PRE-PATCH images for an 8GB disk (-p)",sudo))
+    print("\n%-40s\t%s python msp.py -r rawprogram0.xml -p patch0.xml -d %s" % ("ALL IN ONE STEP",sudo,drive))
 
-    print "\n"+"*"*78
-    print "Usage: Mass Storage Programmer - destructively writes data to disks!!"
-    print "*"*78+"\n"
+    print("\n"+"*"*78)
+    print("Usage: Mass Storage Programmer - destructively writes data to disks!!")
+    print("*"*78+"\n")
 
 
 def ReturnSizeString(size):
@@ -1412,19 +1412,19 @@ def CalculateMinDiskSize():
     for Write in WriteSorted:
         if int(Write['start_sector']) > 0 and int(Write['start_sector'])<(EMMCBLD_MAX_DISK_SIZE_IN_BYTES/SECTOR_SIZE):
             MinDiskSizeInSectors = (int(Write['start_sector']) + int(Write['num_partition_sectors']))
-	if OldMinDiskSizeInSectors != MinDiskSizeInSectors:
+        if OldMinDiskSizeInSectors != MinDiskSizeInSectors:
             device_log("MinDiskSizeInSectors=%i sectors (%.2fMB)" % (MinDiskSizeInSectors,MinDiskSizeInSectors*SECTOR_SIZE/(1024.0*1024.0)))
-	    OldMinDiskSizeInSectors = MinDiskSizeInSectors
+            OldMinDiskSizeInSectors = MinDiskSizeInSectors
 
-    print "----------------------"
+    print("----------------------")
     # second time is for NUM_DISK_SECTORS-33 type of scenarios, since they will currently have
     # my made up value of EMMCBLD_MAX_DISK_SIZE_IN_BYTES+start_sector
     for Write in WriteSorted:
         if int(Write['start_sector']) > 0 and int(Write['start_sector'])>(EMMCBLD_MAX_DISK_SIZE_IN_BYTES/SECTOR_SIZE):
             MinDiskSizeInSectors += int(Write['start_sector'])-(EMMCBLD_MAX_DISK_SIZE_IN_BYTES/SECTOR_SIZE)
-	if OldMinDiskSizeInSectors != MinDiskSizeInSectors:
+        if OldMinDiskSizeInSectors != MinDiskSizeInSectors:
             device_log("MinDiskSizeInSectors=%i sectors (%.2fMB)" % (MinDiskSizeInSectors,MinDiskSizeInSectors*SECTOR_SIZE/(1024*1024.0)))
-	    OldMinDiskSizeInSectors = MinDiskSizeInSectors
+            OldMinDiskSizeInSectors = MinDiskSizeInSectors
    
     return MinDiskSizeInSectors
     
@@ -1440,7 +1440,7 @@ AvailablePartitions = {}
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], "r:p:d:ins:f:t:vb:", ["rawprogram=", "patch=", "dest=","noprompt=", "interactive=", "search_path=","file=","location=","verbose","sectorsize"])
-except getopt.GetoptError, err:
+except getopt.GetoptError as err:
     # print help information and exit:
     Usage()
     PrintBigError(str(err))
@@ -1541,7 +1541,7 @@ for o, a in opts:
                 # To be here means user did this possibly "-d singleimage.bin", i.e. to patch the singleimage.bin
                 try:
                     DiskSizeInBytes = os.path.getsize(disk_name) # and thus singleimage.bin must already exist
-                except Exception, x:
+                except Exception as x:
 
                     PrintBigError("")
                     device_log("Can't get size of %s" % Filename)
@@ -1686,8 +1686,8 @@ while 1 and (Operation & OPERATION_PROGRAM) > 0:
 
 MinDiskSizeInSectors = CalculateMinDiskSize()
 
-print "MinDiskSizeInSectors=",MinDiskSizeInSectors
-print "DiskSizeInSectors   =",DiskSizeInBytes/SECTOR_SIZE
+print("MinDiskSizeInSectors=",MinDiskSizeInSectors)
+print("DiskSizeInSectors   =",DiskSizeInBytes/SECTOR_SIZE)
 
 if DiskSizeInBytes==0:
     DiskSizeInBytes = int(MinDiskSizeInSectors)*SECTOR_SIZE
@@ -1719,11 +1719,11 @@ if (Operation & OPERATION_PROGRAM) > 0:
 
     if os.path.basename(Filename)=="singleimage.bin":
         ## Wipe out any old singleimage
-	try:
-	    opfile = open(Filename, "wb")
-        except Exception, x:
-            print "REASON: %s" % x
-            print "\nERROR: Can't delete old singleimage.bin. Is it open??"
+        try:
+            opfile = open(Filename, "wb")
+        except Exception as x:
+            print("REASON: %s" % x)
+            print("\nERROR: Can't delete old singleimage.bin. Is it open??")
             sys.exit()
         opfile.close()
 
@@ -1732,7 +1732,7 @@ if (Operation & OPERATION_PROGRAM) > 0:
         if noprompt is False:
             if (DiskSizeInBytes/(1024.0*1024.0))>100:
                 device_log("\nThis will be a LARGE singleimage.bin, it will take a long time, Do you want to continue? (Y|n)",0)
-                var = raw_input("\nThis will be a LARGE singleimage.bin, it will take a long time, Do you want to continue? (Y|n)")
+                var = input("\nThis will be a LARGE singleimage.bin, it will take a long time, Do you want to continue? (Y|n)")
                 if var=='Y' or var=='y' or var=='':
                     pass
                 else:
@@ -1744,7 +1744,7 @@ if (Operation & OPERATION_PROGRAM) > 0:
             pass
         else:
             device_log("\nWARNING: Are you sure you want to write to '%s' of size %s (y|N) " % (Filename,ReturnSizeString(DiskSizeInBytes)),0)
-            var = raw_input("\nWARNING: Are you sure you want to write to '%s' of size %s (y|N) " % (Filename,ReturnSizeString(DiskSizeInBytes)))
+            var = input("\nWARNING: Are you sure you want to write to '%s' of size %s (y|N) " % (Filename,ReturnSizeString(DiskSizeInBytes)))
             if var=='Y' or var=='y':
                 pass
             else:
