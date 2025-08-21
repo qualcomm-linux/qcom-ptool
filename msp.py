@@ -1505,7 +1505,7 @@ for o, a in opts:
         # if a number was specified, it's size in sectors and we're making a singleimage.bin
         # otherwise, a drive /dev/sdb or something was specified
 
-        m = re.search("^(\d+)$", disk_name)
+        m = re.search(r"^(\d+)$", disk_name)
         if type(m) is not NoneType:
             ## to be here means they specified a number must be making a single image or patching files
             Patching = "FILES"
@@ -1526,7 +1526,7 @@ for o, a in opts:
                 if type(m) is not NoneType:
                     ValidDiskName   = True
             else:
-                m = re.search("(PHYSICALDRIVE\d+)", disk_name)
+                m = re.search(r"(PHYSICALDRIVE\d+)", disk_name)
                 if type(m) is not NoneType:
                     ValidDiskName   = True
                     Filename = "\\\\.\\"+m.group(1)
@@ -1583,9 +1583,9 @@ device_log(file_list)
 
 if disk_name is None:
     if sys.platform.startswith("linux"):
-        device_log("Don't forget to specify your drive, EX '-d /dev/sdb' OR '-d 0' to create a singleimage");
+        device_log(r"Don't forget to specify your drive, EX '-d /dev/sdb' OR '-d 0' to create a singleimage");
     else:
-        device_log("Don't foreget to specify your drive, EX '-d \\.\PHYSICALDRIVE1' OR '-d 0' to create a singleimage");
+        device_log(r"Don't foreget to specify your drive, EX '-d \\.\PHYSICALDRIVE1' OR '-d 0' to create a singleimage");
 
     PrintBigError("You must specify a DISK, option -d")
 
@@ -1642,7 +1642,7 @@ for Write in WriteArray:
         #device_log("no filename for label '%s'"%Write['label'])
         continue
 
-    m = re.search("\.ext4$", Write['filename'])
+    m = re.search(r"\.ext4$", Write['filename'])
     if type(m) is not NoneType:
         TestIfSparse(test_sparse,Write['filename'])
 
@@ -1693,9 +1693,9 @@ if DiskSizeInBytes==0:
         PrintBigError("")
         device_log("Something went wrong, couldn't determine size of disk?")
         if sys.platform.startswith("linux"):
-            device_log("Did you remember to specify your drive, EX '-d /dev/sdb'");
+            device_log(r"Did you remember to specify your drive, EX '-d /dev/sdb'");
         else:
-            device_log("Did you remember to specify your drive, EX '-d \\.\PHYSICALDRIVE1'");
+            device_log(r"Did you remember to specify your drive, EX '-d \\.\PHYSICALDRIVE1'");
 
         device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
         sys.exit()
