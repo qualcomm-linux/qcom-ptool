@@ -1,0 +1,105 @@
+<?xml version="1.0" ?>
+<!--
+========================================================================
+  contents.xml.in
+
+  General Description
+     Contains information about component builds for this target.
+     It will clone as contents.xml during build compilation process.
+
+  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+  SPDX-License-Identifier: BSD-3-Clause
+
+========================================================================
+-->
+
+<contents>
+  <product_flavors cmm_pf_var="PRODUCT_FLAVORS">
+    <pf>
+      <name>default</name>
+      <component>
+        <name>common</name>
+        <flavor>default</flavor>
+      </component>
+      <component>
+        <name>apps</name>
+        <flavor>default</flavor>
+      </component>
+    </pf>
+    <pf>
+      <name>sail_nor</name>
+      <component>
+        <name>common</name>
+        <flavor>sail_nor</flavor>
+      </component>
+    </pf>
+  </product_flavors>
+  <product_info>
+    <product_name>QCS9100.LE.1.0</product_name>
+    <chipid flavor="default" storage_type="ufs" flash_phase="1">QCS9100</chipid>
+    <chipid flavor="sail_nor" storage_type="spinor" flash_phase="2">QCS9100</chipid>
+    <additional_chipid>SA8775P,QCS9075</additional_chipid>
+    <meta_type>SPF</meta_type>
+  </product_info>
+  <builds_flat>
+    <build>
+      <name>apps</name>
+      <role>apps</role>
+      <chipset>QCS9100</chipset>
+      <windows_root_path>.\</windows_root_path>
+      <linux_root_path>./</linux_root_path>
+      <image_dir>apps_proc</image_dir>
+    </build>
+    <build>
+      <name>common</name>
+      <role>common</role>
+      <chipset>QCS9100</chipset>
+      <windows_root_path>.\</windows_root_path>
+      <linux_root_path>./</linux_root_path>
+      <image_dir>common</image_dir>
+      <device_programmer>
+        <file_name>prog_firehose_ddr.elf</file_name>
+        <file_path>.</file_path>
+      </device_programmer>
+      <device_programmer firehose_type="lite">
+        <file_name>prog_firehose_lite.elf</file_name>
+        <file_path>.</file_path>
+      </device_programmer>
+      <download_file>
+        <fastboot_complete>{partition_name}</fastboot_complete>
+        <file_name>{image_name}</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <partition_file>
+        <storage_type>{storage_type}</storage_type>
+        <file_name>{partition_file_name}</file_name>
+        <file_path flavor="default">.</file_path>
+      </partition_file>
+      <partition_patch_file>
+        <storage_type>{storage_type}</storage_type>
+        <file_name>{partition_patch_file_name}</file_name>
+        <file_path flavor="default">.</file_path>
+      </partition_patch_file>
+      <download_file storage_type="spinor" fastboot_complete="SAIL_HYP">
+        <file_name>sailfreertos.elf</file_name>
+        <file_path flavor="sail_nor">./sail_nor</file_path>
+      </download_file>
+      <download_file storage_type="spinor" flavor="sail_nor">
+        <file_name>gpt_main0.bin</file_name>
+        <file_path flavor="sail_nor">./sail_nor</file_path>
+      </download_file>
+      <download_file storage_type="spinor" flavor="sail_nor">
+        <file_name>gpt_backup0.bin</file_name>
+        <file_path flavor="sail_nor">./sail_nor</file_path>
+      </download_file>
+      <partition_file storage_type="spinor" flavor="sail_nor">
+        <file_name>rawprogram0.xml</file_name>
+        <file_path flavor="sail_nor">./sail_nor</file_path>
+      </partition_file>
+      <partition_patch_file storage_type="spinor" flavor="sail_nor">
+        <file_name>patch0.xml</file_name>
+        <file_path flavor="sail_nor">./sail_nor</file_path>
+      </partition_patch_file>
+   </build>
+  </builds_flat>
+</contents>
