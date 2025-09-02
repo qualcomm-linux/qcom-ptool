@@ -145,7 +145,7 @@ def PrintBigError(sz):
         device_log(sz)
         device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
         sys.exit(1)
-		
+
 def PrettyPrintArray(bytes_read):
     Bytes = struct.unpack("%dB" % len(bytes_read),bytes_read)
 
@@ -154,9 +154,9 @@ def PrettyPrintArray(bytes_read):
         for j in range(32):
             for i in range(16):
                 sys.stdout.write("%.2X " % Bytes[i+j*16])
-    
+
             sys.stdout.write("\t")
-    
+
             for i in range(16):
                 sys.stdout.write("%c" % Bytes[i+j*16])
             print(" ")
@@ -187,22 +187,21 @@ def external_call(command, capture_output=True):
             device_log("Process stderr: %s" % errors)
     return output
 
-    
 def HandleNUM_DISK_SECTORS(field):
     if type(field) is not str:
         #print "returning since this is not a string"
         return field
-    
+
     m = re.search(r'NUM_DISK_SECTORS-(\d+)', field)
     if type(m) is not NoneType:
         if DiskSizeInBytes > 0 :
             field           = int((DiskSizeInBytes/SECTOR_SIZE)-int(m.group(1)))   # here I know DiskSizeInBytes
         else:
             field           = int((EMMCBLD_MAX_DISK_SIZE_IN_BYTES/SECTOR_SIZE)+int(m.group(1)))  # I make this a gigantic number for sorting (PLUS not MINUS here)
-            
+
     if type(field) is not str:
         return field
-            
+
     m = re.search("NUM_DISK_SECTORS", field)
     if type(m) is not NoneType:
         if DiskSizeInBytes > 0 :
@@ -214,10 +213,9 @@ def HandleNUM_DISK_SECTORS(field):
         return field
 
     field = int(field)
-    
+
     return field
-    
-    
+
 def ReturnParsedValues(element):
     global SECTOR_SIZE
     MyDict = {  'filename':'','file_sector_offset':'0','label':'','num_partition_sectors':'0',
@@ -230,12 +228,12 @@ def ReturnParsedValues(element):
 
     if 'SECTOR_SIZE_IN_BYTES' in MyDict:
         SECTOR_SIZE = int(MyDict['SECTOR_SIZE_IN_BYTES'])
-	
+
     if 'num_sectors' in MyDict: ## Legacy name used in original partition.xml
         MyDict['num_partition_sectors'] = MyDict['num_sectors']
     if 'offset' in MyDict: ## Legacy name used in original partition.xml
         MyDict['file_sector_offset'] = MyDict['offset']
-        
+
     MyDict['num_partition_sectors'] = HandleNUM_DISK_SECTORS(MyDict['num_partition_sectors'])   # Means field can have 'NUM_DISK_SECTORS-5.' type of contents
     MyDict['start_sector']          = HandleNUM_DISK_SECTORS(MyDict['start_sector'])            # Means field can have 'NUM_DISK_SECTORS-5.' type of contents
     MyDict['file_sector_offset']    = HandleNUM_DISK_SECTORS(MyDict['file_sector_offset'])      # Means field can have 'NUM_DISK_SECTORS-5.' type of contents
@@ -261,9 +259,9 @@ def ReturnParsedValues(element):
             MyDict['arg1']           = int(float(m.group(2)))   # len_in_bytes
 
     MyDict['value']              = HandleNUM_DISK_SECTORS(MyDict['value'])                      # Means field can have 'NUM_DISK_SECTORS-5.' type of contents
-    
+
     return MyDict
-    
+
 def ParseXML(xml_filename):     ## this function updates all the global arrays
     global WriteArray,PatchArray,ReadArray,MinDiskSizeInSectors
 
@@ -287,7 +285,7 @@ def ParseXML(xml_filename):     ## this function updates all the global arrays
             else:
                 print("ERROR: Your <program> tag is not formed correctly\n")
                 sys.exit(1)
-                
+
         elif element.tag=="patch":
             if list(element.keys()):
                 PatchArray.append( ReturnParsedValues(element) )
@@ -306,7 +304,7 @@ def ParseXML(xml_filename):     ## this function updates all the global arrays
     #for Patch in PatchArray:
     #    print Patch
     #print "------------------------------------------------\n\n\n"
-    
+
 
 def ReturnArrayFromCommaSeparatedList(sz):
     temp = re.sub(r'\s+|\n'," ",sz)
@@ -345,11 +343,11 @@ def DoubleCheckDiskSize():
 
     if sys.platform.startswith("win"):
         device_log("\n\nTesting of OS detected disk size correctly...\n")
-    
+
         Size = AvailablePartitions[Filename]
-    
+
         TrueSize = Size
-    
+
         count = 0
         # Windows workaround to get the correct number of sectors
         fp = open(Filename, 'rb')
@@ -366,7 +364,7 @@ def DoubleCheckDiskSize():
         except Exception as x:
             TrueSize = fp.tell()
         fp.close()
-    
+
         if TrueSize != Size and Size<=(64*1024*1024*1024):
             PrintBigWarning(" ")
             device_log("NOTE: This OS has *not* detected the correct size of the disk")
@@ -376,7 +374,7 @@ def DoubleCheckDiskSize():
             device_log("\nNOTE: This program *can't* write to the end of the disk, OS limitation")
         else:
             device_log("\n\nAll is well\n")
-    
+
 
 
 def PerformRead():
@@ -514,14 +512,14 @@ def PerformRead():
 
 
     device_log("\nDone Reading Files\n")
-    
+
 
 
 def PerformWrite():
     global WriteSorted, LoadSubsetOfFiles, search_paths, interactive, Filename
 
     ThereWereWarnings = 0
-    
+
     device_log("\t                                                     _            ")
     device_log("\t                                                    (_)            ")
     device_log("\t _ __  _ __ ___   __ _ _ __ __ _ _ __ ___  _ __ ___  _ _ __   __ _ ")
@@ -641,7 +639,7 @@ def PerformWrite():
         ##device_log("\tsize of \"%s\" is %i bytes" % (Write['filename'],size))
         ##device_log("\tsize of partition listed in in \"%s\" is %i bytes" % (rawprogram_filename,Write['num_partition_sectors']*SECTOR_SIZE))
 
-        ## This below happens on files like partition0.bin, where they hold the entire partition table, 
+        ## This below happens on files like partition0.bin, where they hold the entire partition table,
         ## but, only MBR is meant to be written, thus partition0.bin is 9 sectors but MBR is only 1 sector
 
         if size > (Write['num_partition_sectors']*SECTOR_SIZE):
@@ -716,7 +714,7 @@ def PerformWrite():
             device_log("REASON: %s" % (x))
 
             if sys.platform.startswith("linux"):
-                print("\t               _      ___") 
+                print("\t               _      ___")
                 print("\t              | |    |__ \\")
                 print("\t ___ _   _  __| | ___   ) |")
                 print("\t/ __| | | |/ _` |/ _ \\ / /")
@@ -771,7 +769,7 @@ def PerformWrite():
         ##device_log("MAX_FILE_SIZE_BEFORE_SPLIT=",MAX_FILE_SIZE_BEFORE_SPLIT)
 
         CurrentSector += (size/SECTOR_SIZE)
-        
+
         if size<MAX_FILE_SIZE_BEFORE_SPLIT:
             device_log("\tFile can be written completely.")
             device_log("\tCalling opfile.write(bytes_read)")
@@ -816,7 +814,7 @@ def PerformWrite():
 
                 TempSize += MAX_FILE_SIZE_BEFORE_SPLIT
             ##device_log("Out of loop")
-            a+=1    
+            a+=1
 
             if Remainder == 1:
                 # Need to PAD the file to be a multiple of SECTOR_SIZE bytes too
@@ -859,7 +857,7 @@ def PerformWrite():
             device_log("\tSingleImageSize %i bytes (%i sectors)" % (CurrentSector*SECTOR_SIZE,CurrentSector))
             device_log("\tCurrentSector=%i" % CurrentSector)
             device_log("\tDiskSize=%i sectors" % int(DiskSizeInBytes/SECTOR_SIZE))
-            
+
 
         #device_log("\tWrote %d bytes at sector %d on %s" % (len(bytes_read),Write['start_sector'],Filename))
 
@@ -894,7 +892,7 @@ def PerformWrite():
     device_log("\nDone Writing Files\n")
 
     return ThereWereWarnings
-    
+
 def GetPartitions():
     global Devices,AvailablePartitions
     if sys.platform.startswith("linux"):
@@ -917,7 +915,7 @@ def GetPartitions():
                 Size    = int(m.group(1))
                 Device  = "/dev/"+m.group(2)
                 #device_log("%s\tSize=%d,%.1fMB (%.2fGB) (%iKB)" % (Device,Size,int(Size)/1024.0,int(Size)/(1024.0*1024.0),int(Size))
-                AvailablePartitions[Device] = Size*1024.0    # linux reports in terms of 1024, 
+                AvailablePartitions[Device] = Size*1024.0    # linux reports in terms of 1024,
 
 
     else:
@@ -976,7 +974,7 @@ def PerformPatching():
     device_log("\t| .__/ \\__,_|\\__|\\___|_| |_|_|_| |_|\\__, |")
     device_log("\t| |                                  __/ |")
     device_log("\t|_|                                 |___/ ")
-    
+
     var = 'Y'
     if Patching == "DISK":
         var = 'N'           ## user must authorize this
@@ -1000,7 +998,7 @@ def PerformPatching():
                 continue    ## want to patch FILES, but this was a DISK, so skip it
             else:
                 pass    ## this was filename, so let's patch it
-            
+
         device_log("\n" + "-"*78)
         device_log("PATCH: (%s) %s" % (Patch['filename'],Patch['what']))
 
@@ -1069,7 +1067,7 @@ def PerformPatching():
                 elif temp=='Y' or temp=='y' or temp=='':
                     search_paths.append(temppath)
                 device_log("\n"            )
-            
+
         try:
             opfile = open(FileWithPath, "r+b")
             device_log("Opened %s, cwd=%s" % (FileWithPath,os.getcwd() ))
@@ -1205,7 +1203,7 @@ def PerformPatching():
                 #import pdb; pdb.set_trace()
                 sys.stdout.write("%.2X " % (int(Patch['value']>>(j*8)) & 0xFF))
 
-        
+
         #for b in ValueList:
         #    sys.stdout.write("%.2X "%b)
 
@@ -1243,7 +1241,7 @@ def PerformPatching():
         except Exception as x:
             device_log("\tWARNING: Could not close %s" % FileWithPath)
             device_log("REASON: %s" % (x))
-            
+
         device_log("CLOSED '%s'" % FileWithPath)
 
         if sys.platform.startswith("linux"):
@@ -1425,9 +1423,9 @@ def CalculateMinDiskSize():
         if OldMinDiskSizeInSectors != MinDiskSizeInSectors:
             device_log("MinDiskSizeInSectors=%i sectors (%.2fMB)" % (MinDiskSizeInSectors,MinDiskSizeInSectors*SECTOR_SIZE/(1024*1024.0)))
             OldMinDiskSizeInSectors = MinDiskSizeInSectors
-   
+
     return MinDiskSizeInSectors
-    
+
 ## ==============================================================================================
 ## ==============================================================================================
 ## ==============================================================================================
@@ -1500,7 +1498,7 @@ for o, a in opts:
     elif o in ("-p", "--patch"):
         patch_filename = a
         Operation |= OPERATION_PATCH
-        
+
     elif o in ("-d", "--dest"):
         disk_name = a
 
@@ -1590,7 +1588,7 @@ if disk_name is None:
         device_log("Don't foreget to specify your drive, EX '-d \\.\PHYSICALDRIVE1' OR '-d 0' to create a singleimage");
 
     PrintBigError("You must specify a DISK, option -d")
-            
+
 if (Operation & OPERATION_PROGRAM) > 0:
     if rawprogram_filename is None:
         PrintBigError("You must specify an \"rawprogram\" XML file for option -r")
@@ -1622,9 +1620,9 @@ if len(WriteArray)>0:
     Operation |= OPERATION_PROGRAM
 if len(ReadArray)>0:
     Operation |= OPERATION_READ
-    
+
 if DiskSizeInBytes>0:
-    if DiskSizeInBytes<int(MinDiskSizeInSectors)*SECTOR_SIZE:  
+    if DiskSizeInBytes<int(MinDiskSizeInSectors)*SECTOR_SIZE:
         PrintBigError("")
         device_log("\nERROR: Current eMMC/SD card is too small to program these partitions")
         device_log("       Need at least %s" % ReturnSizeString(int(MinDiskSizeInSectors)))
@@ -1673,7 +1671,7 @@ while 1 and (Operation & OPERATION_PROGRAM) > 0:
         #device_log("---------------- with start_sector = %i and PartitionStartSector[%i]=%i" % (Write["start_sector"],Count,PartitionStartSector[Count]))
         if Write['filename']=="":
             continue
-	    
+
         if Write["start_sector"] == PartitionStartSector[Count]:
             ##device_log("FOUND, len(PartitionStartSector)=%d and len(WriteSorted)=%d" % (len(PartitionStartSector),len(WriteSorted)))
             # To be here means I found the *next* start_sector in order, i.e. 0,100,200 etc
@@ -1703,7 +1701,7 @@ if DiskSizeInBytes==0:
         sys.exit()
     device_log("\nDiskSizeInBytes was set to 0, DiskSizeInBytes will be %s (%d sectors)" % (ReturnSizeString(DiskSizeInBytes),int(DiskSizeInBytes/SECTOR_SIZE)))
 
-    
+
 if patch_filename is not None:
     Operation |= OPERATION_PATCH
     ParseXML(patch_filename)
@@ -1756,22 +1754,22 @@ if (Operation & OPERATION_READ) > 0:
 
 
 ThereWereWarnings = 0
-    
+
 if (Operation & OPERATION_PROGRAM) > 0 and (Operation & OPERATION_PATCH) > 0:
     ## Have info to do both write and patch
 
-    
+
     if Filename=="singleimage.bin":
         # it's a singleimage, so do patching first
         PerformPatching()
-        
+
         ThereWereWarnings = PerformWrite()
-                
+
         if (Operation & OPERATION_READ) > 0:
             PerformRead()
         if verbose is True:
             DoubleCheckDiskSize()
-    
+
     else:
         ThereWereWarnings = PerformWrite()
         PerformPatching()
@@ -1781,9 +1779,9 @@ if (Operation & OPERATION_PROGRAM) > 0 and (Operation & OPERATION_PATCH) > 0:
             DoubleCheckDiskSize()
 
 elif (Operation & OPERATION_PROGRAM) > 0:
-    ThereWereWarnings = PerformWrite()   
+    ThereWereWarnings = PerformWrite()
     if (Operation & OPERATION_READ) > 0:
-        PerformRead()   
+        PerformRead()
     device_log("\n"+"-"*78)
     device_log("If you wrote any partition table information (MBR0.bin, gpt_main0.bin, etc)")
     device_log(" ")
@@ -1818,26 +1816,24 @@ elif (Operation & OPERATION_PROGRAM) > 0:
         DoubleCheckDiskSize()
 
 elif (Operation & OPERATION_PATCH) > 0:
-    PerformPatching()   
+    PerformPatching()
     if verbose is True:
         DoubleCheckDiskSize()
-        
+
 if (Operation & OPERATION_PROGRAM) > 0:
-    
-    if os.path.basename(Filename)=="singleimage.bin":   
+
+    if os.path.basename(Filename)=="singleimage.bin":
         device_log("\nNOTE: This program does *not* pad the last partition, therefore")
         device_log("      singleimage.bin might be smaller than %d sectors (%.2f MB)" % (int(DiskSizeInBytes/SECTOR_SIZE),DiskSizeInBytes/(1048576.0)))
 
         device_log("\n\nSUCCESS - %s created" % Filename)
         device_log("SUCCESS - %s created" % Filename)
         device_log("SUCCESS - %s created\n" % Filename)
-        
+
         if FileNotFoundShowWarning==1:
             device_log("\nWARNING: 1 or more files were *not* found, your singleimage.bin is *NOT* complete")
             device_log("\nWARNING: 1 or more files were *not* found, your singleimage.bin is *NOT* complete")
             device_log("\nWARNING: 1 or more files were *not* found, your singleimage.bin is *NOT* complete\n\n")
-
-
 
 device_log("\nmsp.py exiting SUCCESSFULLY- Log is log_msp.txt\n\n")
 
