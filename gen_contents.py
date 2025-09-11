@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import getopt
+import os
 import sys
 
 from xml.etree import ElementTree as ET
@@ -46,14 +47,19 @@ def UpdateMetaData(TemplateRoot, PartitionRoot):
             PartitionsSet.add((label, filename))
     print(f"PartitionsSet: {PartitionsSet}")
 
-    def _add_file_elements(parent_element, file_name_text, file_path_flavor=None):
+    def _add_file_elements(parent_element, pathname, file_path_flavor=None):
         """Helper function to add file_name and file_path sub-elements."""
+        file_name_text = os.path.basename(pathname)
+        file_path_text = os.path.dirname(pathname)
+        if not file_path_text:  # no directory, use explicit . as current dir
+            file_path_text = "."
+
         new_file_name = ET.SubElement(parent_element, "file_name")
         new_file_name.text = file_name_text
         new_file_path = ET.SubElement(parent_element, "file_path")
         if file_path_flavor:
             new_file_path.set("flavor", file_path_flavor)
-        new_file_path.text = "."
+        new_file_path.text = file_path_text
 
     builds = TemplateRoot.findall('builds_flat/build')
     for build in builds:
