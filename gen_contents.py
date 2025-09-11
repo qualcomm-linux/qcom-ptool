@@ -46,6 +46,15 @@ def UpdateMetaData(TemplateRoot, PartitionRoot):
             PartitionsSet.add((label, filename))
     print(f"PartitionsSet: {PartitionsSet}")
 
+    def _add_file_elements(parent_element, file_name_text, file_path_flavor=None):
+        """Helper function to add file_name and file_path sub-elements."""
+        new_file_name = ET.SubElement(parent_element, "file_name")
+        new_file_name.text = file_name_text
+        new_file_path = ET.SubElement(parent_element, "file_path")
+        if file_path_flavor:
+            new_file_path.set("flavor", file_path_flavor)
+        new_file_path.text = "."
+
     builds = TemplateRoot.findall('builds_flat/build')
     for build in builds:
         Name = build.find('name')
@@ -59,24 +68,15 @@ def UpdateMetaData(TemplateRoot, PartitionRoot):
             for Partition in PartitionsSet:
                 new_download_file = ET.SubElement(build, "download_file")
                 new_download_file.set("fastboot_complete", Partition[0])
-                new_file_name = ET.SubElement(new_download_file, "file_name")
-                new_file_name.text = Partition[1]
-                new_file_path = ET.SubElement(new_download_file, "file_path")
-                new_file_path.text = "."
+                _add_file_elements(new_download_file, Partition[1])
             # GPT Main & GPT Backup entries
             for PhysicalPartitionNumber in range(0, len(PhyPartition)):
                 new_download_file = ET.SubElement(build, "download_file")
                 new_download_file.set("storage_type", DefaultStorageType)
-                new_file_name = ET.SubElement(new_download_file, "file_name")
-                new_file_name.text = 'gpt_main%d.xml' % (PhysicalPartitionNumber)
-                new_file_path = ET.SubElement(new_download_file, "file_path")
-                new_file_path.text = "."
+                _add_file_elements(new_download_file, 'gpt_main%d.xml' % (PhysicalPartitionNumber))
                 new_download_file = ET.SubElement(build, "download_file")
                 new_download_file.set("storage_type", DefaultStorageType)
-                new_file_name = ET.SubElement(new_download_file, "file_name")
-                new_file_name.text = 'gpt_backup%d.xml' % (PhysicalPartitionNumber)
-                new_file_path = ET.SubElement(new_download_file, "file_path")
-                new_file_path.text = "."
+                _add_file_elements(new_download_file, 'gpt_backup%d.xml' % (PhysicalPartitionNumber))
 
         PartitionFile = build.find('partition_file')
         if PartitionFile is not None:
@@ -85,11 +85,7 @@ def UpdateMetaData(TemplateRoot, PartitionRoot):
             for PhysicalPartitionNumber in range(0, len(PhyPartition)):
                 new_partition_file = ET.SubElement(build, "partition_file")
                 new_partition_file.set("storage_type", DefaultStorageType)
-                new_file_name = ET.SubElement(new_partition_file, "file_name")
-                new_file_name.text = 'rawprogram%d.xml' % (PhysicalPartitionNumber)
-                new_file_path = ET.SubElement(new_partition_file, "file_path")
-                new_file_path.set("flavor", "default")
-                new_file_path.text = "."
+                _add_file_elements(new_partition_file, 'rawprogram%d.xml' % (PhysicalPartitionNumber), "default")
 
         PartitionPatchFile = build.find('partition_patch_file')
         if PartitionPatchFile is not None:
@@ -98,11 +94,7 @@ def UpdateMetaData(TemplateRoot, PartitionRoot):
             for PhysicalPartitionNumber in range(0, len(PhyPartition)):
                 new_partition_patch_file = ET.SubElement(build, "partition_patch_file")
                 new_partition_patch_file.set("storage_type", DefaultStorageType)
-                new_file_name = ET.SubElement(new_partition_patch_file, "file_name")
-                new_file_name.text = 'patch%d.xml' % (PhysicalPartitionNumber)
-                new_file_path = ET.SubElement(new_partition_patch_file, "file_path")
-                new_file_path.set("flavor", "default")
-                new_file_path.text = "."
+                _add_file_elements(new_partition_patch_file, 'patch%d.xml' % (PhysicalPartitionNumber), "default")
 
 ###############################################################################
 # main
