@@ -1,2 +1,2 @@
-platforms/*/*.xml
-platforms/*/*.bin
+platforms/**/*.xml
+platforms/**/*.bin
