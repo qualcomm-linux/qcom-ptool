@@ -31,7 +31,7 @@ lint:
 
 integration: all
 	# make sure generated output has created expected files
-	tests/integration/check-missing-files platforms/*/*.xml
+	tests/integration/check-missing-files platforms/*/*/*.xml
 
 check: lint integration
 
