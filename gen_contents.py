@@ -38,14 +38,13 @@ def UpdateMetaData(TemplateRoot, PartitionRoot):
             DefaultStorageType = ChipId.get('storage_type')
 
     PhyPartition = PartitionRoot.findall('physical_partition')
-    PartitionsSet = set()
-    Partitions = PartitionRoot.findall('physical_partition/partition')
-    for partition in Partitions:
+    Partitions = []
+    for partition in PartitionRoot.findall('physical_partition/partition'):
         label = partition.get('label')
         filename = partition.get('filename')
         if label and filename:
-            PartitionsSet.add((label, filename))
-    print(f"PartitionsSet: {PartitionsSet}")
+            Partitions.append({'label': label, 'filename': filename})
+    print(f"Partitions: {Partitions}")
 
     def _add_file_elements(parent_element, pathname, file_path_flavor=None):
         """Helper function to add file_name and file_path sub-elements."""
@@ -71,10 +70,10 @@ def UpdateMetaData(TemplateRoot, PartitionRoot):
         if DownloadFile is not None:
             build.remove(DownloadFile)
             # Partition entires
-            for Partition in PartitionsSet:
+            for Partition in Partitions:
                 new_download_file = ET.SubElement(build, "download_file")
-                new_download_file.set("fastboot_complete", Partition[0])
-                _add_file_elements(new_download_file, Partition[1])
+                new_download_file.set("fastboot_complete", Partition['label'])
+                _add_file_elements(new_download_file, Partition['filename'])
             # GPT Main & GPT Backup entries
             for PhysicalPartitionNumber in range(0, len(PhyPartition)):
                 new_download_file = ET.SubElement(build, "download_file")
