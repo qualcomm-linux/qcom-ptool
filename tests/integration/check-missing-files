@@ -24,6 +24,7 @@ for xml in "$@"; do
           abl.elf) ;;
           aop.mbn) ;;
           boot.img) ;;
+          cdt.bin) ;;
           cmnlib.mbn) ;;
           cmnlib64.mbn) ;;
           cpucp.elf) ;;
