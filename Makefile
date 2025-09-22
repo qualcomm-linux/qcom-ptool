@@ -1,9 +1,9 @@
 TOPDIR := $(PWD)
-PARTITIONS := $(wildcard platforms/*/partitions.conf platforms/*/*/partitions.conf)
+PARTITIONS := $(wildcard platforms/*/*/partitions.conf)
 PARTITIONS_XML := $(patsubst %.conf,%.xml, $(PARTITIONS))
 PLATFORMS := $(patsubst %/partitions.conf,%/gpt, $(PARTITIONS))
 
-CONTENTS_XML_IN := $(wildcard platforms/*/contents.xml.in platforms/*/*/contents.xml.in)
+CONTENTS_XML_IN := $(wildcard platforms/*/*/contents.xml.in)
 CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN))
 BINS := gen_contents.py gen_partition.py msp.py ptool.py
 PREFIX ?= /usr/local
