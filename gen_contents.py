@@ -78,10 +78,10 @@ def UpdateMetaData(TemplateRoot, PartitionRoot):
             for PhysicalPartitionNumber in range(0, len(PhyPartition)):
                 new_download_file = ET.SubElement(build, "download_file")
                 new_download_file.set("storage_type", DefaultStorageType)
-                _add_file_elements(new_download_file, 'gpt_main%d.xml' % (PhysicalPartitionNumber))
+                _add_file_elements(new_download_file, 'gpt_main%d.bin' % (PhysicalPartitionNumber))
                 new_download_file = ET.SubElement(build, "download_file")
                 new_download_file.set("storage_type", DefaultStorageType)
-                _add_file_elements(new_download_file, 'gpt_backup%d.xml' % (PhysicalPartitionNumber))
+                _add_file_elements(new_download_file, 'gpt_backup%d.bin' % (PhysicalPartitionNumber))
 
         PartitionFile = build.find('partition_file')
         if PartitionFile is not None:
