@@ -40,4 +40,4 @@ install: $(BINS)
 	install -m 755 $^ $(DESTDIR)$(PREFIX)/bin
 
 clean:
-	@rm -f platforms/*/*.xml platforms/*/*.bin
+	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin
