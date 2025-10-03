@@ -188,13 +188,18 @@ def generate_ufs_xml (disk_params, partition_entries_dict, output_xml):
    )
    lun_index=0
    while lun_index < 6:
-      phy_part = ET.SubElement(root, "physical_partition")
+      found = False
 
       for partition_index, entry in partition_entries_dict.items():
          part_entry = parse_partition_entry(entry)
          if part_entry["physical_partition"] == str(lun_index):
             del part_entry["physical_partition"]
+            # if there is no partition in the LUN, skip the physical_partition in XML
+            # only create the physical_partition once we have at least one partition
+            if not found:
+               phy_part = ET.SubElement(root, "physical_partition")
             part = ET.SubElement(phy_part, "partition", attrib=part_entry)
+            found = True
       lun_index +=1
 
    xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml()
