@@ -59,7 +59,8 @@ for xml in "$@"; do
           qupv3fw.elf) ;;
           rootfs.img) ;;
           rpm.mbn) ;;
-          sailfreertos.elf) ;;
+          sailhyp.elf) ;;
+          sailsw1.elf) ;;
           sbc_1.0_8016.bin) ;;
           sbc_1.0_8096.bin) ;;
           sbl1.mbn) ;;
