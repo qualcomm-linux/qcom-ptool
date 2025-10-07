@@ -81,7 +81,11 @@
         <file_path flavor="default">.</file_path>
       </partition_patch_file>
       <download_file storage_type="spinor" fastboot_complete="SAIL_HYP">
-        <file_name>sailfreertos.elf</file_name>
+        <file_name>sailhyp.elf</file_name>
+        <file_path flavor="sail_nor">./sail_nor</file_path>
+      </download_file>
+      <download_file storage_type="spinor" fastboot_complete="SAIL_SW1">
+        <file_name>sailsw1.elf</file_name>
         <file_path flavor="sail_nor">./sail_nor</file_path>
       </download_file>
       <download_file storage_type="spinor" flavor="sail_nor">
