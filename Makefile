@@ -8,6 +8,9 @@ CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN))
 BINS := gen_contents.py gen_partition.py msp.py ptool.py
 PREFIX ?= /usr/local
 
+# optional build_id for Axiom contents.xml files
+BUILD_ID ?=
+
 .PHONY: all check clean lint integration
 
 all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
@@ -19,7 +22,7 @@ all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
 	$(TOPDIR)/gen_partition.py -i $^ -o $@
 
 %/contents.xml: %/partitions.xml %/contents.xml.in
-	$(TOPDIR)/gen_contents.py -p $< -t $@.in -o $@
+	$(TOPDIR)/gen_contents.py -p $< -t $@.in -o $@ $${BUILD_ID:+ -b $(BUILD_ID)}
 
 lint:
 	# W605: invalid escape sequence
@@ -40,4 +43,4 @@ install: $(BINS)
 	install -m 755 $^ $(DESTDIR)$(PREFIX)/bin
 
 clean:
-	@rm -f platforms/*/*.xml platforms/*/*.bin
+	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin
