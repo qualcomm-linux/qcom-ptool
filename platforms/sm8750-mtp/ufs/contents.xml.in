@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<!--
+========================================================================
+  contents.in
+
+  General Description
+     Contains information about component builds for this target.
+     It will clone as contents.xml during build compilation process.
+
+  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+  SPDX-License-Identifier: BSD-3-Clause
+
+========================================================================
+-->
+
+<contents>
+  <product_flavors cmm_pf_var="PRODUCT_FLAVORS">
+    <pf>
+      <name>default</name>
+      <component>
+        <name>common</name>
+        <flavor>default</flavor>
+      </component>
+      <component>
+        <name>apps</name>
+        <flavor>default</flavor>
+      </component>
+    </pf>
+  </product_flavors>
+  <product_info>
+    <product_name>Pakala.LE.0.0</product_name>
+    <chipid flavor="default" storage_type="ufs" flash_phase="1">PAKALA</chipid>
+    <additional_chipid>SM8750</additional_chipid>
+    <meta_type>SPF</meta_type>
+  </product_info>
+  <builds_flat>
+    <build>
+      <name>apps</name>
+      <role>apps</role>
+      <chipset>PAKALA</chipset>
+      <windows_root_path>.\</windows_root_path>
+      <linux_root_path>./</linux_root_path>
+      <image_dir>apps_proc</image_dir>
+    </build>
+    <build>
+      <name>common</name>
+      <role>common</role>
+      <chipset>PAKALA</chipset>
+      <windows_root_path>.\</windows_root_path>
+      <linux_root_path>./</linux_root_path>
+      <image_dir>common</image_dir>
+      <device_programmer>
+        <file_name>xbl_s_devprg_ns.melf</file_name>
+        <file_path>.</file_path>
+      </device_programmer>
+      <download_file>
+        <fastboot_complete>{partition_name}</fastboot_complete>
+        <file_name>{image_name}</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <partition_file>
+        <storage_type>{storage_type}</storage_type>
+        <file_name>{partition_file_name}</file_name>
+        <file_path flavor="default">.</file_path>
+      </partition_file>
+      <partition_patch_file>
+        <storage_type>{storage_type}</storage_type>
+        <file_name>{partition_patch_file_name}</file_name>
+        <file_path flavor="default">.</file_path>
+      </partition_patch_file>
+   </build>
+  </builds_flat>
+</contents>
