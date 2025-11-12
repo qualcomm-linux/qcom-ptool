@@ -31,8 +31,11 @@ for xml in "$@"; do
           # known files that will be provided by the OS or boot binaries
           DISK) ;;
           XblRamdump.elf) ;;
+          XblRamdump.xz) ;;
           abl.elf) ;;
           abl2esp-v7.elf) ;;
+          adsp_dtbs.elf) ;;
+          adsp_lite.lzma) ;;
           aop.mbn) ;;
           aop_devcfg.mbn) ;;
           boot.img) ;;
@@ -45,6 +48,7 @@ for xml in "$@"; do
           devcfg.mbn) ;;
           devcfg_iot.mbn) ;;
           devcfg_rfcomm.mbn) ;;
+          devcfg_windows_hyp.mbn) ;;
           dtb.bin) ;;
           efi.bin) ;;
           emmc_appsboot.mbn) ;;
@@ -81,6 +85,7 @@ for xml in "$@"; do
           storsec.mbn) ;;
           tools.fv) ;;
           tz.mbn) ;;
+          tzapps.bin) ;;
           uefi.elf) ;;
           uefi_sec.mbn) ;;
           xbl.elf) ;;
