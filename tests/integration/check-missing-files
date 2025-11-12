@@ -29,6 +29,8 @@ for xml in "$@"; do
             fi
           ;;
           # known files that will be provided by the OS or boot binaries
+          DISK) ;;
+          XblRamdump.elf) ;;
           abl.elf) ;;
           abl2esp-v7.elf) ;;
           aop.mbn) ;;
@@ -40,12 +42,11 @@ for xml in "$@"; do
           cpucp.elf) ;;
           cpucp_dtbs.elf) ;;
           dcd.mbn) ;;
-          devcfg_iot.mbn) ;;
           devcfg.mbn) ;;
+          devcfg_iot.mbn) ;;
           devcfg_rfcomm.mbn) ;;
-          efi.bin) ;;
-          DISK) ;;
           dtb.bin) ;;
+          efi.bin) ;;
           emmc_appsboot.mbn) ;;
           featenabler.mbn) ;;
           fs_image_linux.tar.gz.mbn.img) ;;
@@ -57,8 +58,8 @@ for xml in "$@"; do
           keymint.mbn) ;;
           km4.mbn) ;;
           logfs_ufs_8mb.bin) ;;
-          multi_image_qti.mbn) ;;
           multi_image.mbn) ;;
+          multi_image_qti.mbn) ;;
           pdp.elf) ;;
           pdp_cdb.elf) ;;
           pmic.elf) ;;
@@ -80,14 +81,13 @@ for xml in "$@"; do
           storsec.mbn) ;;
           tools.fv) ;;
           tz.mbn) ;;
-          uefi_sec.mbn) ;;
           uefi.elf) ;;
+          uefi_sec.mbn) ;;
+          xbl.elf) ;;
           xbl_config.elf) ;;
           xbl_feature_config.elf) ;;
-          xbl.elf) ;;
-          XblRamdump.elf) ;;
-          xbl_s_devprg_ns.melf) ;;
           xbl_s.melf) ;;
+          xbl_s_devprg_ns.melf) ;;
           *)
             echo "Unknown ${file} referenced in ${xml}" >&2
             errors=1
