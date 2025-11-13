@@ -30,14 +30,19 @@ for xml in "$@"; do
           ;;
           # known files that will be provided by the OS or boot binaries
           abl.elf) ;;
+          abl2esp-v7.elf) ;;
           aop.mbn) ;;
+          aop_devcfg.mbn) ;;
           boot.img) ;;
           cdt.bin) ;;
           cmnlib.mbn) ;;
           cmnlib64.mbn) ;;
           cpucp.elf) ;;
+          cpucp_dtbs.elf) ;;
+          dcd.mbn) ;;
           devcfg_iot.mbn) ;;
           devcfg.mbn) ;;
+          devcfg_rfcomm.mbn) ;;
           efi.bin) ;;
           DISK) ;;
           dtb.bin) ;;
@@ -51,8 +56,11 @@ for xml in "$@"; do
           keymaster64.mbn) ;;
           keymint.mbn) ;;
           km4.mbn) ;;
+          logfs_ufs_8mb.bin) ;;
           multi_image_qti.mbn) ;;
           multi_image.mbn) ;;
+          pdp.elf) ;;
+          pdp_cdb.elf) ;;
           pmic.elf) ;;
           prog_firehose_ddr.elf) ;;
           prog_firehose_lite.elf) ;;
@@ -64,6 +72,7 @@ for xml in "$@"; do
           sbc_1.0_8016.bin) ;;
           sbc_1.0_8096.bin) ;;
           sbl1.mbn) ;;
+          sdi.mbn) ;;
           sec.dat) ;;
           secs2d.mbn) ;;
           sed.dat) ;;
@@ -77,6 +86,8 @@ for xml in "$@"; do
           xbl_feature_config.elf) ;;
           xbl.elf) ;;
           XblRamdump.elf) ;;
+          xbl_s_devprg_ns.melf) ;;
+          xbl_s.melf) ;;
           *)
             echo "Unknown ${file} referenced in ${xml}" >&2
             errors=1
