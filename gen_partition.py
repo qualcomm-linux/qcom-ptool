@@ -45,7 +45,7 @@ disk_params = OrderedDict({
    "size": "",
    "SECTOR_SIZE_IN_BYTES": "512",
    "WRITE_PROTECT_BOUNDARY_IN_KB": "65536",
-   "GROW_LAST_PARTITION_TO_FILL_DISK": "true",
+   "GROW_LAST_PARTITION_TO_FILL_DISK": "false",
    "ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY": "true",
    "PERFORMANCE_BOUNDARY_IN_KB": "4"
 })
@@ -207,7 +207,7 @@ def generate_multi_lun_xml (disk_params, partition_entries_dict, output_xml):
 def generate_partition_xml (disk_entry, partition_entries_dict, output_xml):
    parse_disk_entry(disk_entry)
    print("Generating %s XML %s" %(disk_params["type"].upper(), output_xml))
-   if disk_params["type"] in ("emmc", "nvme"):
+   if disk_params["type"] in ("emmc", "nvme", "spinor"):
       generate_single_disk_xml(disk_params, partition_entries_dict, output_xml)
    elif disk_params["type"] == "ufs":
       generate_multi_lun_xml(disk_params, partition_entries_dict, output_xml)
