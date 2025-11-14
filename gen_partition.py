@@ -151,8 +151,7 @@ def parse_disk_entry(disk_entry):
          print (str(e))
          usage()
 
-def generate_ptool_xml (disk_params, partition_entries_dict, output_xml):
-   print("Generating ptool XML %s" %(output_xml))
+def generate_single_disk_xml (disk_params, partition_entries_dict, output_xml):
    root = ET.Element("configuration")
    parser_instruction_text = ""
 
@@ -174,8 +173,7 @@ def generate_ptool_xml (disk_params, partition_entries_dict, output_xml):
    with open(output_xml, "w") as f:
       f.write(xmlstr)
 
-def generate_ufs_xml (disk_params, partition_entries_dict, output_xml):
-   print("Generating UFS XML %s" %(output_xml))
+def generate_multi_lun_xml (disk_params, partition_entries_dict, output_xml):
    root = ET.Element("configuration")
    parser_instruction_text = ""
 
@@ -206,18 +204,15 @@ def generate_ufs_xml (disk_params, partition_entries_dict, output_xml):
    with open(output_xml, "w") as f:
       f.write(xmlstr)
 
-
-def generate_nand_mbn_gen_xml (disk_params, partition_entry):
-   print("Generating nand_mbn_gen XML")
-
 def generate_partition_xml (disk_entry, partition_entries_dict, output_xml):
    parse_disk_entry(disk_entry)
-   if disk_params["type"] == "emmc":
-      generate_ptool_xml(disk_params, partition_entries_dict, output_xml)
-   elif disk_params["type"] == "nand":
-      generate_nand_mbn_gen_xml(disk_params, partition_entries_dict, output_xml)
+   print("Generating %s XML %s" %(disk_params["type"].upper(), output_xml))
+   if disk_params["type"] in ("emmc", "nvme"):
+      generate_single_disk_xml(disk_params, partition_entries_dict, output_xml)
    elif disk_params["type"] == "ufs":
-      generate_ufs_xml(disk_params, partition_entries_dict, output_xml)
+      generate_multi_lun_xml(disk_params, partition_entries_dict, output_xml)
+   else:
+      print("%s XML generation is curently not supported." %(disk_params["type"].upper()))
 
 ###############################################################################
 # main
