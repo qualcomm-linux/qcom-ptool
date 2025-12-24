@@ -87,6 +87,7 @@ for xml in "$@"; do
           tz.mbn) ;;
           tzapps.bin) ;;
           uefi.elf) ;;
+          uefi_dtbs.xz) ;;
           uefi_sec.mbn) ;;
           xbl.elf) ;;
           xbl_config.elf) ;;
