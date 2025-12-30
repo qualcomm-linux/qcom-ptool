@@ -1,0 +1,105 @@
+<?xml version="1.0" ?>
+<!--
+========================================================================
+  contents.xml.in
+
+  General Description
+     Contains information about component builds for this target.
+     It will clone as contents.xml during build compilation process.
+
+  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+  SPDX-License-Identifier: BSD-3-Clause
+
+========================================================================
+-->
+
+<contents>
+  <product_flavors cmm_pf_var="PRODUCT_FLAVORS">
+    <pf>
+      <name>default</name>
+      <component>
+        <name>common</name>
+        <flavor>default</flavor>
+      </component>
+    </pf>
+    <pf>
+      <name>ub_qcom_server</name>
+      <component>
+        <name>apps</name>
+        <flavor>ub_qcom_server</flavor>
+      </component>
+      <component>
+        <name>common</name>
+        <flavor>ub_qcom_server</flavor>
+      </component>
+    </pf>
+  </product_flavors>
+  <product_info>
+    <product_name>Hamoa_IOT.UBUN.1.0</product_name>
+    <chipid flavor="default" storage_type="spinor" flash_phase="1">HAMOA</chipid>
+    <chipid flavor="ub_qcom_server" storage_type="NVME" flash_phase="2">HAMOA</chipid>
+    <additional_chipid>HAMOA,Hamoa_IOT,Purwa_IoT</additional_chipid>
+    <meta_type>FULL_STACK</meta_type>
+  </product_info>
+  <builds_flat>
+    <build>
+      <name>apps</name>
+      <role>apps</role>
+      <chipset>QX8141</chipset>
+      <windows_root_path>.\</windows_root_path>
+      <linux_root_path>./</linux_root_path>
+      <image_dir>build</image_dir>
+    </build>
+    <build>
+      <name>common</name>
+      <role>common</role>
+      <chipset>QX8141</chipset>
+      <windows_root_path>.\</windows_root_path>
+      <linux_root_path>./</linux_root_path>
+      <image_dir>common</image_dir>
+      <device_programmer>
+        <file_name>xbl_s_devprg_ns.melf</file_name>
+        <file_path>.</file_path>
+      </device_programmer>
+      <download_file>
+        <fastboot_complete>{partition_name}</fastboot_complete>
+        <file_name>{image_name}</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <partition_file>
+        <storage_type>{storage_type}</storage_type>
+        <file_name>{partition_file_name}</file_name>
+        <file_path flavor="default">.</file_path>
+      </partition_file>
+      <partition_patch_file>
+        <storage_type>{storage_type}</storage_type>
+        <file_name>{partition_patch_file_name}</file_name>
+        <file_path flavor="default">.</file_path>
+      </partition_patch_file>
+      <download_file storage_type="nvme" fastboot_complete="efi">
+        <file_name>efi.bin</file_name>
+        <file_path flavor="ub_qcom_server">../</file_path>
+      </download_file>
+      <download_file storage_type="nvme" fastboot_complete="rootfs">
+        <file_name>rootfs.img</file_name>
+        <file_path flavor="ub_qcom_server">../</file_path>
+      </download_file>
+      <download_file storage_type="nvme" flavor="ub_qcom_server">
+        <file_name>gpt_main0.bin</file_name>
+        <file_path flavor="ub_qcom_server">../</file_path>
+      </download_file>
+      <download_file storage_type="nvme" flavor="ub_qcom_server">
+        <file_name>gpt_backup0.bin</file_name>
+        <file_path flavor="ub_qcom_server">../</file_path>
+      </download_file>
+      <partition_file storage_type="nvme" flavor="ub_qcom_server">
+        <file_name>rawprogram0.xml</file_name>
+        <file_path flavor="ub_qcom_server">../</file_path>
+      </partition_file>
+      <partition_patch_file storage_type="nvme" flavor="ub_qcom_server">
+        <file_name>patch0.xml</file_name>
+        <file_path flavor="ub_qcom_server">../</file_path>
+      </partition_patch_file>
+    </build>
+  </builds_flat>
+</contents>
