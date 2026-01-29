@@ -89,6 +89,7 @@ for xml in "$@"; do
           uefi.elf) ;;
           uefi_dtbs.xz) ;;
           uefi_sec.mbn) ;;
+          userdata.img) ;;
           xbl.elf) ;;
           xbl_config.elf) ;;
           xbl_feature_config.elf) ;;
