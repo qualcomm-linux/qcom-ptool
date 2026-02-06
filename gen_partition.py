@@ -99,7 +99,7 @@ def partition_size_in_kb(size):
 def partition_options(argv):
    partition_entry = partition_entry_defaults.copy()
    for (opt, arg) in argv:
-      if opt in ['--lun']:
+      if opt in ['--lun', '--phys-part']:
          partition_entry["physical_partition"] = arg
       elif opt in ['--name']:
          partition_entry["label"] = arg
@@ -131,7 +131,7 @@ def parse_partition_entry(partition_entry):
    if opts_list[0] == "--partition":
       try:
          options, remainders = getopt.gnu_getopt(opts_list[1:], '',
-                                 ['lun=', 'name=', 'size=','type-guid=',
+                                 ['lun=', 'phys-part=', 'name=', 'size=','type-guid=',
                                   'filename=', 'attributes=', 'sparse='])
          return partition_options(options)
       except Exception as e:
