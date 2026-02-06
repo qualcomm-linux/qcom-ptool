@@ -57,7 +57,8 @@ partition_entry_defaults = {
    "bootable": "false",
    "readonly": "true",
    "filename": "",
-   "sparse" : "false"
+   "sparse" : "false",
+   "physical_partition": "0"
 }
 
 ##################################################################
@@ -98,7 +99,7 @@ def partition_size_in_kb(size):
 def partition_options(argv):
    partition_entry = partition_entry_defaults.copy()
    for (opt, arg) in argv:
-      if opt in ['--lun']:
+      if opt in ['--lun', '--phys-part']:
          partition_entry["physical_partition"] = arg
       elif opt in ['--name']:
          partition_entry["label"] = arg
@@ -130,7 +131,7 @@ def parse_partition_entry(partition_entry):
    if opts_list[0] == "--partition":
       try:
          options, remainders = getopt.gnu_getopt(opts_list[1:], '',
-                                 ['lun=', 'name=', 'size=','type-guid=',
+                                 ['lun=', 'phys-part=', 'name=', 'size=','type-guid=',
                                   'filename=', 'attributes=', 'sparse='])
          return partition_options(options)
       except Exception as e:
@@ -150,28 +151,6 @@ def parse_disk_entry(disk_entry):
       except Exception as e:
          print (str(e))
          usage()
-
-def generate_single_disk_xml (disk_params, partition_entries_dict, output_xml):
-   root = ET.Element("configuration")
-   parser_instruction_text = ""
-
-   for key, value in disk_params.items():
-      if not key == 'size' and not key == 'type':
-         parser_instruction_text += '\n\t' + str(key) + '=' + str(value) + '\n\t'
-
-   parser_inst = ET.SubElement(root,"parser_instructions").text = (
-      parser_instruction_text
-   )
-
-   phy_part = ET.SubElement(root, "physical_partition")
-
-   for partition_index, entry in partition_entries_dict.items():
-      part_entry = parse_partition_entry(entry)
-      part = ET.SubElement(phy_part, "partition", attrib=part_entry)
-
-   xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml()
-   with open(output_xml, "w") as f:
-      f.write(xmlstr)
 
 def generate_multi_lun_xml (disk_params, partition_entries_dict, output_xml):
    root = ET.Element("configuration")
@@ -207,9 +186,8 @@ def generate_multi_lun_xml (disk_params, partition_entries_dict, output_xml):
 def generate_partition_xml (disk_entry, partition_entries_dict, output_xml):
    parse_disk_entry(disk_entry)
    print("Generating %s XML %s" %(disk_params["type"].upper(), output_xml))
-   if disk_params["type"] in ("emmc", "nvme", "spinor"):
-      generate_single_disk_xml(disk_params, partition_entries_dict, output_xml)
-   elif disk_params["type"] == "ufs":
+   
+   if disk_params["type"] in ("emmc", "nvme", "spinor", "ufs"):
       generate_multi_lun_xml(disk_params, partition_entries_dict, output_xml)
    else:
       print("%s XML generation is curently not supported." %(disk_params["type"].upper()))
