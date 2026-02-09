@@ -40,7 +40,7 @@ def usage():
 
 ##################################################################
 # defaults to be used
-disk_params = OrderedDict({
+disk_params_defaults = OrderedDict({
    "type": "",
    "size": "",
    "SECTOR_SIZE_IN_BYTES": "512",
@@ -71,6 +71,7 @@ input_file = None
 output_xml = None
 
 def disk_options(argv):
+   disk_params = disk_params_defaults.copy()
    for (opt, arg) in argv:
       if opt in ['--type']:
          disk_params["type"] = arg
@@ -85,6 +86,7 @@ def disk_options(argv):
       elif opt in ['--align-partitions']:
          disk_params["ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY"] = "true"
          disk_params["PERFORMANCE_BOUNDARY_IN_KB"] = (int(arg)/1024)
+   return disk_params
 
 def partition_size_in_kb(size):
     if not re.search('[a-zA-Z]+', size):
@@ -147,7 +149,7 @@ def parse_disk_entry(disk_entry):
          options, remainders = getopt.gnu_getopt(opts_list[1:], '',
                                  ['type=', 'size=','sector-size-in-bytes=', 'write-protect-boundary=',
                                   'grow-last-partition', 'align-partitions='])
-         disk_options(options)
+         return disk_options(options)
       except Exception as e:
          print (str(e))
          usage()
@@ -183,8 +185,7 @@ def generate_multi_lun_xml (disk_params, partition_entries, output_xml):
    with open(output_xml, "w") as f:
       f.write(xmlstr)
 
-def generate_partition_xml (disk_entry, partition_entries, output_xml):
-   parse_disk_entry(disk_entry)
+def generate_partition_xml (disk_params, partition_entries, output_xml):
    print("Generating %s XML %s" %(disk_params["type"].upper(), output_xml))
    
    if disk_params["type"] in ("emmc", "nvme", "spinor", "ufs"):
@@ -242,6 +243,7 @@ except Exception as e:
    print("Error: ", e)
    sys.exit(1)
 
-generate_partition_xml(disk_entry, partition_entries, output_xml)
+disk_params = parse_disk_entry(disk_entry)
+generate_partition_xml(disk_params, partition_entries, output_xml)
 
 sys.exit(0)
