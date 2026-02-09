@@ -64,7 +64,7 @@ partition_entry_defaults = {
 ##################################################################
 # store entries read from input file
 disk_entry = None
-partition_entries_dict = {}
+partition_entries = []
 # store partition image map passed from command line
 partition_image_map = {}
 input_file = None
@@ -152,7 +152,7 @@ def parse_disk_entry(disk_entry):
          print (str(e))
          usage()
 
-def generate_multi_lun_xml (disk_params, partition_entries_dict, output_xml):
+def generate_multi_lun_xml (disk_params, partition_entries, output_xml):
    root = ET.Element("configuration")
    parser_instruction_text = ""
 
@@ -167,7 +167,7 @@ def generate_multi_lun_xml (disk_params, partition_entries_dict, output_xml):
    while lun_index < 6:
       found = False
 
-      for partition_index, entry in partition_entries_dict.items():
+      for entry in partition_entries:
          part_entry = parse_partition_entry(entry)
          if part_entry["physical_partition"] == str(lun_index):
             del part_entry["physical_partition"]
@@ -183,12 +183,12 @@ def generate_multi_lun_xml (disk_params, partition_entries_dict, output_xml):
    with open(output_xml, "w") as f:
       f.write(xmlstr)
 
-def generate_partition_xml (disk_entry, partition_entries_dict, output_xml):
+def generate_partition_xml (disk_entry, partition_entries, output_xml):
    parse_disk_entry(disk_entry)
    print("Generating %s XML %s" %(disk_params["type"].upper(), output_xml))
    
    if disk_params["type"] in ("emmc", "nvme", "spinor", "ufs"):
-      generate_multi_lun_xml(disk_params, partition_entries_dict, output_xml)
+      generate_multi_lun_xml(disk_params, partition_entries, output_xml)
    else:
       print("%s XML generation is curently not supported." %(disk_params["type"].upper()))
 
@@ -222,7 +222,6 @@ try:
       usage()
    f = open(input_file)
    line = f.readline()
-   partition_index = 0
    while line:
       if not re.search(r'^\s*#', line) and not re.search(r'^\s*$', line):
          line = line.strip()
@@ -234,8 +233,7 @@ try:
                print("%s\n%s" %(disk_entry, line))
                sys.exit(1)
          elif re.search("^--partition", line):
-            partition_entries_dict[partition_index] = line
-            partition_index += 1
+            partition_entries.append(line)
          else:
             print("Ignoring %s" %(line))
       line = f.readline()
@@ -244,6 +242,6 @@ except Exception as e:
    print("Error: ", e)
    sys.exit(1)
 
-generate_partition_xml(disk_entry, partition_entries_dict, output_xml)
+generate_partition_xml(disk_entry, partition_entries, output_xml)
 
 sys.exit(0)
