@@ -58,7 +58,6 @@ partition_entry_defaults = {
    "readonly": "true",
    "filename": "",
    "sparse" : "false",
-   "physical_partition": "0"
 }
 
 ##################################################################
@@ -100,9 +99,10 @@ def partition_size_in_kb(size):
 
 def partition_options(argv):
    partition_entry = partition_entry_defaults.copy()
+   phys_part = 0
    for (opt, arg) in argv:
       if opt in ['--lun', '--phys-part']:
-         partition_entry["physical_partition"] = arg
+         phys_part = arg
       elif opt in ['--name']:
          partition_entry["label"] = arg
       elif opt in ['--size']:
@@ -126,21 +126,25 @@ def partition_options(argv):
          partition_entry["sparse"] = arg
       if partition_entry["label"] in partition_image_map.keys():
          partition_entry["filename"] = partition_image_map[partition_entry["label"]]
-   return partition_entry
+   return phys_part, partition_entry
 
-def parse_partition_entry(partition_entry):
-   opts_list = list(partition_entry.split(' '))
-   if opts_list[0] == "--partition":
-      try:
-         options, remainders = getopt.gnu_getopt(opts_list[1:], '',
+def parse_partition_entries(partition_entries):
+   partitions_params = {}
+
+   for partition_entry in partition_entries:
+      opts_list = list(partition_entry.split(' '))
+      if opts_list[0] == "--partition":
+         try:
+            options, remainders = getopt.gnu_getopt(opts_list[1:], '',
                                  ['lun=', 'phys-part=', 'name=', 'size=','type-guid=',
                                   'filename=', 'attributes=', 'sparse='])
-         return partition_options(options)
-      except Exception as e:
-         print (str(e))
-         usage()
+            phys_part, partition = partition_options(options)
+            partitions_params.setdefault(phys_part, []).append(partition)
+         except Exception as e:
+            print (str(e))
+            usage()
 
-   return None
+   return partitions_params
 
 def parse_disk_entry(disk_entry):
    opts_list = list(disk_entry.split(' '))
@@ -154,7 +158,7 @@ def parse_disk_entry(disk_entry):
          print (str(e))
          usage()
 
-def generate_multi_lun_xml (disk_params, partition_entries, output_xml):
+def generate_multi_lun_xml (disk_params, partitions, output_xml):
    root = ET.Element("configuration")
    parser_instruction_text = ""
 
@@ -165,31 +169,27 @@ def generate_multi_lun_xml (disk_params, partition_entries, output_xml):
    parser_inst = ET.SubElement(root,"parser_instructions").text = (
       parser_instruction_text
    )
-   lun_index=0
-   while lun_index < 6:
-      found = False
 
-      for entry in partition_entries:
-         part_entry = parse_partition_entry(entry)
-         if part_entry["physical_partition"] == str(lun_index):
-            del part_entry["physical_partition"]
-            # if there is no partition in the LUN, skip the physical_partition in XML
-            # only create the physical_partition once we have at least one partition
-            if not found:
-               phy_part = ET.SubElement(root, "physical_partition")
-            part = ET.SubElement(phy_part, "partition", attrib=part_entry)
-            found = True
-      lun_index +=1
+   for phys_part, entries in sorted(partitions.items(), key=lambda item: int(item[0])):
+      found = False
+      for part_entry in entries:
+
+         # if there is no partition in the LUN, skip the physical_partition in XML
+         # only create the physical_partition once we have at least one partition
+         if not found:
+            phy_part = ET.SubElement(root, "physical_partition")
+         part = ET.SubElement(phy_part, "partition", attrib=part_entry)
+         found = True
 
    xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml()
    with open(output_xml, "w") as f:
       f.write(xmlstr)
 
-def generate_partition_xml (disk_params, partition_entries, output_xml):
+def generate_partition_xml (disk_params, partitions, output_xml):
    print("Generating %s XML %s" %(disk_params["type"].upper(), output_xml))
    
    if disk_params["type"] in ("emmc", "nvme", "spinor", "ufs"):
-      generate_multi_lun_xml(disk_params, partition_entries, output_xml)
+      generate_multi_lun_xml(disk_params, partitions, output_xml)
    else:
       print("%s XML generation is curently not supported." %(disk_params["type"].upper()))
 
@@ -244,6 +244,7 @@ except Exception as e:
    sys.exit(1)
 
 disk_params = parse_disk_entry(disk_entry)
-generate_partition_xml(disk_params, partition_entries, output_xml)
+partitions = parse_partition_entries(partition_entries)
+generate_partition_xml(disk_params, partitions, output_xml)
 
 sys.exit(0)
