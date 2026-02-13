@@ -40,7 +40,7 @@ def usage():
 
 ##################################################################
 # defaults to be used
-disk_params = OrderedDict({
+disk_params_defaults = OrderedDict({
    "type": "",
    "size": "",
    "SECTOR_SIZE_IN_BYTES": "512",
@@ -58,19 +58,19 @@ partition_entry_defaults = {
    "readonly": "true",
    "filename": "",
    "sparse" : "false",
-   "physical_partition": "0"
 }
 
 ##################################################################
 # store entries read from input file
 disk_entry = None
-partition_entries_dict = {}
+partition_entries = []
 # store partition image map passed from command line
 partition_image_map = {}
 input_file = None
 output_xml = None
 
 def disk_options(argv):
+   disk_params = disk_params_defaults.copy()
    for (opt, arg) in argv:
       if opt in ['--type']:
          disk_params["type"] = arg
@@ -85,6 +85,7 @@ def disk_options(argv):
       elif opt in ['--align-partitions']:
          disk_params["ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY"] = "true"
          disk_params["PERFORMANCE_BOUNDARY_IN_KB"] = (int(arg)/1024)
+   return disk_params
 
 def partition_size_in_kb(size):
     if not re.search('[a-zA-Z]+', size):
@@ -98,9 +99,10 @@ def partition_size_in_kb(size):
 
 def partition_options(argv):
    partition_entry = partition_entry_defaults.copy()
+   phys_part = 0
    for (opt, arg) in argv:
       if opt in ['--lun', '--phys-part']:
-         partition_entry["physical_partition"] = arg
+         phys_part = arg
       elif opt in ['--name']:
          partition_entry["label"] = arg
       elif opt in ['--size']:
@@ -124,21 +126,25 @@ def partition_options(argv):
          partition_entry["sparse"] = arg
       if partition_entry["label"] in partition_image_map.keys():
          partition_entry["filename"] = partition_image_map[partition_entry["label"]]
-   return partition_entry
+   return phys_part, partition_entry
 
-def parse_partition_entry(partition_entry):
-   opts_list = list(partition_entry.split(' '))
-   if opts_list[0] == "--partition":
-      try:
-         options, remainders = getopt.gnu_getopt(opts_list[1:], '',
+def parse_partition_entries(partition_entries):
+   partitions_params = {}
+
+   for partition_entry in partition_entries:
+      opts_list = list(partition_entry.split(' '))
+      if opts_list[0] == "--partition":
+         try:
+            options, remainders = getopt.gnu_getopt(opts_list[1:], '',
                                  ['lun=', 'phys-part=', 'name=', 'size=','type-guid=',
                                   'filename=', 'attributes=', 'sparse='])
-         return partition_options(options)
-      except Exception as e:
-         print (str(e))
-         usage()
+            phys_part, partition = partition_options(options)
+            partitions_params.setdefault(phys_part, []).append(partition)
+         except Exception as e:
+            print (str(e))
+            usage()
 
-   return None
+   return partitions_params
 
 def parse_disk_entry(disk_entry):
    opts_list = list(disk_entry.split(' '))
@@ -147,12 +153,12 @@ def parse_disk_entry(disk_entry):
          options, remainders = getopt.gnu_getopt(opts_list[1:], '',
                                  ['type=', 'size=','sector-size-in-bytes=', 'write-protect-boundary=',
                                   'grow-last-partition', 'align-partitions='])
-         disk_options(options)
+         return disk_options(options)
       except Exception as e:
          print (str(e))
          usage()
 
-def generate_multi_lun_xml (disk_params, partition_entries_dict, output_xml):
+def generate_multi_lun_xml (disk_params, partitions, output_xml):
    root = ET.Element("configuration")
    parser_instruction_text = ""
 
@@ -163,32 +169,27 @@ def generate_multi_lun_xml (disk_params, partition_entries_dict, output_xml):
    parser_inst = ET.SubElement(root,"parser_instructions").text = (
       parser_instruction_text
    )
-   lun_index=0
-   while lun_index < 6:
-      found = False
 
-      for partition_index, entry in partition_entries_dict.items():
-         part_entry = parse_partition_entry(entry)
-         if part_entry["physical_partition"] == str(lun_index):
-            del part_entry["physical_partition"]
-            # if there is no partition in the LUN, skip the physical_partition in XML
-            # only create the physical_partition once we have at least one partition
-            if not found:
-               phy_part = ET.SubElement(root, "physical_partition")
-            part = ET.SubElement(phy_part, "partition", attrib=part_entry)
-            found = True
-      lun_index +=1
+   for phys_part, entries in sorted(partitions.items(), key=lambda item: int(item[0])):
+      found = False
+      for part_entry in entries:
+
+         # if there is no partition in the LUN, skip the physical_partition in XML
+         # only create the physical_partition once we have at least one partition
+         if not found:
+            phy_part = ET.SubElement(root, "physical_partition")
+         part = ET.SubElement(phy_part, "partition", attrib=part_entry)
+         found = True
 
    xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml()
    with open(output_xml, "w") as f:
       f.write(xmlstr)
 
-def generate_partition_xml (disk_entry, partition_entries_dict, output_xml):
-   parse_disk_entry(disk_entry)
+def generate_partition_xml (disk_params, partitions, output_xml):
    print("Generating %s XML %s" %(disk_params["type"].upper(), output_xml))
    
    if disk_params["type"] in ("emmc", "nvme", "spinor", "ufs"):
-      generate_multi_lun_xml(disk_params, partition_entries_dict, output_xml)
+      generate_multi_lun_xml(disk_params, partitions, output_xml)
    else:
       print("%s XML generation is curently not supported." %(disk_params["type"].upper()))
 
@@ -222,7 +223,6 @@ try:
       usage()
    f = open(input_file)
    line = f.readline()
-   partition_index = 0
    while line:
       if not re.search(r'^\s*#', line) and not re.search(r'^\s*$', line):
          line = line.strip()
@@ -234,8 +234,7 @@ try:
                print("%s\n%s" %(disk_entry, line))
                sys.exit(1)
          elif re.search("^--partition", line):
-            partition_entries_dict[partition_index] = line
-            partition_index += 1
+            partition_entries.append(line)
          else:
             print("Ignoring %s" %(line))
       line = f.readline()
@@ -244,6 +243,8 @@ except Exception as e:
    print("Error: ", e)
    sys.exit(1)
 
-generate_partition_xml(disk_entry, partition_entries_dict, output_xml)
+disk_params = parse_disk_entry(disk_entry)
+partitions = parse_partition_entries(partition_entries)
+generate_partition_xml(disk_params, partitions, output_xml)
 
 sys.exit(0)
