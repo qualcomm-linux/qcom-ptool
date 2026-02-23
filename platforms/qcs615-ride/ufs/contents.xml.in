@@ -28,7 +28,7 @@
     </pf>
   </product_flavors>
   <product_info>
-    <product_name>QCS615.LE.1.0</product_name>
+    <product_name>QCS615.LE.0.0</product_name>
     <chipid flavor="default" storage_type="ufs" flash_phase="1">QCS615</chipid>
     <additional_chipid>SA6155</additional_chipid>
     <meta_type>SPF</meta_type>
