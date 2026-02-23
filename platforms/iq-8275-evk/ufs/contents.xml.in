@@ -35,7 +35,7 @@
     </pf>
   </product_flavors>
   <product_info>
-    <product_name>QCS8300.LE.1.0</product_name>
+    <product_name>QCS8300.LE.0.0</product_name>
     <chipid flavor="default" storage_type="ufs" flash_phase="1">QCS8300</chipid>
     <chipid flavor="sail_nor" storage_type="spinor" flash_phase="2">QCS8300</chipid>
     <additional_chipid>QCS8275</additional_chipid>
