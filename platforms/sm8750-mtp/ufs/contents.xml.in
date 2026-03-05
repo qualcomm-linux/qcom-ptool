@@ -31,7 +31,7 @@
     <product_name>Pakala.LE.0.0</product_name>
     <chipid flavor="default" storage_type="ufs" flash_phase="1">PAKALA</chipid>
     <additional_chipid>SM8750</additional_chipid>
-    <meta_type>SPF</meta_type>
+    <meta_type>FULL_STACK</meta_type>
   </product_info>
   <builds_flat>
     <build>
