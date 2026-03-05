@@ -32,6 +32,7 @@
     <chipid flavor="default" storage_type="emmc" flash_phase="1">QCS8300</chipid>
     <additional_chipid>QCS8275</additional_chipid>
     <meta_type>FULL_STACK</meta_type>
+    <build_type>K2L</build_type>
   </product_info>
   <builds_flat>
     <build>

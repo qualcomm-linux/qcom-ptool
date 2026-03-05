@@ -40,6 +40,7 @@
     <chipid flavor="sail_nor" storage_type="spinor" flash_phase="2">QCS9100</chipid>
     <additional_chipid>SA8775P,QCS9075</additional_chipid>
     <meta_type>FULL_STACK</meta_type>
+    <build_type>K2L</build_type>
   </product_info>
   <builds_flat>
     <build>
