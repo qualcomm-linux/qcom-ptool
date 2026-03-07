@@ -1105,7 +1105,7 @@ def PerformPatching():
             except Exception as x:
                 PrintBigError("Could not read in %s\nREASON: %s" % (FileWithPath,x))
 
-            device_log("\tlen(bytes_read)=",len(bytes_read))
+            device_log("\tlen(bytes_read)=%d" % len(bytes_read))
 
             if Patch['arg0']>64:
                 Bytes = struct.unpack("%dB" % (64*SECTOR_SIZE),bytes_read)    ## unpack returns list, so get index 0
@@ -1245,7 +1245,7 @@ def PerformPatching():
             device_log("You're on LINUX! I'm performing a SYNC for you")
             os.system("sync")
 
-        device_log("PATCH:" , Patch['what'])
+        device_log("PATCH: %s" % Patch['what'])
         device_log("DONE\n")
 
         #if Patch['what']== "Update Backup Header with Write Array Location.":
