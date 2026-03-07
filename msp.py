@@ -266,9 +266,7 @@ def ParseXML(xml_filename):     ## this function updates all the global arrays
     global WriteArray,PatchArray,ReadArray,MinDiskSizeInSectors
 
     root = ET.parse( xml_filename )
-    #Create an iterator
-    iter = root.getiterator()
-    for element in iter:
+    for element in root.iter():
         #device_log("\nElement: %s" % element.tag)
         # Parse out include files
 
