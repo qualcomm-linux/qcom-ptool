@@ -148,7 +148,7 @@ def PrintBigError(sz):
 def PrettyPrintArray(bytes_read):
     Bytes = struct.unpack("%dB" % len(bytes_read),bytes_read)
 
-    for k in range(len(Bytes)/SECTOR_SIZE):
+    for k in range(len(Bytes)//SECTOR_SIZE):
         print("-"*78)
         for j in range(32):
             for i in range(16):
