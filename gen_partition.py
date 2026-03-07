@@ -84,7 +84,7 @@ def disk_options(argv):
          disk_params["GROW_LAST_PARTITION_TO_FILL_DISK"] = "true"
       elif opt in ['--align-partitions']:
          disk_params["ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY"] = "true"
-         disk_params["PERFORMANCE_BOUNDARY_IN_KB"] = (int(arg)/1024)
+         disk_params["PERFORMANCE_BOUNDARY_IN_KB"] = (int(arg)//1024)
    return disk_params
 
 def partition_size_in_kb(size):
