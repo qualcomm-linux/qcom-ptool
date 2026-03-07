@@ -75,8 +75,8 @@ BackupGPT   = [0]*16896  # This gets redefined later based on SECTOR_SIZE_IN_BYT
 
 EmptyGPT  = [0]*17408  # This gets redefined later based on SECTOR_SIZE_IN_BYTES This is LBA 0 to 33 (34 sectors total)    (start of disk)
 
-PrimaryGPTNumLBAs=len(PrimaryGPT)/SECTOR_SIZE_IN_BYTES
-BackupGPTNumLBAs =len(BackupGPT)/SECTOR_SIZE_IN_BYTES
+PrimaryGPTNumLBAs=len(PrimaryGPT)//SECTOR_SIZE_IN_BYTES
+BackupGPTNumLBAs =len(BackupGPT)//SECTOR_SIZE_IN_BYTES
 
 ## Note that these HashInstructions are updated by the XML file
 
@@ -87,8 +87,8 @@ HashInstructions['DISK_SIGNATURE']                      = 0x0
 MBR         = [0]*SECTOR_SIZE_IN_BYTES
 EBR         = [0]*SECTOR_SIZE_IN_BYTES
 
-hash_w       = [{'start_sector':0,'num_sectors':(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB']*1024/SECTOR_SIZE_IN_BYTES),
-                 'end_sector':(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB']*1024/SECTOR_SIZE_IN_BYTES)-1,'physical_partition_number':0,'boundary_num':0,'num_boundaries_covered':1}]
+hash_w       = [{'start_sector':0,'num_sectors':(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB']*1024//SECTOR_SIZE_IN_BYTES),
+                 'end_sector':(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB']*1024//SECTOR_SIZE_IN_BYTES)-1,'physical_partition_number':0,'boundary_num':0,'num_boundaries_covered':1}]
 gen_patch = True
 NumWPregions = 0
 
