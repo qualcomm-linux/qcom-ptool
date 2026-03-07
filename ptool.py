@@ -32,7 +32,6 @@ import sys,os,getopt
 import random,math
 import re
 import struct
-from types import *
 from time import sleep
 
 from xml.etree import ElementTree as ET
