@@ -33,7 +33,6 @@ import struct, os, sys, getopt
 import math,traceback
 import re
 import codecs
-from types import *
 import time
 from time import sleep
 import subprocess as sub
@@ -149,7 +148,7 @@ def PrintBigError(sz):
 def PrettyPrintArray(bytes_read):
     Bytes = struct.unpack("%dB" % len(bytes_read),bytes_read)
 
-    for k in range(len(Bytes)/SECTOR_SIZE):
+    for k in range(len(Bytes)//SECTOR_SIZE):
         print("-"*78)
         for j in range(32):
             for i in range(16):
@@ -193,7 +192,7 @@ def HandleNUM_DISK_SECTORS(field):
         return field
 
     m = re.search(r'NUM_DISK_SECTORS-(\d+)', field)
-    if type(m) is not NoneType:
+    if m is not None:
         if DiskSizeInBytes > 0 :
             field           = int((DiskSizeInBytes/SECTOR_SIZE)-int(m.group(1)))   # here I know DiskSizeInBytes
         else:
@@ -203,7 +202,7 @@ def HandleNUM_DISK_SECTORS(field):
         return field
 
     m = re.search("NUM_DISK_SECTORS", field)
-    if type(m) is not NoneType:
+    if m is not None:
         if DiskSizeInBytes > 0 :
             field           = int((DiskSizeInBytes/SECTOR_SIZE))
         else:
@@ -244,7 +243,7 @@ def ReturnParsedValues(element):
 
     # These only affect patching
     m = re.search(r'CRC32\((\d+).?,(\d+).?\)', MyDict['value'])
-    if type(m) is not NoneType:
+    if m is not None:
         MyDict['value']          = 0
         MyDict['function']       = "CRC32"
         MyDict['arg0']           = int(float(m.group(1)))   # start_sector
@@ -252,7 +251,7 @@ def ReturnParsedValues(element):
     else:
         ## above didn't match, so try this
         m = re.search(r'CRC32\((NUM_DISK_SECTORS-\d+).?,(\d+).?\)', MyDict['value'])
-        if type(m) is not NoneType:
+        if m is not None:
             MyDict['value']          = 0
             MyDict['function']       = "CRC32"
             MyDict['arg0']           = int(float( HandleNUM_DISK_SECTORS(m.group(1)) ))   # start_sector
@@ -266,9 +265,7 @@ def ParseXML(xml_filename):     ## this function updates all the global arrays
     global WriteArray,PatchArray,ReadArray,MinDiskSizeInSectors
 
     root = ET.parse( xml_filename )
-    #Create an iterator
-    iter = root.getiterator()
-    for element in iter:
+    for element in root.iter():
         #device_log("\nElement: %s" % element.tag)
         # Parse out include files
 
@@ -911,7 +908,7 @@ def GetPartitions():
             #print line
 
             m = re.search(r'(\d+) (sd[a-z])$', line)
-            if type(m) is not NoneType:
+            if m is not None:
                 Size    = int(m.group(1))
                 Device  = "/dev/"+m.group(2)
                 #device_log("%s\tSize=%d,%.1fMB (%.2fGB) (%iKB)" % (Device,Size,int(Size)/1024.0,int(Size)/(1024.0*1024.0),int(Size))
@@ -934,7 +931,7 @@ def GetPartitions():
 
         response = external_call('wmic DISKDRIVE get DeviceID, MediaType, Model, Size')
         m = re.search("Access is denied", response)
-        if type(m) is not NoneType:
+        if m is not None:
             PrintBigError("This computer does not have correct privileges, you need administrator group privilege\n")
 
         device_log("\n"+response)
@@ -942,7 +939,7 @@ def GetPartitions():
         response = response.replace('\r', '').strip("\n").split("\n")[1:]
         for line in response:
             m = re.search(r'(PHYSICALDRIVE\d+).+ (\d+) ', line)
-            if type(m) is not NoneType:
+            if m is not None:
                 Size    = int(m.group(2))       # size in bytes
                 Device  = "\\\\.\\"+m.group(1)  # \\.\PHYSICALDRIVE1
 
@@ -1108,7 +1105,7 @@ def PerformPatching():
             except Exception as x:
                 PrintBigError("Could not read in %s\nREASON: %s" % (FileWithPath,x))
 
-            device_log("\tlen(bytes_read)=",len(bytes_read))
+            device_log("\tlen(bytes_read)=%d" % len(bytes_read))
 
             if Patch['arg0']>64:
                 Bytes = struct.unpack("%dB" % (64*SECTOR_SIZE),bytes_read)    ## unpack returns list, so get index 0
@@ -1248,7 +1245,7 @@ def PerformPatching():
             device_log("You're on LINUX! I'm performing a SYNC for you")
             os.system("sync")
 
-        device_log("PATCH:" , Patch['what'])
+        device_log("PATCH: %s" % Patch['what'])
         device_log("DONE\n")
 
         #if Patch['what']== "Update Backup Header with Write Array Location.":
@@ -1355,7 +1352,7 @@ def TestIfSparse(test_sparse,filetotest):
         device_log(sz)
         response = external_call(sz)
         m = re.search("SPARSE FILE DETECTED", response)
-        if type(m) is not NoneType:
+        if m is not None:
             PrintBigError("File is sparse, can't continue - you must run 'python checksparse.py -i rawprogram0.xml'")
 
 def CalcCRC32(array,Len):
@@ -1506,7 +1503,7 @@ for o, a in opts:
         # otherwise, a drive /dev/sdb or something was specified
 
         m = re.search(r"^(\d+)$", disk_name)
-        if type(m) is not NoneType:
+        if m is not None:
             ## to be here means they specified a number must be making a single image or patching files
             Patching = "FILES"
             Filename = OutputFolder + "singleimage.bin"
@@ -1523,11 +1520,11 @@ for o, a in opts:
 
             if sys.platform.startswith("linux"):
                 m = re.search("/dev/sd[a-z]", disk_name)
-                if type(m) is not NoneType:
+                if m is not None:
                     ValidDiskName   = True
             else:
                 m = re.search(r"(PHYSICALDRIVE\d+)", disk_name)
-                if type(m) is not NoneType:
+                if m is not None:
                     ValidDiskName   = True
                     Filename = "\\\\.\\"+m.group(1)
 
@@ -1643,12 +1640,12 @@ for Write in WriteArray:
         continue
 
     m = re.search(r"\.ext4$", Write['filename'])
-    if type(m) is not NoneType:
+    if m is not None:
         TestIfSparse(test_sparse,Write['filename'])
 
     if 'sparse' in Write:
         m = re.search("true", Write['sparse'],re.IGNORECASE)
-        if type(m) is not NoneType:
+        if m is not None:
             PrintBigError("")
             device_log("Your rawprogram.xml file indicates that this is a sparse image, can't continue")
             device_log("You must first run \"python checksparse.py -i rawprogram0.xml -s C:\\path1 -s C:\\path2\"")
