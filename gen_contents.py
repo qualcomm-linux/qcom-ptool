@@ -5,7 +5,6 @@
 import getopt
 import os
 import sys
-
 from xml.etree import ElementTree as ET
 
 

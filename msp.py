@@ -29,23 +29,25 @@
 # ===========================================================================*/
 
 
-import struct, os, sys, getopt
-import math,traceback
-import re
 import codecs
-import time
-from time import sleep
+import getopt
+import math
+import os
+import re
+import struct
 import subprocess as sub
-from time import strftime, localtime
-
+import sys
+import time
+import traceback
+from time import localtime, sleep, strftime
+from xml.dom import minidom
 from xml.etree import ElementTree as ET
 #from elementtree.ElementTree import ElementTree
-from xml.etree.ElementTree import Element, SubElement, Comment, tostring
-from xml.dom import minidom
+from xml.etree.ElementTree import Comment, Element, SubElement, tostring
 
-from utils import (EnsureDirectoryExists, CalcCRC32,
-                   PrintBigWarning as _PrintBigWarning,
-                   PrintBigError as _PrintBigError)
+from utils import CalcCRC32, EnsureDirectoryExists
+from utils import PrintBigError as _PrintBigError
+from utils import PrintBigWarning as _PrintBigWarning
 
 DiskSectors         =      0
 

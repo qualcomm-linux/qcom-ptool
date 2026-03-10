@@ -27,12 +27,13 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import sys
-import re
 import getopt
+import re
+import sys
 import xml.etree.ElementTree as ET
-from xml.dom import minidom
 from collections import OrderedDict
+from xml.dom import minidom
+
 
 def usage():
    print("\n\tUsage: %s -i <input> -o <output> -m [partition_name1=image_filename1,partition_name2=image_filename2,...]\n\tVersion 1.0\n" %(sys.argv[0]))
