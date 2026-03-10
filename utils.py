@@ -39,16 +39,16 @@ def reflect(data, nBits):
     reflection = 0x00000000
     for bit in range(nBits):
         if data & 0x01:
-            reflection |= (1 << ((nBits - 1) - bit))
+            reflection |= 1 << ((nBits - 1) - bit)
         data = data >> 1
     return reflection
 
 
 def CalcCRC32(array, Len):
-    k        = 8            # length of unit (i.e. byte)
-    MSB      = 0
-    gx       = 0x04C11DB7  # IEEE 32bit polynomial
-    regs     = 0xFFFFFFFF  # init to all ones
+    k = 8  # length of unit (i.e. byte)
+    MSB = 0
+    gx = 0x04C11DB7  # IEEE 32bit polynomial
+    regs = 0xFFFFFFFF  # init to all ones
     regsMask = 0xFFFFFFFF  # ensure only 32 bit answer
 
     for i in range(int(Len)):
@@ -56,21 +56,21 @@ def CalcCRC32(array, Len):
         DataByte = reflect(DataByte, 8)
 
         for j in range(k):
-            MSB  = DataByte >> (k - 1)  ## get MSB
-            MSB &= 1                    ## ensure just 1 bit
+            MSB = DataByte >> (k - 1)  ## get MSB
+            MSB &= 1  ## ensure just 1 bit
 
             regsMSB = (regs >> 31) & 1
 
-            regs = regs << 1            ## shift regs for CRC-CCITT
+            regs = regs << 1  ## shift regs for CRC-CCITT
 
-            if regsMSB ^ MSB:           ## MSB is a 1
-                regs = regs ^ gx        ## XOR with generator poly
+            if regsMSB ^ MSB:  ## MSB is a 1
+                regs = regs ^ gx  ## XOR with generator poly
 
-            regs = regs & regsMask      ## Mask off excess upper bits
+            regs = regs & regsMask  ## Mask off excess upper bits
 
-            DataByte <<= 1              ## get to next bit
+            DataByte <<= 1  ## get to next bit
 
-    regs          = regs & regsMask
+    regs = regs & regsMask
     ReflectedRegs = reflect(regs, 32) ^ 0xFFFFFFFF
 
     return ReflectedRegs
