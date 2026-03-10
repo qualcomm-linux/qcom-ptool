@@ -107,7 +107,7 @@ def ShowPartitionExample():
 def ConvertKBtoSectors(x):
     ## 1KB / SECTOR_SIZE_IN_BYTES normally means return 2 (i.e. with SECTOR_SIZE_IN_BYTES=512)
     ## 2KB / SECTOR_SIZE_IN_BYTES normally means return 4 (i.e. with SECTOR_SIZE_IN_BYTES=512)
-    return int((x*1024)/SECTOR_SIZE_IN_BYTES)
+    return int((x*1024)//SECTOR_SIZE_IN_BYTES)
 
 def UpdatePatch(StartSector,ByteOffset,PHYPartition,size_in_bytes,szvalue,szfilename,szwhat):
     global PatchesXML
@@ -179,7 +179,7 @@ def PrintBigWarning(sz):
 
 def ValidGUIDForm(GUID):
 
-    if type(GUID) is not str:
+    if not isinstance(GUID, str):
         GUID = str(GUID)
 
     print("Testing if GUID=",GUID)
@@ -199,11 +199,11 @@ def ValidGUIDForm(GUID):
 def ValidateTYPE(Type):
     # for type I must support the original "4C" and if they put "0x4C"
 
-    if type(Type) is int:
+    if isinstance(Type, int):
         if Type>=0 and Type<=255:
             return Type
 
-    if type(Type) is not str:
+    if not isinstance(Type, str):
         Type = str(Type)
 
     m = re.search(r'^(0x)?([a-fA-F\d][a-fA-F\d]?)$', Type)
@@ -218,7 +218,7 @@ def ValidateTYPE(Type):
 
 def ValidateGUID(GUID):
 
-    if type(GUID) is not str:
+    if not isinstance(GUID, str):
         GUID = str(GUID)
 
     print("Looking to validate GUID=",GUID)
@@ -263,7 +263,7 @@ def EnsureDirectoryExists(filename):
 
     try:
         os.stat(dir)
-    except:
+    except OSError:
         os.makedirs(dir)
 
 def WriteGPT(GPTMAIN, GPTBACKUP, GPTEMPTY):
@@ -273,36 +273,32 @@ def WriteGPT(GPTMAIN, GPTBACKUP, GPTEMPTY):
     #for b in BackupGPT:
     #    opfile.write(struct.pack("B", b))
 
-    ofile = open(GPTMAIN, "wb")
-    for b in PrimaryGPT:
-        ofile.write(struct.pack("B", b))
-    ofile.close()
+    with open(GPTMAIN, "wb") as ofile:
+        for b in PrimaryGPT:
+            ofile.write(struct.pack("B", b))
 
     print("\nCreated \"%s\"\t\t\t<-- Primary GPT partition tables + protective MBR" % GPTMAIN)
 
-    ofile = open(GPTBACKUP, "wb")
-    for b in BackupGPT:
-        ofile.write(struct.pack("B", b))
-    ofile.close()
+    with open(GPTBACKUP, "wb") as ofile:
+        for b in BackupGPT:
+            ofile.write(struct.pack("B", b))
 
     print("Created \"%s\"\t\t<-- Backup GPT partition tables" % GPTBACKUP)
 
-    ofile = open(GPTBOTH, "wb")
-    for b in PrimaryGPT:
-        ofile.write(struct.pack("B", b))
-    for b in BackupGPT:
-        ofile.write(struct.pack("B", b))
-    ofile.close()
+    with open(GPTBOTH, "wb") as ofile:
+        for b in PrimaryGPT:
+            ofile.write(struct.pack("B", b))
+        for b in BackupGPT:
+            ofile.write(struct.pack("B", b))
 
     print("Created \"%s\" \t\t<-- you can run 'perl parseGPT.pl %s'" % (GPTBOTH,GPTBOTH))
 
     ## EmptyGPT is just all 0's, let's fill in the correct data
     FillInEmptyGPT()
 
-    ofile = open(GPTEMPTY, "wb")
-    for b in EmptyGPT:
-        ofile.write(struct.pack("B", b))
-    ofile.close()
+    with open(GPTEMPTY, "wb") as ofile:
+        for b in EmptyGPT:
+            ofile.write(struct.pack("B", b))
 
     print("Created \"%s\"\t\t<-- Empty GPT partition table, use to force EDL mode (very useful)" % GPTEMPTY)
 
@@ -358,27 +354,15 @@ def ShowBackupGPT(sector):
 def CreateFileOfZeros(filename,num_total_sectors):
     if OutputFolder:
         filename = os.path.join(OutputFolder, filename)
-    try:
-        opfile = open(filename, "w+b")
-    except Exception as x:
-        print("ERROR: Could not create '%s', cwd=%s" % (filename,os.getcwd() ))
-        print("REASON: %s" % (x))
-        sys.exit(1)
-
     num_sectors = int(num_total_sectors)
     temp = [0]*(SECTOR_SIZE_IN_BYTES*num_sectors)
     zeros = struct.pack("%iB"%(SECTOR_SIZE_IN_BYTES*num_sectors),*temp)
     try:
-        opfile.write(zeros)
+        with open(filename, "w+b") as opfile:
+            opfile.write(zeros)
     except Exception as x:
-        print("ERROR: Could not write zeros to '%s'\nREASON: %s" % (filename,x))
+        print("ERROR: Could not create or write '%s', cwd=%s\nREASON: %s" % (filename, os.getcwd(), x))
         sys.exit(1)
-
-    try:
-        opfile.close()
-    except Exception as x:
-        print("\tWARNING: Could not close %s" % filename)
-        print("REASON: %s" % (x))
 
     print("Created \"%s\"\t\t<-- full of binary zeros - used by \"wipe\" rawprogram files" % filename)
 
@@ -405,9 +389,8 @@ def CreateErasingRawProgramFiles():
 
         RAW_PROGRAM = '%swipe_rawprogram_PHY%d.xml' % (OutputFolder,i)
 
-        opfile = open(RAW_PROGRAM, "w")
-        opfile.write( prettify(temp) )
-        opfile.close()
+        with open(RAW_PROGRAM, "w") as opfile:
+            opfile.write( prettify(temp) )
         print("Created \"%s\"\t<-- Used to *wipe/erase* partition information" % RAW_PROGRAM)
 
 
@@ -460,8 +443,8 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
     ## Step 2. Move through xml definition and figure out partitions sizes
     ## ---------------------------------------------------------------------------------
 
-    PrimaryGPTNumLBAs=int(len(PrimaryGPT)/SECTOR_SIZE_IN_BYTES)
-    BackupGPTNumLBAs =int(len(BackupGPT)/SECTOR_SIZE_IN_BYTES)
+    PrimaryGPTNumLBAs=len(PrimaryGPT)//SECTOR_SIZE_IN_BYTES
+    BackupGPTNumLBAs =len(BackupGPT)//SECTOR_SIZE_IN_BYTES
     i           = 2*SECTOR_SIZE_IN_BYTES    ## partition arrays begin here
     FirstLBA    = PrimaryGPTNumLBAs
     LastLBA     = FirstLBA               ## Make these equal at first
@@ -1015,24 +998,20 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
 
     WriteGPT(GPTMAIN, GPTBACKUP, GPTEMPTY)
 
-    opfile = open(RAW_PROGRAM, "w")
-    opfile.write( prettify(RawProgramXML) )
-    opfile.close()
+    with open(RAW_PROGRAM, "w") as opfile:
+        opfile.write( prettify(RawProgramXML) )
     print("\nCreated \"%s\"\t\t\t<-- YOUR partition information is HERE" % RAW_PROGRAM)
 
-    opfile = open(RAW_PROGRAM_WIPE_PARTITIONS, "w")
-    opfile.write( prettify(RawProgramXML_Wipe) )
-    opfile.close()
+    with open(RAW_PROGRAM_WIPE_PARTITIONS, "w") as opfile:
+        opfile.write( prettify(RawProgramXML_Wipe) )
     print("Created \"%s\"\t<-- Wipe out your images with this file (if needed for testing)" % RAW_PROGRAM_WIPE_PARTITIONS)
 
-    opfile = open(RAW_PROGRAM_BLANK_GPT, "w")
-    opfile.write( prettify(RawProgramXML_Blank) )
-    opfile.close()
+    with open(RAW_PROGRAM_BLANK_GPT, "w") as opfile:
+        opfile.write( prettify(RawProgramXML_Blank) )
     print("Created \"%s\"\t\t<-- Valid empty GPT partition table (to force to EDL)" % RAW_PROGRAM_BLANK_GPT)
 
-    opfile = open(PATCHES, "w")             # gpt
-    opfile.write( prettify(PatchesXML) )
-    opfile.close()
+    with open(PATCHES, "w") as opfile:             # gpt
+        opfile.write( prettify(PatchesXML) )
     print("Created \"%s\"\t\t\t\t<-- Tailor your partition tables to YOUR device with this file\n" % PATCHES)
 
 
@@ -1070,7 +1049,7 @@ def ParseXML(XMLFile):
 
 
     if 'SECTOR_SIZE_IN_BYTES' in HashInstructions:
-        if type(HashInstructions['SECTOR_SIZE_IN_BYTES']) is str:
+        if isinstance(HashInstructions['SECTOR_SIZE_IN_BYTES'], str):
             m = re.search(r'^(\d+)$', HashInstructions['SECTOR_SIZE_IN_BYTES'])
             if m is None:
                 ## we didn't match, so assign deafult
@@ -1091,7 +1070,7 @@ def ParseXML(XMLFile):
 
 
     if 'WRITE_PROTECT_BOUNDARY_IN_KB' in HashInstructions:
-        if type(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB']) is str:
+        if isinstance(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB'], str):
             m = re.search(r'^(\d+)$', HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB'])
             if m is None:
                 ## we didn't match, so assign deafult
@@ -1103,7 +1082,7 @@ def ParseXML(XMLFile):
         HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB'] = 65536
 
     if 'PERFORMANCE_BOUNDARY_IN_KB' in HashInstructions:
-        if type(HashInstructions['PERFORMANCE_BOUNDARY_IN_KB']) is str:
+        if isinstance(HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'], str):
             m = re.search(r'^(\d+)$', HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'])
             if m is None:
                 ## we didn't match, so assign deafult
@@ -1115,7 +1094,7 @@ def ParseXML(XMLFile):
         HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'] = 0
 
     if 'GROW_LAST_PARTITION_TO_FILL_DISK' in HashInstructions:
-        if type(HashInstructions['GROW_LAST_PARTITION_TO_FILL_DISK']) is str:
+        if isinstance(HashInstructions['GROW_LAST_PARTITION_TO_FILL_DISK'], str):
             m = re.search("^(true)$", HashInstructions['GROW_LAST_PARTITION_TO_FILL_DISK'] ,re.IGNORECASE)
             #print type(m)
             if m is None:
@@ -1128,7 +1107,7 @@ def ParseXML(XMLFile):
         HashInstructions['GROW_LAST_PARTITION_TO_FILL_DISK'] = False
 
     if 'WRITE_PROTECT_GPT_PARTITION_TABLE' in HashInstructions:
-        if type(HashInstructions['WRITE_PROTECT_GPT_PARTITION_TABLE']) is str:
+        if isinstance(HashInstructions['WRITE_PROTECT_GPT_PARTITION_TABLE'], str):
             m = re.search("^(true)$", HashInstructions['WRITE_PROTECT_GPT_PARTITION_TABLE'] ,re.IGNORECASE)
             #print type(m)
             if m is None:
@@ -1141,7 +1120,7 @@ def ParseXML(XMLFile):
         HashInstructions['WRITE_PROTECT_GPT_PARTITION_TABLE'] = False
 
     if 'ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY' in HashInstructions:
-        if type(HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY']) is str:
+        if isinstance(HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY'], str):
             m = re.search("^(true)$", HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY'] ,re.IGNORECASE)
             #print type(m)
             if m is None:
@@ -1154,7 +1133,7 @@ def ParseXML(XMLFile):
         HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY'] = False
 
     if 'USE_GPT_PARTITIONING' in HashInstructions:
-        if type(HashInstructions['USE_GPT_PARTITIONING']) is str:
+        if isinstance(HashInstructions['USE_GPT_PARTITIONING'], str):
             m = re.search("^(true)$", HashInstructions['USE_GPT_PARTITIONING'] ,re.IGNORECASE)
             #print type(m)
             if m is None:
@@ -1168,7 +1147,7 @@ def ParseXML(XMLFile):
 
 
     if 'DISK_SIGNATURE' in HashInstructions:
-        if type(HashInstructions['DISK_SIGNATURE']) is str:
+        if isinstance(HashInstructions['DISK_SIGNATURE'], str):
             m = re.search(r'^0x([\da-fA-F]+)$', HashInstructions['DISK_SIGNATURE'])
             if m is None:
                 print("WARNING: DISK_SIGNATURE is not formed correctly, expected format is 0x12345678\n")
@@ -1180,7 +1159,7 @@ def ParseXML(XMLFile):
         HashInstructions['DISK_SIGNATURE'] = 0x00000000
 
     if 'ALIGN_BOUNDARY_IN_KB' in HashInstructions:
-        if type(HashInstructions['ALIGN_BOUNDARY_IN_KB']) is str:
+        if isinstance(HashInstructions['ALIGN_BOUNDARY_IN_KB'], str):
             m = re.search(r'^(\d+)$', HashInstructions['ALIGN_BOUNDARY_IN_KB'])
             if m is None:
                 ## we didn't match, so assign deafult
@@ -1333,13 +1312,13 @@ def ParseXML(XMLFile):
                             PrintBigError("\nERROR: Invalid partition size")
 
                         ## 'size' means in terms of sectors
-                        TempSizeInBytes = int(value)/2        # force as even number
+                        TempSizeInBytes = int(value)//2        # force as even number
                         if TempSizeInBytes<2:
                             TempSizeInBytes = 2
                         TempSizeInBytes = TempSizeInBytes*SECTOR_SIZE_IN_BYTES  ## either 1K or 8K
 
-                        Partition["size_in_kb"]=TempSizeInBytes/1024
-                        Partition["original_size_in_kb"]=TempSizeInBytes/1024
+                        Partition["size_in_kb"]=TempSizeInBytes//1024
+                        Partition["original_size_in_kb"]=TempSizeInBytes//1024
                     elif name=="size_in_kb":
                         if len(value)==0:
                             PrintBigError("\nERROR: Invalid partition size")
@@ -1358,8 +1337,8 @@ def ParseXML(XMLFile):
                         if TempSizeInBytes < SECTOR_SIZE_IN_BYTES:
                             ## smaller than a sector, which is possible if sector size is 4KB
                             TempSizeInBytes = SECTOR_SIZE_IN_BYTES
-                        Partition["size_in_kb"]=TempSizeInBytes/1024
-                        Partition["original_size_in_kb"]=TempSizeInBytes/1024
+                        Partition["size_in_kb"]=TempSizeInBytes//1024
+                        Partition["original_size_in_kb"]=TempSizeInBytes//1024
 
                     else:
                         print("Just assigned %s to %s" % (name,value))
@@ -1662,7 +1641,7 @@ def HexPrettyPrint(data,Length):
    try:
        if len(data)==0:
            return " "
-   except:
+   except TypeError:
        log_debug("Hit Exception in HexPrettyPrint, data is %s" % type(data))
        return " "
 
@@ -1728,26 +1707,22 @@ def ShowUsage():
 def CreateFinalPartitionBin():
     global OutputFolder
 
-    opfile = open("%spartition.bin" % OutputFolder, "wb")
+    with open("%spartition.bin" % OutputFolder, "wb") as opfile:
+        for i in range(3):
+            FileName = "%spartition%i.bin" % (OutputFolder,i);
+            size     = 0
 
-    for i in range(3):
-        FileName = "%spartition%i.bin" % (OutputFolder,i);
-        size     = 0
+            if os.path.isfile(FileName):
+                size = os.path.getsize(FileName)
 
-        if os.path.isfile(FileName):
-            size = os.path.getsize(FileName)
+                with open(FileName, "rb") as ipfile:
+                    temp = ipfile.read()
+                opfile.write(temp)
 
-            ipfile = open(FileName, "rb")
-            temp = ipfile.read()
-            opfile.write(temp)
-            ipfile.close()
-
-        if size < 8192:
-            MyArray = [0]*(8192-size)
-            for b in MyArray:
-                opfile.write(struct.pack("B", b))
-
-    opfile.close()
+            if size < 8192:
+                MyArray = [0]*(8192-size)
+                for b in MyArray:
+                    opfile.write(struct.pack("B", b))
 
 
 
@@ -1835,30 +1810,25 @@ def CreateMBRPartitionTable(PhysicalPartitionNumber):
 
     print("\nptool.py is running from CWD: ", os.getcwd(), "\n")
 
-    opfile = open(PARTITIONBIN, "wb")
-    WriteMBR()
-    WriteEBR()
-    opfile.close()
+    with open(PARTITIONBIN, "wb") as opfile:
+        WriteMBR()
+        WriteEBR()
     print("Created \"%s\"" % PARTITIONBIN)
 
-    opfile = open(MBRBIN, "wb")
-    WriteMBR()
-    opfile.close()
+    with open(MBRBIN, "wb") as opfile:
+        WriteMBR()
     print("Created \"%s\"" % MBRBIN)
 
-    opfile = open(EBRBIN, "wb")
-    WriteEBR()
-    opfile.close()
+    with open(EBRBIN, "wb") as opfile:
+        WriteEBR()
     print("Created \"%s\"" % EBRBIN)
 
-    opfile = open(RAW_PROGRAM, "w")
-    opfile.write( prettify(RawProgramXML) )
-    opfile.close()
+    with open(RAW_PROGRAM, "w") as opfile:
+        opfile.write( prettify(RawProgramXML) )
     print("Created \"%s\"" % RAW_PROGRAM)
 
-    opfile = open(PATCHES, "w")
-    opfile.write( prettify(PatchesXML) )
-    opfile.close()
+    with open(PATCHES, "w") as opfile:
+        opfile.write( prettify(PatchesXML) )
     print("Created \"%s\"" % PATCHES)
 
     for mydict in hash_w:
@@ -1872,10 +1842,8 @@ def CreateMBRPartitionTable(PhysicalPartitionNumber):
 
     SubElement(EmmcLockRegionsXML, 'information', {'WRITE_PROTECT_BOUNDARY_IN_KB':str(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB']) })
 
-    opfile = open("%semmc_lock_regions.xml" % OutputFolder, "w")
-
-    opfile.write( prettify(EmmcLockRegionsXML) )
-    opfile.close()
+    with open("%semmc_lock_regions.xml" % OutputFolder, "w") as opfile:
+        opfile.write( prettify(EmmcLockRegionsXML) )
     print("Created \"%semmc_lock_regions.xml\"" % OutputFolder)
 
     print("\nUse msp tool to write this information to SD/eMMC card")
