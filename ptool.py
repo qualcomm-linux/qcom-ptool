@@ -28,19 +28,21 @@
 #IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # ===========================================================================*/
 
-import sys,os,getopt
-import random,math
+import getopt
+import math
+import os
+import random
 import re
 import struct
+import sys
 from time import sleep
-
+from xml.dom import minidom
 from xml.etree import ElementTree as ET
 #from elementtree.ElementTree import ElementTree
-from xml.etree.ElementTree import Element, SubElement, Comment, tostring
-from xml.dom import minidom
+from xml.etree.ElementTree import Comment, Element, SubElement, tostring
 
-from utils import (EnsureDirectoryExists, reflect, CalcCRC32,
-                   PrintBigWarning, PrintBigError)
+from utils import (CalcCRC32, EnsureDirectoryExists, PrintBigError,
+                   PrintBigWarning, reflect)
 
 OutputFolder            = ""
 
