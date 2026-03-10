@@ -107,7 +107,7 @@ def ShowPartitionExample():
 def ConvertKBtoSectors(x):
     ## 1KB / SECTOR_SIZE_IN_BYTES normally means return 2 (i.e. with SECTOR_SIZE_IN_BYTES=512)
     ## 2KB / SECTOR_SIZE_IN_BYTES normally means return 4 (i.e. with SECTOR_SIZE_IN_BYTES=512)
-    return int((x*1024)/SECTOR_SIZE_IN_BYTES)
+    return int((x*1024)//SECTOR_SIZE_IN_BYTES)
 
 def UpdatePatch(StartSector,ByteOffset,PHYPartition,size_in_bytes,szvalue,szfilename,szwhat):
     global PatchesXML
@@ -460,8 +460,8 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
     ## Step 2. Move through xml definition and figure out partitions sizes
     ## ---------------------------------------------------------------------------------
 
-    PrimaryGPTNumLBAs=int(len(PrimaryGPT)/SECTOR_SIZE_IN_BYTES)
-    BackupGPTNumLBAs =int(len(BackupGPT)/SECTOR_SIZE_IN_BYTES)
+    PrimaryGPTNumLBAs=len(PrimaryGPT)//SECTOR_SIZE_IN_BYTES
+    BackupGPTNumLBAs =len(BackupGPT)//SECTOR_SIZE_IN_BYTES
     i           = 2*SECTOR_SIZE_IN_BYTES    ## partition arrays begin here
     FirstLBA    = PrimaryGPTNumLBAs
     LastLBA     = FirstLBA               ## Make these equal at first
@@ -1333,13 +1333,13 @@ def ParseXML(XMLFile):
                             PrintBigError("\nERROR: Invalid partition size")
 
                         ## 'size' means in terms of sectors
-                        TempSizeInBytes = int(value)/2        # force as even number
+                        TempSizeInBytes = int(value)//2        # force as even number
                         if TempSizeInBytes<2:
                             TempSizeInBytes = 2
                         TempSizeInBytes = TempSizeInBytes*SECTOR_SIZE_IN_BYTES  ## either 1K or 8K
 
-                        Partition["size_in_kb"]=TempSizeInBytes/1024
-                        Partition["original_size_in_kb"]=TempSizeInBytes/1024
+                        Partition["size_in_kb"]=TempSizeInBytes//1024
+                        Partition["original_size_in_kb"]=TempSizeInBytes//1024
                     elif name=="size_in_kb":
                         if len(value)==0:
                             PrintBigError("\nERROR: Invalid partition size")
@@ -1358,8 +1358,8 @@ def ParseXML(XMLFile):
                         if TempSizeInBytes < SECTOR_SIZE_IN_BYTES:
                             ## smaller than a sector, which is possible if sector size is 4KB
                             TempSizeInBytes = SECTOR_SIZE_IN_BYTES
-                        Partition["size_in_kb"]=TempSizeInBytes/1024
-                        Partition["original_size_in_kb"]=TempSizeInBytes/1024
+                        Partition["size_in_kb"]=TempSizeInBytes//1024
+                        Partition["original_size_in_kb"]=TempSizeInBytes//1024
 
                     else:
                         print("Just assigned %s to %s" % (name,value))

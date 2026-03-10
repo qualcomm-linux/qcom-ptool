@@ -194,9 +194,9 @@ def HandleNUM_DISK_SECTORS(field):
     m = re.search(r'NUM_DISK_SECTORS-(\d+)', field)
     if m is not None:
         if DiskSizeInBytes > 0 :
-            field           = int((DiskSizeInBytes/SECTOR_SIZE)-int(m.group(1)))   # here I know DiskSizeInBytes
+            field           = (DiskSizeInBytes//SECTOR_SIZE)-int(m.group(1))   # here I know DiskSizeInBytes
         else:
-            field           = int((EMMCBLD_MAX_DISK_SIZE_IN_BYTES/SECTOR_SIZE)+int(m.group(1)))  # I make this a gigantic number for sorting (PLUS not MINUS here)
+            field           = (EMMCBLD_MAX_DISK_SIZE_IN_BYTES//SECTOR_SIZE)+int(m.group(1))  # I make this a gigantic number for sorting (PLUS not MINUS here)
 
     if type(field) is not str:
         return field
@@ -204,9 +204,9 @@ def HandleNUM_DISK_SECTORS(field):
     m = re.search("NUM_DISK_SECTORS", field)
     if m is not None:
         if DiskSizeInBytes > 0 :
-            field           = int((DiskSizeInBytes/SECTOR_SIZE))
+            field           = DiskSizeInBytes//SECTOR_SIZE
         else:
-            field           = int((EMMCBLD_MAX_DISK_SIZE_IN_BYTES/SECTOR_SIZE))
+            field           = EMMCBLD_MAX_DISK_SIZE_IN_BYTES//SECTOR_SIZE
 
     if type(field) is not str:
         return field
