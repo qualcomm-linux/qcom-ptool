@@ -39,6 +39,9 @@ from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
+from utils import (EnsureDirectoryExists, reflect, CalcCRC32,
+                   PrintBigWarning, PrintBigError)
+
 OutputFolder            = ""
 
 LastPartitionBeginsAt = 0
@@ -164,19 +167,6 @@ def UpdateRawProgram(RawProgramXML, StartSector, size_in_KB, PHYPartition, file_
 
 
 
-def PrintBigWarning(sz):
-    print("\t                          _             ")
-    print("\t                         (_)            ")
-    print("\t__      ____ _ _ __ _ __  _ _ __   __ _ ")
-    print("\t\\ \\ /\\ / / _` | '__| '_ \\| | '_ \\ / _` |")
-    print("\t \\ V  V / (_| | |  | | | | | | | | (_| |")
-    print("\t  \\_/\\_/ \\__,_|_|  |_| |_|_|_| |_|\\__, |")
-    print("\t                                   __/ |")
-    print("\t                                  |___/ \n")
-
-    if len(sz)>0:
-        print(sz)
-
 def ValidGUIDForm(GUID):
 
     if not isinstance(GUID, str):
@@ -257,14 +247,6 @@ def ValidateGUID(GUID):
             print("WARNING"+"-"*78+"\n")
             print("Converted to PARTITION_BASIC_DATA_GUID (0xC79926B7B668C0874433B9E5EBD0A0A2)\n")
             return PARTITION_BASIC_DATA_GUID
-
-def EnsureDirectoryExists(filename):
-    dir = os.path.dirname(filename)
-
-    try:
-        os.stat(dir)
-    except OSError:
-        os.makedirs(dir)
 
 def WriteGPT(GPTMAIN, GPTBACKUP, GPTEMPTY):
     global opfile,PrimaryGPT,BackupGPT,GPTBOTH
@@ -861,10 +843,10 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
     ##PartitionsCRC = CalcCRC32(PrimaryGPT[1024:],NumPartitions*SizeOfPartitionArray)  ## Each partition entry is 128 bytes
 
 
-    PartitionsPerSector = SECTOR_SIZE_IN_BYTES/128  ## 128 bytes per partition
+    PartitionsPerSector = SECTOR_SIZE_IN_BYTES//128  ## 128 bytes per partition
 
     if NumPartitions>PartitionsPerSector:
-        SectorsToCalculateCRCOver = NumPartitions/PartitionsPerSector
+        SectorsToCalculateCRCOver = NumPartitions//PartitionsPerSector
         if NumPartitions%PartitionsPerSector:
             SectorsToCalculateCRCOver+=1
     else:
@@ -1576,56 +1558,6 @@ def UpdateWPhash(Start,Size):
         print("\t\tnum_sectors = %i sectors\n" % hash_w[NumWPregions]["num_sectors"])
 
 # A8h reflected is 15h, i.e. 10101000 <--> 00010101
-def reflect(data,nBits):
-
-    reflection = 0x00000000
-    bit = 0
-
-    for bit in range(nBits):
-        if(data & 0x01):
-            reflection |= (1 << ((nBits - 1) - bit))
-        data = (data >> 1);
-
-    return reflection
-
-
-def CalcCRC32(array,Len):
-   k        = 8;            # length of unit (i.e. byte)
-   MSB      = 0;
-   gx       = 0x04C11DB7;   # IEEE 32bit polynomial
-   regs     = 0xFFFFFFFF;   # init to all ones
-   regsMask = 0xFFFFFFFF;   # ensure only 32 bit answer
-
-   print("Calculating CRC over byte length of %i" % Len)
-   print("%s" % HexPrettyPrint(array,Len))
-
-   for i in range(int(Len)):
-      DataByte = array[i]
-      DataByte = reflect( DataByte, 8 );
-
-      for j in range(k):
-        MSB  = DataByte>>(k-1)  ## get MSB
-        MSB &= 1                ## ensure just 1 bit
-
-        regsMSB = (regs>>31) & 1
-
-        regs = regs<<1          ## shift regs for CRC-CCITT
-
-        if regsMSB ^ MSB:       ## MSB is a 1
-            regs = regs ^ gx    ## XOR with generator poly
-
-        regs = regs & regsMask; ## Mask off excess upper bits
-
-        DataByte <<= 1          ## get to next bit
-
-
-   regs          = regs & regsMask ## Mask off excess upper bits
-   ReflectedRegs = reflect(regs,32) ^ 0xFFFFFFFF;
-
-   #print "CRC is 0x%.8X\n" % ReflectedRegs
-
-   return ReflectedRegs
-
 
 def HexPrettyPrint(data,Length):
    szNum = ""
@@ -2243,19 +2175,6 @@ def WriteEBR():
     global opfile,EBR
     for b in EBR:
         opfile.write(struct.pack("B", b))
-
-def PrintBigError(sz):
-    print("\t _________________ ___________ ")
-    print("\t|  ___| ___ \\ ___ \\  _  | ___ \\")
-    print("\t| |__ | |_/ / |_/ / | | | |_/ /")
-    print("\t|  __||    /|    /| | | |    / ")
-    print("\t| |___| |\\ \\| |\\ \\\\ \\_/ / |\\ \\ ")
-    print("\t\\____/\\_| \\_\\_| \\_|\\___/\\_| \\_|\n")
-
-    if len(sz)>0:
-        print(sz)
-        sys.exit(1)
-
 
 def find_file(filename, search_paths):
     print("\n\n\tLooking for ",filename)

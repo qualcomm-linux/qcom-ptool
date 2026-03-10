@@ -43,6 +43,10 @@ from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
+from utils import (EnsureDirectoryExists, CalcCRC32,
+                   PrintBigWarning as _PrintBigWarning,
+                   PrintBigError as _PrintBigError)
+
 DiskSectors         =      0
 
 BLOCK_SIZE          =      0x200
@@ -109,41 +113,11 @@ reset_device_log()
 device_log("\nmsp.py is running from CWD: %s\n" % os.getcwd())
 
 
-def EnsureDirectoryExists(filename):
-    dir = os.path.dirname(filename)
-
-    try:
-        os.stat(dir)
-    except Exception as x:
-        os.makedirs(dir)
-
-
 def PrintBigWarning(sz):
-    device_log("\t                          _             ")
-    device_log("\t                         (_)            ")
-    device_log("\t__      ____ _ _ __ _ __  _ _ __   __ _ ")
-    device_log("\t\\ \\ /\\ / / _` | '__| '_ \\| | '_ \\ / _` |")
-    device_log("\t \\ V  V / (_| | |  | | | | | | | | (_| |")
-    device_log("\t  \\_/\\_/ \\__,_|_|  |_| |_|_|_| |_|\\__, |")
-    device_log("\t                                   __/ |")
-    device_log("\t                                  |___/ \n")
-
-    if len(sz)>0:
-        device_log(sz)
+    _PrintBigWarning(sz, log_func=device_log)
 
 def PrintBigError(sz):
-    device_log("\t _________________ ___________ ")
-    device_log("\t|  ___| ___ \\ ___ \\  _  | ___ \\")
-    device_log("\t| |__ | |_/ / |_/ / | | | |_/ /")
-    device_log("\t|  __||    /|    /| | | |    / ")
-    device_log("\t| |___| |\\ \\| |\\ \\\\ \\_/ / |\\ \\ ")
-    device_log("\t\\____/\\_| \\_\\_| \\_|\\___/\\_| \\_|\n")
-    device_log("\nERROR - ERROR - ERROR - ERROR - ERROR\n")
-
-    if len(sz)>0:
-        device_log(sz)
-        device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
-        sys.exit(1)
+    _PrintBigError(sz, log_func=device_log)
 
 def PrettyPrintArray(bytes_read):
     Bytes = struct.unpack("%dB" % len(bytes_read),bytes_read)
@@ -1278,17 +1252,6 @@ def ReturnSizeString(size):
 
 
 # A8h reflected is 15h, i.e. 10101000 <--> 00010101
-def reflect(data,nBits):
-
-    reflection = 0x00000000
-    bit = 0
-
-    for bit in range(nBits):
-        if(data & 0x01):
-            reflection |= (1 << ((nBits - 1) - bit))
-        data = (data >> 1);
-
-    return reflection
 
 def PrintResetDeviceNow():
     device_log("\t______              _                            ")
@@ -1335,38 +1298,6 @@ def TestIfSparse(test_sparse,filetotest):
         m = re.search("SPARSE FILE DETECTED", response)
         if m is not None:
             PrintBigError("File is sparse, can't continue - you must run 'python checksparse.py -i rawprogram0.xml'")
-
-def CalcCRC32(array,Len):
-   k        = 8;            # length of unit (i.e. byte)
-   MSB      = 0;
-   gx	    = 0x04C11DB7;   # IEEE 32bit polynomial
-   regs     = 0xFFFFFFFF;   # init to all ones
-   regsMask = 0xFFFFFFFF;   # ensure only 32 bit answer
-
-   for i in range(Len): # Len=5 ; range(Len) --> [0, 1, 2, 3, 4]
-      DataByte = array[i]
-      DataByte = reflect( DataByte, 8 );
-
-      for j in range(k):
-        MSB  = DataByte>>(k-1)  ## get MSB
-        MSB &= 1                ## ensure just 1 bit
-
-        regsMSB = (regs>>31) & 1
-
-        regs = regs<<1          ## shift regs for CRC-CCITT
-
-        if regsMSB ^ MSB:       ## MSB is a 1
-            regs = regs ^ gx    ## XOR with generator poly
-
-        regs = regs & regsMask; ## Mask off excess upper bits
-
-        DataByte <<= 1          ## get to next bit
-
-
-   regs          = regs & regsMask ## Mask off excess upper bits
-   ReflectedRegs = reflect(regs,32) ^ 0xFFFFFFFF;
-
-   return ReflectedRegs
 
 def ReplaceDiskSizeInSectorsWithRealValue(MyArray):
     ## At this point I have the real size of DiskSizeInBytes, so let's fill in the blanks if they still exist
