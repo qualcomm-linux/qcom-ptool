@@ -419,7 +419,7 @@ def PerformRead():
 
             opfile = open(Filename, "r+b")  ## Filename = '\\.\PHYSICALDRIVE1'
             #device_log("Opened '%s', cwd=%s" % (Filename, os.getcwd() ))
-        except:
+        except OSError:
             PrintBigError("")
             device_log("Could not open Filename=%s, cwd=%s" % (Filename, os.getcwd() ))
 

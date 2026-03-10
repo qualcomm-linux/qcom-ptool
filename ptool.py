@@ -263,7 +263,7 @@ def EnsureDirectoryExists(filename):
 
     try:
         os.stat(dir)
-    except:
+    except OSError:
         os.makedirs(dir)
 
 def WriteGPT(GPTMAIN, GPTBACKUP, GPTEMPTY):
@@ -1662,7 +1662,7 @@ def HexPrettyPrint(data,Length):
    try:
        if len(data)==0:
            return " "
-   except:
+   except TypeError:
        log_debug("Hit Exception in HexPrettyPrint, data is %s" % type(data))
        return " "
 
