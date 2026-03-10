@@ -167,7 +167,7 @@ def generate_multi_lun_xml (disk_params, partitions, output_xml):
       if not key == 'size' and not key == 'type':
          parser_instruction_text += '\n\t' + str(key) + '=' + str(value) + '\n\t'
 
-   parser_inst = ET.SubElement(root,"parser_instructions").text = (
+   ET.SubElement(root,"parser_instructions").text = (
       parser_instruction_text
    )
 
@@ -179,7 +179,7 @@ def generate_multi_lun_xml (disk_params, partitions, output_xml):
          # only create the physical_partition once we have at least one partition
          if not found:
             phy_part = ET.SubElement(root, "physical_partition")
-         part = ET.SubElement(phy_part, "partition", attrib=part_entry)
+         ET.SubElement(phy_part, "partition", attrib=part_entry)
          found = True
 
    xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml()
@@ -228,7 +228,7 @@ try:
       if not re.search(r'^\s*#', line) and not re.search(r'^\s*$', line):
          line = line.strip()
          if re.search("^--disk", line):
-            if disk_entry == None:
+            if disk_entry is None:
                disk_entry = line
             else:
                print("%s %s" %(sys.argv[1], disk_entry_err_msg))

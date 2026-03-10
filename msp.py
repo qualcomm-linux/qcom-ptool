@@ -29,21 +29,15 @@
 # ===========================================================================*/
 
 
-import codecs
 import getopt
-import math
 import os
 import re
 import struct
 import subprocess as sub
 import sys
-import time
-import traceback
 from time import localtime, sleep, strftime
-from xml.dom import minidom
 from xml.etree import ElementTree as ET
 #from elementtree.ElementTree import ElementTree
-from xml.etree.ElementTree import Comment, Element, SubElement, tostring
 
 from utils import CalcCRC32, EnsureDirectoryExists
 from utils import PrintBigError as _PrintBigError
@@ -158,7 +152,7 @@ def external_call(command, capture_output=True):
     finally:
         #if not output is None:
         #    device_log("Result: %s" % output)
-        if (not errors is None) and (not errors == ""):
+        if (errors is not None) and (not errors == ""):
             device_log("Process stderr: %s" % errors)
     return output
 
@@ -334,7 +328,7 @@ def DoubleCheckDiskSize():
 
                     count += 1
 
-            except Exception as x:
+            except Exception:
                 TrueSize = fp.tell()
 
         if TrueSize != Size and Size<=(64*1024*1024*1024):
@@ -361,7 +355,6 @@ def PerformRead():
     device_log("\t                               __/ |")
     device_log("\t                              |___/ ")
 
-    CurrentSector = 0
     for ReadCmd in ReadArray:
         ##<read filename="dump0.bin" physical_partition_number="0" start_sector="0" num_partition_sectors="34"/>
         device_log("\nRead %d sectors (%s) from sector %d and save to '%s'\n" % (ReadCmd['num_partition_sectors'],ReturnSizeString(ReadCmd['num_partition_sectors']*SECTOR_SIZE),ReadCmd['start_sector'],ReadCmd['filename']))
@@ -529,7 +522,6 @@ def PerformWrite():
                 continue
 
         while FileWithPath is None:
-            FileNotFoundShowWarning = 1
 
             device_log("\t______      _   _        ___  ")
             device_log("\t| ___ \\    | | | |      |__ \\ ")
@@ -977,7 +969,6 @@ def PerformPatching():
             FileWithPath = find_file(FileToOpen, search_paths)
 
         while FileWithPath is None:
-            FileNotFoundShowWarning = 1
 
             device_log("\t______      _   _        ___  ")
             device_log("\t| ___ \\    | | | |      |__ \\ ")
@@ -1009,9 +1000,8 @@ def PerformPatching():
 
             FileWithPath = find_file(Write['filename'], [temppath])
 
-            size=0
             if FileWithPath is not None:
-                size = os.path.getsize(FileWithPath)
+                os.path.getsize(FileWithPath)
 
                 device_log("\nShould this path be used to find other files? (Y|n|q)",0)
                 temp = input("\nShould this path be used to find other files? (Y|n|q)")
@@ -1483,7 +1473,7 @@ if Operation==0:    ## Means nothing was specified above
     GetPartitions()
     device_log("\nmsp.py exiting - Only showed options and drives detected - Log is log_msp.txt\n\n")
     if verbose is True:
-        device_log("\nMass Storage Programmer (msp.py) VERSION 1.0\n");
+        device_log("\nMass Storage Programmer (msp.py) VERSION 1.0\n")
     sys.exit(1)
 
 
@@ -1494,9 +1484,9 @@ device_log(file_list)
 
 if disk_name is None:
     if sys.platform.startswith("linux"):
-        device_log(r"Don't forget to specify your drive, EX '-d /dev/sdb' OR '-d 0' to create a singleimage");
+        device_log(r"Don't forget to specify your drive, EX '-d /dev/sdb' OR '-d 0' to create a singleimage")
     else:
-        device_log(r"Don't foreget to specify your drive, EX '-d \\.\PHYSICALDRIVE1' OR '-d 0' to create a singleimage");
+        device_log(r"Don't foreget to specify your drive, EX '-d \\.\PHYSICALDRIVE1' OR '-d 0' to create a singleimage")
 
     PrintBigError("You must specify a DISK, option -d")
 
@@ -1604,9 +1594,9 @@ if DiskSizeInBytes==0:
         PrintBigError("")
         device_log("Something went wrong, couldn't determine size of disk?")
         if sys.platform.startswith("linux"):
-            device_log(r"Did you remember to specify your drive, EX '-d /dev/sdb'");
+            device_log(r"Did you remember to specify your drive, EX '-d /dev/sdb'")
         else:
-            device_log(r"Did you remember to specify your drive, EX '-d \\.\PHYSICALDRIVE1'");
+            device_log(r"Did you remember to specify your drive, EX '-d \\.\PHYSICALDRIVE1'")
 
         device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
         sys.exit()
