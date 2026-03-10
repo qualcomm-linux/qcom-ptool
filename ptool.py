@@ -273,36 +273,32 @@ def WriteGPT(GPTMAIN, GPTBACKUP, GPTEMPTY):
     #for b in BackupGPT:
     #    opfile.write(struct.pack("B", b))
 
-    ofile = open(GPTMAIN, "wb")
-    for b in PrimaryGPT:
-        ofile.write(struct.pack("B", b))
-    ofile.close()
+    with open(GPTMAIN, "wb") as ofile:
+        for b in PrimaryGPT:
+            ofile.write(struct.pack("B", b))
 
     print("\nCreated \"%s\"\t\t\t<-- Primary GPT partition tables + protective MBR" % GPTMAIN)
 
-    ofile = open(GPTBACKUP, "wb")
-    for b in BackupGPT:
-        ofile.write(struct.pack("B", b))
-    ofile.close()
+    with open(GPTBACKUP, "wb") as ofile:
+        for b in BackupGPT:
+            ofile.write(struct.pack("B", b))
 
     print("Created \"%s\"\t\t<-- Backup GPT partition tables" % GPTBACKUP)
 
-    ofile = open(GPTBOTH, "wb")
-    for b in PrimaryGPT:
-        ofile.write(struct.pack("B", b))
-    for b in BackupGPT:
-        ofile.write(struct.pack("B", b))
-    ofile.close()
+    with open(GPTBOTH, "wb") as ofile:
+        for b in PrimaryGPT:
+            ofile.write(struct.pack("B", b))
+        for b in BackupGPT:
+            ofile.write(struct.pack("B", b))
 
     print("Created \"%s\" \t\t<-- you can run 'perl parseGPT.pl %s'" % (GPTBOTH,GPTBOTH))
 
     ## EmptyGPT is just all 0's, let's fill in the correct data
     FillInEmptyGPT()
 
-    ofile = open(GPTEMPTY, "wb")
-    for b in EmptyGPT:
-        ofile.write(struct.pack("B", b))
-    ofile.close()
+    with open(GPTEMPTY, "wb") as ofile:
+        for b in EmptyGPT:
+            ofile.write(struct.pack("B", b))
 
     print("Created \"%s\"\t\t<-- Empty GPT partition table, use to force EDL mode (very useful)" % GPTEMPTY)
 
@@ -358,27 +354,15 @@ def ShowBackupGPT(sector):
 def CreateFileOfZeros(filename,num_total_sectors):
     if OutputFolder:
         filename = os.path.join(OutputFolder, filename)
-    try:
-        opfile = open(filename, "w+b")
-    except Exception as x:
-        print("ERROR: Could not create '%s', cwd=%s" % (filename,os.getcwd() ))
-        print("REASON: %s" % (x))
-        sys.exit(1)
-
     num_sectors = int(num_total_sectors)
     temp = [0]*(SECTOR_SIZE_IN_BYTES*num_sectors)
     zeros = struct.pack("%iB"%(SECTOR_SIZE_IN_BYTES*num_sectors),*temp)
     try:
-        opfile.write(zeros)
+        with open(filename, "w+b") as opfile:
+            opfile.write(zeros)
     except Exception as x:
-        print("ERROR: Could not write zeros to '%s'\nREASON: %s" % (filename,x))
+        print("ERROR: Could not create or write '%s', cwd=%s\nREASON: %s" % (filename, os.getcwd(), x))
         sys.exit(1)
-
-    try:
-        opfile.close()
-    except Exception as x:
-        print("\tWARNING: Could not close %s" % filename)
-        print("REASON: %s" % (x))
 
     print("Created \"%s\"\t\t<-- full of binary zeros - used by \"wipe\" rawprogram files" % filename)
 
@@ -405,9 +389,8 @@ def CreateErasingRawProgramFiles():
 
         RAW_PROGRAM = '%swipe_rawprogram_PHY%d.xml' % (OutputFolder,i)
 
-        opfile = open(RAW_PROGRAM, "w")
-        opfile.write( prettify(temp) )
-        opfile.close()
+        with open(RAW_PROGRAM, "w") as opfile:
+            opfile.write( prettify(temp) )
         print("Created \"%s\"\t<-- Used to *wipe/erase* partition information" % RAW_PROGRAM)
 
 
@@ -1015,24 +998,20 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
 
     WriteGPT(GPTMAIN, GPTBACKUP, GPTEMPTY)
 
-    opfile = open(RAW_PROGRAM, "w")
-    opfile.write( prettify(RawProgramXML) )
-    opfile.close()
+    with open(RAW_PROGRAM, "w") as opfile:
+        opfile.write( prettify(RawProgramXML) )
     print("\nCreated \"%s\"\t\t\t<-- YOUR partition information is HERE" % RAW_PROGRAM)
 
-    opfile = open(RAW_PROGRAM_WIPE_PARTITIONS, "w")
-    opfile.write( prettify(RawProgramXML_Wipe) )
-    opfile.close()
+    with open(RAW_PROGRAM_WIPE_PARTITIONS, "w") as opfile:
+        opfile.write( prettify(RawProgramXML_Wipe) )
     print("Created \"%s\"\t<-- Wipe out your images with this file (if needed for testing)" % RAW_PROGRAM_WIPE_PARTITIONS)
 
-    opfile = open(RAW_PROGRAM_BLANK_GPT, "w")
-    opfile.write( prettify(RawProgramXML_Blank) )
-    opfile.close()
+    with open(RAW_PROGRAM_BLANK_GPT, "w") as opfile:
+        opfile.write( prettify(RawProgramXML_Blank) )
     print("Created \"%s\"\t\t<-- Valid empty GPT partition table (to force to EDL)" % RAW_PROGRAM_BLANK_GPT)
 
-    opfile = open(PATCHES, "w")             # gpt
-    opfile.write( prettify(PatchesXML) )
-    opfile.close()
+    with open(PATCHES, "w") as opfile:             # gpt
+        opfile.write( prettify(PatchesXML) )
     print("Created \"%s\"\t\t\t\t<-- Tailor your partition tables to YOUR device with this file\n" % PATCHES)
 
 
@@ -1728,26 +1707,22 @@ def ShowUsage():
 def CreateFinalPartitionBin():
     global OutputFolder
 
-    opfile = open("%spartition.bin" % OutputFolder, "wb")
+    with open("%spartition.bin" % OutputFolder, "wb") as opfile:
+        for i in range(3):
+            FileName = "%spartition%i.bin" % (OutputFolder,i);
+            size     = 0
 
-    for i in range(3):
-        FileName = "%spartition%i.bin" % (OutputFolder,i);
-        size     = 0
+            if os.path.isfile(FileName):
+                size = os.path.getsize(FileName)
 
-        if os.path.isfile(FileName):
-            size = os.path.getsize(FileName)
+                with open(FileName, "rb") as ipfile:
+                    temp = ipfile.read()
+                opfile.write(temp)
 
-            ipfile = open(FileName, "rb")
-            temp = ipfile.read()
-            opfile.write(temp)
-            ipfile.close()
-
-        if size < 8192:
-            MyArray = [0]*(8192-size)
-            for b in MyArray:
-                opfile.write(struct.pack("B", b))
-
-    opfile.close()
+            if size < 8192:
+                MyArray = [0]*(8192-size)
+                for b in MyArray:
+                    opfile.write(struct.pack("B", b))
 
 
 
@@ -1835,30 +1810,25 @@ def CreateMBRPartitionTable(PhysicalPartitionNumber):
 
     print("\nptool.py is running from CWD: ", os.getcwd(), "\n")
 
-    opfile = open(PARTITIONBIN, "wb")
-    WriteMBR()
-    WriteEBR()
-    opfile.close()
+    with open(PARTITIONBIN, "wb") as opfile:
+        WriteMBR()
+        WriteEBR()
     print("Created \"%s\"" % PARTITIONBIN)
 
-    opfile = open(MBRBIN, "wb")
-    WriteMBR()
-    opfile.close()
+    with open(MBRBIN, "wb") as opfile:
+        WriteMBR()
     print("Created \"%s\"" % MBRBIN)
 
-    opfile = open(EBRBIN, "wb")
-    WriteEBR()
-    opfile.close()
+    with open(EBRBIN, "wb") as opfile:
+        WriteEBR()
     print("Created \"%s\"" % EBRBIN)
 
-    opfile = open(RAW_PROGRAM, "w")
-    opfile.write( prettify(RawProgramXML) )
-    opfile.close()
+    with open(RAW_PROGRAM, "w") as opfile:
+        opfile.write( prettify(RawProgramXML) )
     print("Created \"%s\"" % RAW_PROGRAM)
 
-    opfile = open(PATCHES, "w")
-    opfile.write( prettify(PatchesXML) )
-    opfile.close()
+    with open(PATCHES, "w") as opfile:
+        opfile.write( prettify(PatchesXML) )
     print("Created \"%s\"" % PATCHES)
 
     for mydict in hash_w:
@@ -1872,10 +1842,8 @@ def CreateMBRPartitionTable(PhysicalPartitionNumber):
 
     SubElement(EmmcLockRegionsXML, 'information', {'WRITE_PROTECT_BOUNDARY_IN_KB':str(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB']) })
 
-    opfile = open("%semmc_lock_regions.xml" % OutputFolder, "w")
-
-    opfile.write( prettify(EmmcLockRegionsXML) )
-    opfile.close()
+    with open("%semmc_lock_regions.xml" % OutputFolder, "w") as opfile:
+        opfile.write( prettify(EmmcLockRegionsXML) )
     print("Created \"%semmc_lock_regions.xml\"" % OutputFolder)
 
     print("\nUse msp tool to write this information to SD/eMMC card")

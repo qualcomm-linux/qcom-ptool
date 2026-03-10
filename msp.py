@@ -347,20 +347,19 @@ def DoubleCheckDiskSize():
 
         count = 0
         # Windows workaround to get the correct number of sectors
-        fp = open(Filename, 'rb')
-        fp.seek(int(Size))
-        try:
-            while True:
-                fp.read(SECTOR_SIZE)
+        with open(Filename, 'rb') as fp:
+            fp.seek(int(Size))
+            try:
+                while True:
+                    fp.read(SECTOR_SIZE)
 
-                if count % 128 == 0:
-                    sys.stdout.write(".")
+                    if count % 128 == 0:
+                        sys.stdout.write(".")
 
-                count += 1
+                    count += 1
 
-        except Exception as x:
-            TrueSize = fp.tell()
-        fp.close()
+            except Exception as x:
+                TrueSize = fp.tell()
 
         if TrueSize != Size and Size<=(64*1024*1024*1024):
             PrintBigWarning(" ")
@@ -464,48 +463,30 @@ def PerformRead():
             device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
             sys.exit(1)
 
-        try:
-            opfile.seek(int(ReadCmd['start_sector']*SECTOR_SIZE))
-        except:
-            PrintBigError("Could not move to sector %d on %s" % (ReadCmd['start_sector'],Filename))
+        with opfile:
+            try:
+                opfile.seek(int(ReadCmd['start_sector']*SECTOR_SIZE))
+            except OSError:
+                PrintBigError("Could not move to sector %d on %s" % (ReadCmd['start_sector'],Filename))
 
-        device_log("\tMoved to sector %d on %s" % (ReadCmd['start_sector'],Filename))
+            device_log("\tMoved to sector %d on %s" % (ReadCmd['start_sector'],Filename))
 
-        size = int(ReadCmd['num_partition_sectors']*SECTOR_SIZE)
-        device_log("\tAttempting to read %i bytes" % (size))
-        try:
-            bytes_read = opfile.read(size)
-        except:
-            PrintBigError("Could not read %d bytes in %s" % (size,ReadCmd['filename']))
-            device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
-            sys.exit()
-
-        try:
-            opfile.close()
-        except:
-            device_log("\tWARNING: Can't close the file?")
-            #sys.exit()
-            pass
+            size = int(ReadCmd['num_partition_sectors']*SECTOR_SIZE)
+            device_log("\tAttempting to read %i bytes" % (size))
+            try:
+                bytes_read = opfile.read(size)
+            except OSError:
+                PrintBigError("Could not read %d bytes in %s" % (size,ReadCmd['filename']))
+                device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
+                sys.exit()
 
         try:
-            ipfile = open(ReadCmd['filename'], "wb")
-        except:
-            PrintBigError("Could not create filename=%s, cwd=%s" % (ReadCmd['filename'], os.getcwd() ))
-            sys.exit(1)
-
-        try:
-            ipfile.write(bytes_read)
-        except:
-            PrintBigError("")
+            with open(ReadCmd['filename'], "wb") as ipfile:
+                ipfile.write(bytes_read)
+        except OSError:
+            PrintBigError("Could not create or write filename=%s, cwd=%s" % (ReadCmd['filename'], os.getcwd() ))
             device_log("Could not write to %s" % (ReadCmd['filename']))
             sys.exit(1)
-
-        try:
-            ipfile.close()
-        except:
-            device_log("\tWARNING: Can't close the file?")
-            #sys.exit()
-            pass
 
 
     device_log("\nDone Reading Files\n")
@@ -902,8 +883,8 @@ def GetPartitions():
         device_log("-"*78+"\n")
 
         os.system("cat /proc/partitions > temp_partitions.txt")
-        IN = open("temp_partitions.txt")
-        output = IN.readlines()
+        with open("temp_partitions.txt") as IN:
+            output = IN.readlines()
         for line in output:
             #print line
 
@@ -1715,12 +1696,11 @@ if (Operation & OPERATION_PROGRAM) > 0:
     if os.path.basename(Filename)=="singleimage.bin":
         ## Wipe out any old singleimage
         try:
-            opfile = open(Filename, "wb")
+            open(Filename, "wb").close()
         except Exception as x:
             print("REASON: %s" % x)
             print("\nERROR: Can't delete old singleimage.bin. Is it open??")
             sys.exit()
-        opfile.close()
 
         device_log("\nProgramming %s of size %s" % (Filename,ReturnSizeString(DiskSizeInBytes)))
 
