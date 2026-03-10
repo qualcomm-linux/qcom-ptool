@@ -179,7 +179,7 @@ def PrintBigWarning(sz):
 
 def ValidGUIDForm(GUID):
 
-    if type(GUID) is not str:
+    if not isinstance(GUID, str):
         GUID = str(GUID)
 
     print("Testing if GUID=",GUID)
@@ -199,11 +199,11 @@ def ValidGUIDForm(GUID):
 def ValidateTYPE(Type):
     # for type I must support the original "4C" and if they put "0x4C"
 
-    if type(Type) is int:
+    if isinstance(Type, int):
         if Type>=0 and Type<=255:
             return Type
 
-    if type(Type) is not str:
+    if not isinstance(Type, str):
         Type = str(Type)
 
     m = re.search(r'^(0x)?([a-fA-F\d][a-fA-F\d]?)$', Type)
@@ -218,7 +218,7 @@ def ValidateTYPE(Type):
 
 def ValidateGUID(GUID):
 
-    if type(GUID) is not str:
+    if not isinstance(GUID, str):
         GUID = str(GUID)
 
     print("Looking to validate GUID=",GUID)
@@ -1070,7 +1070,7 @@ def ParseXML(XMLFile):
 
 
     if 'SECTOR_SIZE_IN_BYTES' in HashInstructions:
-        if type(HashInstructions['SECTOR_SIZE_IN_BYTES']) is str:
+        if isinstance(HashInstructions['SECTOR_SIZE_IN_BYTES'], str):
             m = re.search(r'^(\d+)$', HashInstructions['SECTOR_SIZE_IN_BYTES'])
             if m is None:
                 ## we didn't match, so assign deafult
@@ -1091,7 +1091,7 @@ def ParseXML(XMLFile):
 
 
     if 'WRITE_PROTECT_BOUNDARY_IN_KB' in HashInstructions:
-        if type(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB']) is str:
+        if isinstance(HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB'], str):
             m = re.search(r'^(\d+)$', HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB'])
             if m is None:
                 ## we didn't match, so assign deafult
@@ -1103,7 +1103,7 @@ def ParseXML(XMLFile):
         HashInstructions['WRITE_PROTECT_BOUNDARY_IN_KB'] = 65536
 
     if 'PERFORMANCE_BOUNDARY_IN_KB' in HashInstructions:
-        if type(HashInstructions['PERFORMANCE_BOUNDARY_IN_KB']) is str:
+        if isinstance(HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'], str):
             m = re.search(r'^(\d+)$', HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'])
             if m is None:
                 ## we didn't match, so assign deafult
@@ -1115,7 +1115,7 @@ def ParseXML(XMLFile):
         HashInstructions['PERFORMANCE_BOUNDARY_IN_KB'] = 0
 
     if 'GROW_LAST_PARTITION_TO_FILL_DISK' in HashInstructions:
-        if type(HashInstructions['GROW_LAST_PARTITION_TO_FILL_DISK']) is str:
+        if isinstance(HashInstructions['GROW_LAST_PARTITION_TO_FILL_DISK'], str):
             m = re.search("^(true)$", HashInstructions['GROW_LAST_PARTITION_TO_FILL_DISK'] ,re.IGNORECASE)
             #print type(m)
             if m is None:
@@ -1128,7 +1128,7 @@ def ParseXML(XMLFile):
         HashInstructions['GROW_LAST_PARTITION_TO_FILL_DISK'] = False
 
     if 'WRITE_PROTECT_GPT_PARTITION_TABLE' in HashInstructions:
-        if type(HashInstructions['WRITE_PROTECT_GPT_PARTITION_TABLE']) is str:
+        if isinstance(HashInstructions['WRITE_PROTECT_GPT_PARTITION_TABLE'], str):
             m = re.search("^(true)$", HashInstructions['WRITE_PROTECT_GPT_PARTITION_TABLE'] ,re.IGNORECASE)
             #print type(m)
             if m is None:
@@ -1141,7 +1141,7 @@ def ParseXML(XMLFile):
         HashInstructions['WRITE_PROTECT_GPT_PARTITION_TABLE'] = False
 
     if 'ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY' in HashInstructions:
-        if type(HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY']) is str:
+        if isinstance(HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY'], str):
             m = re.search("^(true)$", HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY'] ,re.IGNORECASE)
             #print type(m)
             if m is None:
@@ -1154,7 +1154,7 @@ def ParseXML(XMLFile):
         HashInstructions['ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY'] = False
 
     if 'USE_GPT_PARTITIONING' in HashInstructions:
-        if type(HashInstructions['USE_GPT_PARTITIONING']) is str:
+        if isinstance(HashInstructions['USE_GPT_PARTITIONING'], str):
             m = re.search("^(true)$", HashInstructions['USE_GPT_PARTITIONING'] ,re.IGNORECASE)
             #print type(m)
             if m is None:
@@ -1168,7 +1168,7 @@ def ParseXML(XMLFile):
 
 
     if 'DISK_SIGNATURE' in HashInstructions:
-        if type(HashInstructions['DISK_SIGNATURE']) is str:
+        if isinstance(HashInstructions['DISK_SIGNATURE'], str):
             m = re.search(r'^0x([\da-fA-F]+)$', HashInstructions['DISK_SIGNATURE'])
             if m is None:
                 print("WARNING: DISK_SIGNATURE is not formed correctly, expected format is 0x12345678\n")
@@ -1180,7 +1180,7 @@ def ParseXML(XMLFile):
         HashInstructions['DISK_SIGNATURE'] = 0x00000000
 
     if 'ALIGN_BOUNDARY_IN_KB' in HashInstructions:
-        if type(HashInstructions['ALIGN_BOUNDARY_IN_KB']) is str:
+        if isinstance(HashInstructions['ALIGN_BOUNDARY_IN_KB'], str):
             m = re.search(r'^(\d+)$', HashInstructions['ALIGN_BOUNDARY_IN_KB'])
             if m is None:
                 ## we didn't match, so assign deafult

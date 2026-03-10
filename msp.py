@@ -187,7 +187,7 @@ def external_call(command, capture_output=True):
     return output
 
 def HandleNUM_DISK_SECTORS(field):
-    if type(field) is not str:
+    if not isinstance(field, str):
         #print "returning since this is not a string"
         return field
 
@@ -198,7 +198,7 @@ def HandleNUM_DISK_SECTORS(field):
         else:
             field           = (EMMCBLD_MAX_DISK_SIZE_IN_BYTES//SECTOR_SIZE)+int(m.group(1))  # I make this a gigantic number for sorting (PLUS not MINUS here)
 
-    if type(field) is not str:
+    if not isinstance(field, str):
         return field
 
     m = re.search("NUM_DISK_SECTORS", field)
@@ -208,7 +208,7 @@ def HandleNUM_DISK_SECTORS(field):
         else:
             field           = EMMCBLD_MAX_DISK_SIZE_IN_BYTES//SECTOR_SIZE
 
-    if type(field) is not str:
+    if not isinstance(field, str):
         return field
 
     field = int(field)
