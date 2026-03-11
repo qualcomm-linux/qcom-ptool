@@ -39,6 +39,8 @@ for xml in "$@"; do
           aop.mbn) ;;
           aop_devcfg.mbn) ;;
           boot.img) ;;
+          bootfw1.bin) ;;
+          bootfw2.bin) ;;
           cdt.bin) ;;
           cmnlib.mbn) ;;
           cmnlib64.mbn) ;;
