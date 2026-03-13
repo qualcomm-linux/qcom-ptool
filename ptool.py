@@ -807,10 +807,10 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber,UserProvided=False):
     PrimaryGPT[i+8:i+8+4]   = [0x01,0x00,0x00,0x00] # starting sector
     PrimaryGPT[i+12:i+12+4] = [0xFF,0xFF,0xFF,0xFF] # starting sector
 
-    PrimaryGPT[440]         = (HashInstructions['DISK_SIGNATURE']>>24)&0xFF
-    PrimaryGPT[441]         = (HashInstructions['DISK_SIGNATURE']>>16)&0xFF
-    PrimaryGPT[442]         = (HashInstructions['DISK_SIGNATURE']>>8)&0xFF
-    PrimaryGPT[443]         = (HashInstructions['DISK_SIGNATURE'])&0xFF
+    PrimaryGPT[440]         = (HashInstructions['DISK_SIGNATURE'])&0xFF
+    PrimaryGPT[441]         = (HashInstructions['DISK_SIGNATURE']>>8)&0xFF
+    PrimaryGPT[442]         = (HashInstructions['DISK_SIGNATURE']>>16)&0xFF
+    PrimaryGPT[443]         = (HashInstructions['DISK_SIGNATURE']>>24)&0xFF
 
     PrimaryGPT[510:512]     = [0x55,0xAA]           # magic byte for MBR partitioning - always at this location regardless of SECTOR_SIZE_IN_BYTES
 
@@ -1863,10 +1863,10 @@ def CreateMasterBootRecord(k,NumMBRPartitions):
     print("\nInside CreateMasterBootRecord(%d) -------------------------------------" % NumMBRPartitions)
 
     MBR             = [0]*SECTOR_SIZE_IN_BYTES
-    MBR[440]        = (HashInstructions['DISK_SIGNATURE']>>24)&0xFF
-    MBR[441]        = (HashInstructions['DISK_SIGNATURE']>>16)&0xFF
-    MBR[442]        = (HashInstructions['DISK_SIGNATURE']>>8)&0xFF
-    MBR[443]        = (HashInstructions['DISK_SIGNATURE'])&0xFF
+    MBR[440]        = (HashInstructions['DISK_SIGNATURE'])&0xFF
+    MBR[441]        = (HashInstructions['DISK_SIGNATURE']>>8)&0xFF
+    MBR[442]        = (HashInstructions['DISK_SIGNATURE']>>16)&0xFF
+    MBR[443]        = (HashInstructions['DISK_SIGNATURE']>>24)&0xFF
 
     MBR[510:512]    = [0x55,0xAA]           # magic byte for MBR partitioning - always at this location regardless of SECTOR_SIZE_IN_BYTES
 
