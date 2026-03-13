@@ -99,7 +99,7 @@ def partition_size_in_kb(size):
 
 def partition_options(argv):
    partition_entry = partition_entry_defaults.copy()
-   phys_part = 0
+   phys_part = "0"
    for (opt, arg) in argv:
       if opt in ['--lun', '--phys-part']:
          phys_part = arg
