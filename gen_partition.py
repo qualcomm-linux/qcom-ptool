@@ -89,7 +89,7 @@ def disk_options(argv):
 
 def partition_size_in_kb(size):
     if not re.search('[a-zA-Z]+', size):
-        return int(size)/1024
+        return int(size)//1024
     if re.search('([0-9])*(?=([Kk]([Bb])*))', size):
         return int(re.search('([0-9])*(?=([Kk]([Bb])*))', size).group(0))
     if re.search('([0-9])*(?=([Mm]([Bb])*))', size):
