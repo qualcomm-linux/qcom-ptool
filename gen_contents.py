@@ -5,12 +5,16 @@
 import getopt
 import os
 import sys
-
 from xml.etree import ElementTree as ET
 
 
 def usage():
-    print(("\n\tUsage: %s -t <template> -p <partitions_xml_path> -o <output> \n\tVersion 0.1\n" % (sys.argv[0])))
+    print(
+        (
+            "\n\tUsage: %s -t <template> -p <partitions_xml_path> -o <output> \n\tVersion 0.1\n"
+            % (sys.argv[0])
+        )
+    )
     sys.exit(1)
 
 
@@ -28,22 +32,22 @@ def ParseXML(XMLFile):
 
 
 def UpdateMetaData(TemplateRoot, PartitionRoot, BuildId):
-    ChipIdList = TemplateRoot.findall('product_info/chipid')
+    ChipIdList = TemplateRoot.findall("product_info/chipid")
     DefaultStorageType = None
     for ChipId in ChipIdList:
-        Flavor = ChipId.get('flavor')
-        StorageType = ChipId.get('storage_type')
+        Flavor = ChipId.get("flavor")
+        StorageType = ChipId.get("storage_type")
         print(f"Chipid Flavor: {Flavor} Storage Type: {StorageType}")
         if Flavor == "default":
-            DefaultStorageType = ChipId.get('storage_type')
+            DefaultStorageType = ChipId.get("storage_type")
 
-    PhyPartition = PartitionRoot.findall('physical_partition')
+    PhyPartition = PartitionRoot.findall("physical_partition")
     Partitions = []
-    for partition in PartitionRoot.findall('physical_partition/partition'):
-        label = partition.get('label')
-        filename = partition.get('filename')
+    for partition in PartitionRoot.findall("physical_partition/partition"):
+        label = partition.get("label")
+        filename = partition.get("filename")
         if label and filename:
-            Partitions.append({'label': label, 'filename': filename})
+            Partitions.append({"label": label, "filename": filename})
     print(f"Partitions: {Partitions}")
 
     def _add_file_elements(parent_element, pathname, file_path_flavor=None):
@@ -60,48 +64,61 @@ def UpdateMetaData(TemplateRoot, PartitionRoot, BuildId):
             new_file_path.set("flavor", file_path_flavor)
         new_file_path.text = file_path_text
 
-    builds = TemplateRoot.findall('builds_flat/build')
+    builds = TemplateRoot.findall("builds_flat/build")
     for build in builds:
-        Name = build.find('name')
+        Name = build.find("name")
         print(f"Build Name: {Name.text}")
         new_build_id = ET.SubElement(build, "build_id")
         new_build_id.text = BuildId
         if Name.text != "common":
             continue
-        DownloadFile = build.find('download_file')
+        DownloadFile = build.find("download_file")
         if DownloadFile is not None:
             build.remove(DownloadFile)
             # Partition entires
             for Partition in Partitions:
                 new_download_file = ET.SubElement(build, "download_file")
-                new_download_file.set("fastboot_complete", Partition['label'])
-                _add_file_elements(new_download_file, Partition['filename'])
+                new_download_file.set("fastboot_complete", Partition["label"])
+                _add_file_elements(new_download_file, Partition["filename"])
             # GPT Main & GPT Backup entries
             for PhysicalPartitionNumber in range(0, len(PhyPartition)):
                 new_download_file = ET.SubElement(build, "download_file")
                 new_download_file.set("storage_type", DefaultStorageType)
-                _add_file_elements(new_download_file, 'gpt_main%d.bin' % (PhysicalPartitionNumber))
+                _add_file_elements(
+                    new_download_file, "gpt_main%d.bin" % (PhysicalPartitionNumber)
+                )
                 new_download_file = ET.SubElement(build, "download_file")
                 new_download_file.set("storage_type", DefaultStorageType)
-                _add_file_elements(new_download_file, 'gpt_backup%d.bin' % (PhysicalPartitionNumber))
+                _add_file_elements(
+                    new_download_file, "gpt_backup%d.bin" % (PhysicalPartitionNumber)
+                )
 
-        PartitionFile = build.find('partition_file')
+        PartitionFile = build.find("partition_file")
         if PartitionFile is not None:
             build.remove(PartitionFile)
             # Rawprogram entries
             for PhysicalPartitionNumber in range(0, len(PhyPartition)):
                 new_partition_file = ET.SubElement(build, "partition_file")
                 new_partition_file.set("storage_type", DefaultStorageType)
-                _add_file_elements(new_partition_file, 'rawprogram%d.xml' % (PhysicalPartitionNumber), "default")
+                _add_file_elements(
+                    new_partition_file,
+                    "rawprogram%d.xml" % (PhysicalPartitionNumber),
+                    "default",
+                )
 
-        PartitionPatchFile = build.find('partition_patch_file')
+        PartitionPatchFile = build.find("partition_patch_file")
         if PartitionPatchFile is not None:
             build.remove(PartitionPatchFile)
             # Patch entries
             for PhysicalPartitionNumber in range(0, len(PhyPartition)):
                 new_partition_patch_file = ET.SubElement(build, "partition_patch_file")
                 new_partition_patch_file.set("storage_type", DefaultStorageType)
-                _add_file_elements(new_partition_patch_file, 'patch%d.xml' % (PhysicalPartitionNumber), "default")
+                _add_file_elements(
+                    new_partition_patch_file,
+                    "patch%d.xml" % (PhysicalPartitionNumber),
+                    "default",
+                )
+
 
 ###############################################################################
 # main
@@ -117,7 +134,7 @@ try:
     try:
         build_id = ""
         opts, rem = getopt.getopt(sys.argv[1:], "t:p:o:b:")
-        for (opt, arg) in opts:
+        for opt, arg in opts:
             if opt in ["-t"]:
                 template = arg
             elif opt in ["-p"]:
@@ -142,7 +159,9 @@ try:
 
     OutputTree = ET.ElementTree(xml_root)
     ET.indent(OutputTree, space="\t", level=0)
-    OutputTree.write(output_xml, encoding="utf-8", xml_declaration=True, short_empty_elements=False)
+    OutputTree.write(
+        output_xml, encoding="utf-8", xml_declaration=True, short_empty_elements=False
+    )
 except Exception as e:
     print(("Error: ", e))
     sys.exit(1)
