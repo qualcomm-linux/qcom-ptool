@@ -58,6 +58,7 @@ for xml in "$@"; do
           fs_image_linux.tar.gz.mbn.img) ;;
           hyp.mbn) ;;
           hypvm.mbn) ;;
+          hyp_ac_config.mbn) ;;
           imagefv.elf) ;;
           keymaster.mbn) ;;
           keymaster64.mbn) ;;
@@ -71,6 +72,7 @@ for xml in "$@"; do
           pmic.elf) ;;
           prog_firehose_ddr.elf) ;;
           prog_firehose_lite.elf) ;;
+          qsahara_device_programmer.xml) ;;
           qupv3fw.elf) ;;
           rootfs.img) ;;
           rpm.mbn) ;;
@@ -83,21 +85,29 @@ for xml in "$@"; do
           sec.dat) ;;
           secs2d.mbn) ;;
           sed.dat) ;;
+          sequencer_ram.elf) ;;
           shrm.elf) ;;
+          signed_firmware_soc_view.elf) ;;
+          soccp.bin) ;;
           storsec.mbn) ;;
+          tme_config.elf) ;;
           tools.fv) ;;
           tz.mbn) ;;
           tzapps.bin) ;;
+          tz_ac_config.mbn) ;;
+          tz_qti_config.mbn) ;;
           uefi.elf) ;;
           uefi_dtbs.elf) ;;
           uefi_dtbs.xz) ;;
           uefi_sec.mbn) ;;
           userdata.img) ;;
           xbl.elf) ;;
+          xbl_ac_config.mbn) ;;
           xbl_config.elf) ;;
           xbl_feature_config.elf) ;;
           xbl_s.melf) ;;
           xbl_s_devprg_ns.melf) ;;
+          xbl_sc.elf) ;;
           *)
             echo "Unknown ${file} referenced in ${xml}" >&2
             errors=1
