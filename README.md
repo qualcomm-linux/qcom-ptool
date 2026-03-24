@@ -1,9 +1,23 @@
 # qcom-tool
 
-qcom-ptool contains various device partitioning utilities like ptool.py, gen_partitions.py and various sample partition configuration files needed for Qualcomm SoCs. Qualcomm Linux currently supports two reference Linux based OSes (Yocto with [meta-qcom](https://github.com/qualcomm-linux/meta-qcom) and Debian with [qcom-deb-images](https://github.com/qualcomm-linux/qcom-deb-images)) which uses this tool to generate partition table layouts. The partition GUIDs, names and size budgets are picked to support boot flows as follows:
+`qcom-ptool` contains various device partitioning utilities like `ptool.py`, `gen_partitions.py` and various sample partition configuration files needed for Qualcomm SoCs. Qualcomm Linux currently could be build for the follow reference Linux based OSes:
 
-- (preferred) "edk2/UEFI": PBL => XBL => edk2/UEFI => high-level OS (Linux)
-- (legacy) "U-Boot/UEFI": PBL => XBL => ABL => U-Boot/UEFI => high-level OS (Linux)
+- Yocto with [meta-qcom](https://github.com/qualcomm-linux/meta-qcom)
+- debos Debian based with [qcom-deb-images](https://github.com/qualcomm-linux/qcom-deb-images)
+- Gaia DeimOS Debian based with [cookbook-qcom](https://github.com/gaiaBuildSystem/cookbook-qcom)
+
+These references use `qcom-ptool` to generate partition table layouts. The partition GUIDs, names and size budgets are picked to support boot flows as follows:
+
+```mermaid
+flowchart TD
+    subgraph preferred ["✅ Preferred: edk2/UEFI"]
+        A1([PBL]) --> A2([XBL]) --> A3([edk2/UEFI]) --> A4(["High-Level OS (Linux)"])
+    end
+
+    subgraph legacy ["⚠️ Legacy: U-Boot/UEFI"]
+        B1([PBL]) --> B2([XBL]) --> B3([ABL]) --> B4([U-Boot/UEFI]) --> B5(["High-Level OS (Linux)"])
+    end
+```
 
 # Development
 
