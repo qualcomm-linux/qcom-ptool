@@ -51,8 +51,14 @@ lint:
 	pycodestyle --ignore=E501 gen_contents.py
 
 integration: all
-	# make sure generated output has created expected files
-	tests/integration/check-missing-files platforms/*/*/*.xml
+	# check files mentioned in generated XML outputs
+	tests/integration/check-missing-files \
+		$$(find platforms \
+				-name 'contents.xml' -o \
+				-name 'partitions.xml' -o \
+				-name 'patch*.xml' -o \
+				-name 'rawprogram*.xml' -o \
+				-name 'wipe_*.xml')
 	# test %include and multi-disk features
 	tests/integration/check-include-multidisk
 
