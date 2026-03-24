@@ -29,6 +29,7 @@
 
 import getopt
 import re
+import os
 import sys
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
@@ -76,6 +77,36 @@ partition_image_map = {}
 input_file = None
 output_xml = None
 
+
+def expand_includes(filepath, include_stack=None):
+    """Read a file and expand %include directives recursively.
+
+    Returns a list of stripped lines.
+    Paths in %include are resolved relative to the including file's directory.
+    Raises ValueError on circular includes or missing files.
+    """
+    if include_stack is None:
+        include_stack = []
+    filepath = os.path.realpath(filepath)
+    if not os.path.exists(filepath):
+        raise ValueError("File not found: %s" % filepath)
+    if filepath in include_stack:
+        raise ValueError("Circular include detected: %s\nInclude stack: %s" % (
+            filepath, " -> ".join(include_stack)))
+    # make a copy, instead of mutating as we're recursing
+    include_stack = include_stack + [filepath]
+    base_dir = os.path.dirname(filepath)
+    lines = []
+    with open(filepath) as f:
+        for raw_line in f:
+            stripped = raw_line.strip()
+            if stripped.startswith('%include '):
+                inc_path = stripped[len('%include '):]
+                inc_full = os.path.join(base_dir, inc_path)
+                lines.extend(expand_includes(inc_full, include_stack))
+            else:
+                lines.append(stripped)
+    return lines
 
 def disk_options(argv):
     disk_params = disk_params_defaults.copy()
@@ -257,11 +288,9 @@ try:
     except Exception as argerr:
         print(str(argerr))
         usage()
-    f = open(input_file)
-    while (line := f.readline()):
+    for line in expand_includes(input_file):
         if re.search(r"^\s*#", line) or re.search(r"^\s*$", line):
             continue
-        line = line.strip()
         if re.search("^--disk", line):
             if disk_entry is None:
                 disk_entry = line
@@ -273,7 +302,7 @@ try:
             partition_entries.append(line)
         else:
             print("Ignoring %s" % (line))
-    f.close()
+
 except Exception as e:
     print("Error: ", e)
     sys.exit(1)
