@@ -60,41 +60,41 @@
       <download_file>
         <fastboot_complete>{partition_name}</fastboot_complete>
         <file_name>{image_name}</file_name>
-        <file_path>.</file_path>
+        <file_path>disk0</file_path>
       </download_file>
       <partition_file>
         <storage_type>{storage_type}</storage_type>
         <file_name>{partition_file_name}</file_name>
-        <file_path flavor="default">.</file_path>
+        <file_path flavor="default">disk0</file_path>
       </partition_file>
       <partition_patch_file>
         <storage_type>{storage_type}</storage_type>
         <file_name>{partition_patch_file_name}</file_name>
-        <file_path flavor="default">.</file_path>
+        <file_path flavor="default">disk0</file_path>
       </partition_patch_file>
       <download_file storage_type="nvme" fastboot_complete="efi">
         <file_name>efi.bin</file_name>
-        <file_path flavor="qcom_server">../</file_path>
+        <file_path flavor="qcom_server">disk1</file_path>
       </download_file>
       <download_file storage_type="nvme" fastboot_complete="rootfs">
         <file_name>rootfs.img</file_name>
-        <file_path flavor="qcom_server">../</file_path>
+        <file_path flavor="qcom_server">disk1</file_path>
       </download_file>
       <download_file storage_type="nvme" flavor="qcom_server">
         <file_name>gpt_main0.bin</file_name>
-        <file_path flavor="qcom_server">../</file_path>
+        <file_path flavor="qcom_server">disk1</file_path>
       </download_file>
       <download_file storage_type="nvme" flavor="qcom_server">
         <file_name>gpt_backup0.bin</file_name>
-        <file_path flavor="qcom_server">../</file_path>
+        <file_path flavor="qcom_server">disk1</file_path>
       </download_file>
       <partition_file storage_type="nvme" flavor="qcom_server">
         <file_name>rawprogram0.xml</file_name>
-        <file_path flavor="qcom_server">../</file_path>
+        <file_path flavor="qcom_server">disk1</file_path>
       </partition_file>
       <partition_patch_file storage_type="nvme" flavor="qcom_server">
         <file_name>patch0.xml</file_name>
-        <file_path flavor="qcom_server">../</file_path>
+        <file_path flavor="qcom_server">disk1</file_path>
       </partition_patch_file>
     </build>
   </builds_flat>
