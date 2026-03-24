@@ -69,9 +69,6 @@ partition_entry_defaults = {
 }
 
 ##################################################################
-# store entries read from input file
-disk_entry = None
-partition_entries = []
 # store partition image map passed from command line
 partition_image_map = {}
 input_file = None
@@ -262,7 +259,6 @@ def generate_partition_xml(disk_params, partitions, output_xml):
 
 ###############################################################################
 # main
-disk_entry_err_msg = "contains more than one --disk entries"
 
 if len(sys.argv) < 3:
     usage()
@@ -288,27 +284,50 @@ try:
     except Exception as argerr:
         print(str(argerr))
         usage()
+
+    # Parse expanded lines into disk sections
+    disk_sections = []  # list of (disk_line, [partition_lines])
+    current_disk = None
+    current_partitions = []
+
     for line in expand_includes(input_file):
         if re.search(r"^\s*#", line) or re.search(r"^\s*$", line):
             continue
         if re.search("^--disk", line):
-            if disk_entry is None:
-                disk_entry = line
-            else:
-                print("%s %s" % (sys.argv[1], disk_entry_err_msg))
-                print("%s\n%s" % (disk_entry, line))
-                sys.exit(1)
+            if current_disk is not None:
+                disk_sections.append((current_disk, current_partitions))
+                current_partitions = []
+            current_disk = line
         elif re.search("^--partition", line):
-            partition_entries.append(line)
+            current_partitions.append(line)
         else:
             print("Ignoring %s" % (line))
+    if current_disk is not None:
+        disk_sections.append((current_disk, current_partitions))
 
+    if not disk_sections:
+        print("Error: no --disk entry found in %s" % input_file)
+        sys.exit(1)
+
+    if output_xml:
+        if len(disk_sections) == 1:
+            disk_params = parse_disk_entry(disk_sections[0][0])
+            partitions = parse_partition_entries(disk_sections[0][1])
+            generate_partition_xml(disk_params, partitions, output_xml)
+        else:
+            # Multi-disk: derive output filenames by inserting an index before
+            # the extension, e.g. partitions.xml -> partitions0.xml, partitions1.xml
+            base, ext = os.path.splitext(output_xml)
+            for idx, (disk_line, part_lines) in enumerate(disk_sections):
+                disk_params = parse_disk_entry(disk_line)
+                partitions = parse_partition_entries(part_lines)
+                out_path = "%s%d%s" % (base, idx, ext)
+                generate_partition_xml(disk_params, partitions, out_path)
+    else:
+        print("Error: -o is required")
+        sys.exit(1)
 except Exception as e:
     print("Error: ", e)
     sys.exit(1)
-
-disk_params = parse_disk_entry(disk_entry)
-partitions = parse_partition_entries(partition_entries)
-generate_partition_xml(disk_params, partitions, output_xml)
 
 sys.exit(0)
