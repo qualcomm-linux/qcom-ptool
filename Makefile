@@ -35,6 +35,8 @@ lint:
 integration: all
 	# make sure generated output has created expected files
 	tests/integration/check-missing-files platforms/*/*/*.xml
+	# test %include and multi-disk features
+	tests/integration/check-include-multidisk
 
 check: lint integration
 
