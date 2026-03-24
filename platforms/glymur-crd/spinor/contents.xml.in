@@ -28,6 +28,10 @@
         <name>apps</name>
         <flavor>qcom_server</flavor>
       </component>
+      <component>
+        <name>common</name>
+        <flavor>qcom_server</flavor>
+      </component>
     </pf>
   </product_flavors>
   <product_info>
