@@ -1,2 +1,3 @@
-platforms/**/*.xml
 platforms/**/*.bin
+platforms/**/.built
+platforms/**/*.xml

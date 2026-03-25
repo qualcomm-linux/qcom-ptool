@@ -1,7 +1,6 @@
 TOPDIR := $(PWD)
 PARTITIONS := $(wildcard platforms/*/*/partitions.conf)
-PARTITIONS_XML := $(patsubst %.conf,%.xml, $(PARTITIONS))
-PLATFORMS := $(patsubst %/partitions.conf,%/gpt, $(PARTITIONS))
+STAMPS := $(patsubst %/partitions.conf,%/.built, $(PARTITIONS))
 
 CONTENTS_XML_IN := $(wildcard platforms/*/*/contents.xml.in)
 CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN))
@@ -13,16 +12,35 @@ BUILD_ID ?=
 
 .PHONY: all check clean lint integration
 
-all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
+all: $(STAMPS) $(CONTENTS_XML)
 
-%/gpt: %/partitions.xml
-	cd $(shell dirname $^) && $(TOPDIR)/ptool.py -x partitions.xml
+# Generate partitions.xml and GPT binaries from partitions.conf
+# - single-disk: writes partitions.xml in the platform dir, runs ptool there
+# - multi-disk: writes partitions0.xml, partitions1.xml, ... in the platform dir,
+#   runs ptool in disk0/, disk1/, ... subdirectories
+%/.built: %/partitions.conf
+	$(TOPDIR)/gen_partition.py -i $< -o $*/partitions.xml
+	@if [ -f $*/partitions.xml ]; then \
+		(cd $* && $(TOPDIR)/ptool.py -x partitions.xml); \
+	else \
+		i=0; \
+		while [ -f $*/partitions$${i}.xml ]; do \
+			mkdir -p $*/disk$${i}; \
+			(cd $*/disk$${i} && $(TOPDIR)/ptool.py -x ../partitions$${i}.xml); \
+			i=$$((i+1)); \
+		done; \
+	fi
+	@touch $@
 
-%/partitions.xml: %/partitions.conf
-	$(TOPDIR)/gen_partition.py -i $^ -o $@
-
-%/contents.xml: %/partitions.xml %/contents.xml.in
-	$(TOPDIR)/gen_contents.py -p $< -t $@.in -o $@ $${BUILD_ID:+ -b $(BUILD_ID)}
+%/contents.xml: %/contents.xml.in %/.built
+	# default to partitions.xml from same dir; for multi-disk use partitions0.xml
+	# with an explicit file prefix of disk0 for gen_contents
+	@partxml="$*/partitions.xml"; prefix=""; \
+	if [ ! -f "$$partxml" ]; then \
+		partxml="$*/partitions0.xml"; prefix="disk0"; \
+	fi; \
+	$(TOPDIR)/gen_contents.py -p "$$partxml" -t $@.in -o $@ \
+		$${prefix:+ -f $$prefix} $${BUILD_ID:+ -b $(BUILD_ID)}
 
 lint:
 	# W605: invalid escape sequence
@@ -33,8 +51,16 @@ lint:
 	pycodestyle --ignore=E501 gen_contents.py
 
 integration: all
-	# make sure generated output has created expected files
-	tests/integration/check-missing-files platforms/*/*/*.xml
+	# check files mentioned in generated XML outputs
+	tests/integration/check-missing-files \
+		$$(find platforms \
+				-name 'contents.xml' -o \
+				-name 'partitions.xml' -o \
+				-name 'patch*.xml' -o \
+				-name 'rawprogram*.xml' -o \
+				-name 'wipe_*.xml')
+	# test %include and multi-disk features
+	tests/integration/check-include-multidisk
 
 check: lint integration
 
@@ -43,4 +69,6 @@ install: $(BINS)
 	install -m 755 $^ $(DESTDIR)$(PREFIX)/bin
 
 clean:
-	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin
+	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin platforms/*/*/*/*.xml platforms/*/*/*/*.bin
+	@rm -f platforms/*/*/.built
+	@rm -rf platforms/*/*/disk[0-9]*/

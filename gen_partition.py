@@ -29,6 +29,7 @@
 
 import getopt
 import re
+import os
 import sys
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
@@ -68,14 +69,41 @@ partition_entry_defaults = {
 }
 
 ##################################################################
-# store entries read from input file
-disk_entry = None
-partition_entries = []
 # store partition image map passed from command line
 partition_image_map = {}
 input_file = None
 output_xml = None
 
+
+def expand_includes(filepath, include_stack=None):
+    """Read a file and expand %include directives recursively.
+
+    Returns a list of stripped lines.
+    Paths in %include are resolved relative to the including file's directory.
+    Raises ValueError on circular includes or missing files.
+    """
+    if include_stack is None:
+        include_stack = []
+    filepath = os.path.realpath(filepath)
+    if not os.path.exists(filepath):
+        raise ValueError("File not found: %s" % filepath)
+    if filepath in include_stack:
+        raise ValueError("Circular include detected: %s\nInclude stack: %s" % (
+            filepath, " -> ".join(include_stack)))
+    # make a copy, instead of mutating as we're recursing
+    include_stack = include_stack + [filepath]
+    base_dir = os.path.dirname(filepath)
+    lines = []
+    with open(filepath) as f:
+        for raw_line in f:
+            stripped = raw_line.strip()
+            if stripped.startswith('%include '):
+                inc_path = stripped[len('%include '):]
+                inc_full = os.path.join(base_dir, inc_path)
+                lines.extend(expand_includes(inc_full, include_stack))
+            else:
+                lines.append(stripped)
+    return lines
 
 def disk_options(argv):
     disk_params = disk_params_defaults.copy()
@@ -231,7 +259,6 @@ def generate_partition_xml(disk_params, partitions, output_xml):
 
 ###############################################################################
 # main
-disk_entry_err_msg = "contains more than one --disk entries"
 
 if len(sys.argv) < 3:
     usage()
@@ -257,30 +284,50 @@ try:
     except Exception as argerr:
         print(str(argerr))
         usage()
-    f = open(input_file)
-    line = f.readline()
-    while line:
-        if not re.search(r"^\s*#", line) and not re.search(r"^\s*$", line):
-            line = line.strip()
-            if re.search("^--disk", line):
-                if disk_entry is None:
-                    disk_entry = line
-                else:
-                    print("%s %s" % (sys.argv[1], disk_entry_err_msg))
-                    print("%s\n%s" % (disk_entry, line))
-                    sys.exit(1)
-            elif re.search("^--partition", line):
-                partition_entries.append(line)
-            else:
-                print("Ignoring %s" % (line))
-        line = f.readline()
-    f.close()
+
+    # Parse expanded lines into disk sections
+    disk_sections = []  # list of (disk_line, [partition_lines])
+    current_disk = None
+    current_partitions = []
+
+    for line in expand_includes(input_file):
+        if re.search(r"^\s*#", line) or re.search(r"^\s*$", line):
+            continue
+        if re.search("^--disk", line):
+            if current_disk is not None:
+                disk_sections.append((current_disk, current_partitions))
+                current_partitions = []
+            current_disk = line
+        elif re.search("^--partition", line):
+            current_partitions.append(line)
+        else:
+            print("Ignoring %s" % (line))
+    if current_disk is not None:
+        disk_sections.append((current_disk, current_partitions))
+
+    if not disk_sections:
+        print("Error: no --disk entry found in %s" % input_file)
+        sys.exit(1)
+
+    if output_xml:
+        if len(disk_sections) == 1:
+            disk_params = parse_disk_entry(disk_sections[0][0])
+            partitions = parse_partition_entries(disk_sections[0][1])
+            generate_partition_xml(disk_params, partitions, output_xml)
+        else:
+            # Multi-disk: derive output filenames by inserting an index before
+            # the extension, e.g. partitions.xml -> partitions0.xml, partitions1.xml
+            base, ext = os.path.splitext(output_xml)
+            for idx, (disk_line, part_lines) in enumerate(disk_sections):
+                disk_params = parse_disk_entry(disk_line)
+                partitions = parse_partition_entries(part_lines)
+                out_path = "%s%d%s" % (base, idx, ext)
+                generate_partition_xml(disk_params, partitions, out_path)
+    else:
+        print("Error: -o is required")
+        sys.exit(1)
 except Exception as e:
     print("Error: ", e)
     sys.exit(1)
-
-disk_params = parse_disk_entry(disk_entry)
-partitions = parse_partition_entries(partition_entries)
-generate_partition_xml(disk_params, partitions, output_xml)
 
 sys.exit(0)

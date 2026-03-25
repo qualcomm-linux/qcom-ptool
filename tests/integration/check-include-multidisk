@@ -1,0 +1,163 @@
+#!/bin/sh
+# Copyright (c) 2026 Qualcomm Innovation Center, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+# Test %include directive and multi-disk support in gen_partition.py
+
+set -eu
+
+TOPDIR="$(cd "$(dirname "$0")/../.." && pwd)"
+GEN="${TOPDIR}/gen_partition.py"
+TMPDIR="$(mktemp -d)"
+trap 'rm -rf "${TMPDIR}"' EXIT
+
+errors=0
+fail() { echo "FAIL: $1" >&2; errors=$((errors + 1)); }
+pass() { echo "PASS: $1"; }
+
+##########################################################################
+# Test 1: basic %include resolves correctly
+##########################################################################
+cat > "${TMPDIR}/disk.conf.inc" <<'EOF'
+--disk --type=emmc --size=1073741824 --sector-size-in-bytes=512
+EOF
+cat > "${TMPDIR}/parts.conf.inc" <<'EOF'
+--partition --name=boot --size=4096KB --type-guid=20117F86-E985-4357-B9EE-374BC1D8487D
+EOF
+cat > "${TMPDIR}/main.conf" <<'EOF'
+%include disk.conf.inc
+%include parts.conf.inc
+EOF
+
+"${GEN}" -i "${TMPDIR}/main.conf" -o "${TMPDIR}/out1.xml" 2>&1
+if grep -q 'label="boot"' "${TMPDIR}/out1.xml"; then
+    pass "basic %include"
+else
+    fail "basic %include: partition not found in output"
+fi
+
+##########################################################################
+# Test 2: nested %include
+##########################################################################
+mkdir -p "${TMPDIR}/sub"
+cat > "${TMPDIR}/sub/nested.conf.inc" <<'EOF'
+--partition --name=rootfs --size=8192KB --type-guid=B921B045-1DF0-41C3-AF44-4C6F280D3FAE
+EOF
+cat > "${TMPDIR}/outer.conf.inc" <<'EOF'
+%include sub/nested.conf.inc
+EOF
+cat > "${TMPDIR}/nest.conf" <<'EOF'
+%include disk.conf.inc
+%include outer.conf.inc
+EOF
+
+"${GEN}" -i "${TMPDIR}/nest.conf" -o "${TMPDIR}/out2.xml" 2>&1
+if grep -q 'label="rootfs"' "${TMPDIR}/out2.xml"; then
+    pass "nested %include"
+else
+    fail "nested %include: partition not found in output"
+fi
+
+##########################################################################
+# Test 3: circular %include detection
+##########################################################################
+cat > "${TMPDIR}/a.conf" <<EOF
+%include b.conf
+EOF
+cat > "${TMPDIR}/b.conf" <<EOF
+--disk --type=emmc --size=1073741824 --sector-size-in-bytes=512
+%include a.conf
+EOF
+
+if "${GEN}" -i "${TMPDIR}/a.conf" -o "${TMPDIR}/circular.xml" 2>&1; then
+    fail "circular %include: should have failed"
+else
+    pass "circular %include detected"
+fi
+
+##########################################################################
+# Test 4: multi-disk generates indexed output files
+##########################################################################
+cat > "${TMPDIR}/multi.conf" <<'EOF'
+--disk --type=spinor --size=67108864 --sector-size-in-bytes=4096
+--partition --name=xbl --size=1024KB --type-guid=DEA0BA2C-CBDD-4805-B4F9-F428251C3E98
+--disk --type=nvme --size=68719476736 --sector-size-in-bytes=512
+--partition --name=efi --size=524288KB --type-guid=C12A7328-F81F-11D2-BA4B-00A0C93EC93B
+EOF
+
+"${GEN}" -i "${TMPDIR}/multi.conf" -o "${TMPDIR}/multi-out.xml" 2>&1
+if [ -f "${TMPDIR}/multi-out0.xml" ] && \
+   [ -f "${TMPDIR}/multi-out1.xml" ]; then
+    pass "multi-disk indexed output files"
+else
+    fail "multi-disk: expected multi-out0.xml and multi-out1.xml"
+fi
+
+if grep -q 'label="xbl"' "${TMPDIR}/multi-out0.xml" && \
+   grep -q 'label="efi"' "${TMPDIR}/multi-out1.xml"; then
+    pass "multi-disk partition placement"
+else
+    fail "multi-disk: partitions in wrong XML"
+fi
+
+##########################################################################
+# Test 5: single-disk with -o writes directly (no index)
+##########################################################################
+cat > "${TMPDIR}/single.conf" <<'EOF'
+--disk --type=ufs --size=76841669632 --sector-size-in-bytes=4096
+--partition --name=boot --size=4096KB --type-guid=20117F86-E985-4357-B9EE-374BC1D8487D
+EOF
+
+"${GEN}" -i "${TMPDIR}/single.conf" -o "${TMPDIR}/single-out.xml" 2>&1
+if [ -f "${TMPDIR}/single-out.xml" ]; then
+    pass "single-disk -o mode"
+else
+    fail "single-disk -o: partitions.xml not written"
+fi
+
+##########################################################################
+# Test 6: missing %include file gives an error
+##########################################################################
+cat > "${TMPDIR}/missing.conf" <<'EOF'
+%include nonexistent.conf.inc
+EOF
+
+if "${GEN}" -i "${TMPDIR}/missing.conf" -o "${TMPDIR}/missing.xml" 2>&1; then
+    fail "missing %include: should have failed"
+else
+    pass "missing %include detected"
+fi
+
+##########################################################################
+# Test 7: %include with multi-disk
+##########################################################################
+cat > "${TMPDIR}/spinor.conf.inc" <<'EOF'
+--disk --type=spinor --size=67108864 --sector-size-in-bytes=4096
+--partition --name=fw --size=1024KB --type-guid=DEA0BA2C-CBDD-4805-B4F9-F428251C3E98
+EOF
+cat > "${TMPDIR}/nvme.conf.inc" <<'EOF'
+--disk --type=nvme --size=68719476736 --sector-size-in-bytes=512
+--partition --name=efi --size=524288KB --type-guid=C12A7328-F81F-11D2-BA4B-00A0C93EC93B
+EOF
+cat > "${TMPDIR}/combo.conf" <<'EOF'
+%include spinor.conf.inc
+%include nvme.conf.inc
+EOF
+
+"${GEN}" -i "${TMPDIR}/combo.conf" -o "${TMPDIR}/combo.xml" 2>&1
+if [ -f "${TMPDIR}/combo0.xml" ] && \
+   [ -f "${TMPDIR}/combo1.xml" ]; then
+    pass "%include with multi-disk"
+else
+    fail "%include with multi-disk: expected combo0.xml and combo1.xml"
+fi
+
+##########################################################################
+# Summary
+##########################################################################
+if [ "${errors}" -ne 0 ]; then
+    echo "${errors} test(s) failed" >&2
+    exit 1
+fi
+echo "All tests passed"
+exit 0
