@@ -258,22 +258,21 @@ try:
         print(str(argerr))
         usage()
     f = open(input_file)
-    line = f.readline()
-    while line:
-        if not re.search(r"^\s*#", line) and not re.search(r"^\s*$", line):
-            line = line.strip()
-            if re.search("^--disk", line):
-                if disk_entry is None:
-                    disk_entry = line
-                else:
-                    print("%s %s" % (sys.argv[1], disk_entry_err_msg))
-                    print("%s\n%s" % (disk_entry, line))
-                    sys.exit(1)
-            elif re.search("^--partition", line):
-                partition_entries.append(line)
+    while (line := f.readline()):
+        if re.search(r"^\s*#", line) or re.search(r"^\s*$", line):
+            continue
+        line = line.strip()
+        if re.search("^--disk", line):
+            if disk_entry is None:
+                disk_entry = line
             else:
-                print("Ignoring %s" % (line))
-        line = f.readline()
+                print("%s %s" % (sys.argv[1], disk_entry_err_msg))
+                print("%s\n%s" % (disk_entry, line))
+                sys.exit(1)
+        elif re.search("^--partition", line):
+            partition_entries.append(line)
+        else:
+            print("Ignoring %s" % (line))
     f.close()
 except Exception as e:
     print("Error: ", e)
