@@ -11,7 +11,7 @@ from xml.etree import ElementTree as ET
 def usage():
     print(
         (
-            "\n\tUsage: %s -t <template> -p <partitions_xml_path> -o <output> \n\tVersion 0.1\n"
+            "\n\tUsage: %s -t <template> -p <partitions_xml_path> -o <output> [-f <file_prefix>]\n\tVersion 0.1\n"
             % (sys.argv[0])
         )
     )
@@ -31,7 +31,7 @@ def ParseXML(XMLFile):
         return None
 
 
-def UpdateMetaData(TemplateRoot, PartitionRoot, BuildId):
+def UpdateMetaData(TemplateRoot, PartitionRoot, BuildId, FilePrefix=""):
     ChipIdList = TemplateRoot.findall("product_info/chipid")
     DefaultStorageType = None
     for ChipId in ChipIdList:
@@ -54,8 +54,10 @@ def UpdateMetaData(TemplateRoot, PartitionRoot, BuildId):
         """Helper function to add file_name and file_path sub-elements."""
         file_name_text = os.path.basename(pathname)
         file_path_text = os.path.dirname(pathname)
-        if not file_path_text:  # no directory, use explicit . as current dir
-            file_path_text = "."
+        if not file_path_text:
+            file_path_text = FilePrefix if FilePrefix else "."
+        elif FilePrefix:
+            file_path_text = FilePrefix + "/" + file_path_text
 
         new_file_name = ET.SubElement(parent_element, "file_name")
         new_file_name.text = file_name_text
@@ -133,7 +135,8 @@ try:
         usage()
     try:
         build_id = ""
-        opts, rem = getopt.getopt(sys.argv[1:], "t:p:o:b:")
+        file_prefix_override = None
+        opts, rem = getopt.getopt(sys.argv[1:], "t:p:o:b:f:")
         for opt, arg in opts:
             if opt in ["-t"]:
                 template = arg
@@ -143,6 +146,8 @@ try:
                 output_xml = arg
             elif opt in ["-b"]:
                 build_id = arg
+            elif opt in ["-f"]:
+                file_prefix_override = arg
             else:
                 usage()
     except Exception as argerr:
@@ -155,7 +160,19 @@ try:
     print("Selected Partition XML:  " + partition_xml)
     partition_root = ParseXML(partition_xml)
 
-    UpdateMetaData(xml_root, partition_root, build_id)
+    # compute file prefix: relative path from output dir to partitions.xml dir
+    # e.g., output=spinor-nvme/contents.xml, partition=spinor-nvme/disk0/partitions.xml
+    # gives prefix "disk0". Can be overridden with -f.
+    if file_prefix_override is not None:
+        file_prefix = file_prefix_override
+    else:
+        output_dir = os.path.dirname(os.path.abspath(output_xml))
+        partition_dir = os.path.dirname(os.path.abspath(partition_xml))
+        file_prefix = os.path.relpath(partition_dir, output_dir)
+        if file_prefix == ".":
+            file_prefix = ""
+
+    UpdateMetaData(xml_root, partition_root, build_id, file_prefix)
 
     OutputTree = ET.ElementTree(xml_root)
     ET.indent(OutputTree, space="\t", level=0)
