@@ -40,6 +40,7 @@
     <chipid flavor="qcom_server" storage_type="NVME" flash_phase="2">GLYMUR</chipid>
     <additional_chipid>SC8480XP</additional_chipid>
     <meta_type>FULL_STACK</meta_type>
+    <build_type>K2L</build_type>
   </product_info>
   <builds_flat>
     <build>
