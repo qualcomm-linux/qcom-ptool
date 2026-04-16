@@ -134,7 +134,7 @@ def partition_options(argv):
             partition_entry["filename"] = arg
         elif opt in ["--sparse"]:
             partition_entry["sparse"] = arg
-        if partition_entry["label"] in partition_image_map.keys():
+        if partition_entry["label"] in partition_image_map:
             partition_entry["filename"] = partition_image_map[partition_entry["label"]]
     return phys_part, partition_entry
 
@@ -146,7 +146,7 @@ def parse_partition_entries(partition_entries):
         opts_list = list(partition_entry.split(" "))
         if opts_list[0] == "--partition":
             try:
-                options, remainders = getopt.gnu_getopt(
+                options, _remainders = getopt.gnu_getopt(
                     opts_list[1:],
                     "",
                     [
@@ -173,7 +173,7 @@ def parse_disk_entry(disk_entry):
     opts_list = list(disk_entry.split(" "))
     if opts_list[0] == "--disk":
         try:
-            options, remainders = getopt.gnu_getopt(
+            options, _remainders = getopt.gnu_getopt(
                 opts_list[1:],
                 "",
                 [
@@ -196,12 +196,12 @@ def generate_multi_lun_xml(disk_params, partitions, output_xml):
     parser_instruction_text = ""
 
     for key, value in disk_params.items():
-        if not key == "size" and not key == "type":
+        if key != "size" and key != "type":
             parser_instruction_text += "\n\t" + str(key) + "=" + str(value) + "\n\t"
 
     ET.SubElement(root, "parser_instructions").text = parser_instruction_text
 
-    for phys_part, entries in sorted(partitions.items(), key=lambda item: int(item[0])):
+    for _phys_part, entries in sorted(partitions.items(), key=lambda item: int(item[0])):
         found = False
         for part_entry in entries:
 
