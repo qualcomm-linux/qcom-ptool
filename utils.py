@@ -59,7 +59,7 @@ def CalcCRC32(array, Len):
         DataByte = array[i]
         DataByte = reflect(DataByte, 8)
 
-        for j in range(k):
+        for _j in range(k):
             MSB = DataByte >> (k - 1)  ## get MSB
             MSB &= 1  ## ensure just 1 bit
 
