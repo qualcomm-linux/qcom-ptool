@@ -32,10 +32,11 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
+from typing import NoReturn
 from xml.dom import minidom
 
 
-def usage():
+def usage() -> NoReturn:
     print(
         "\n\tUsage: %s -i <input> -o <output> -m [partition_name1=image_filename1,partition_name2=image_filename2,...]\n\tVersion 1.0\n"
         % (sys.argv[0])
@@ -72,7 +73,7 @@ partition_entry_defaults = {
 disk_entry = None
 partition_entries = []
 # store partition image map passed from command line
-partition_image_map = {}
+partition_image_map: dict[str, str] = {}
 input_file = None
 output_xml = None
 
@@ -92,19 +93,23 @@ def disk_options(argv):
             disk_params["GROW_LAST_PARTITION_TO_FILL_DISK"] = "true"
         elif opt in ["--align-partitions"]:
             disk_params["ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY"] = "true"
-            disk_params["PERFORMANCE_BOUNDARY_IN_KB"] = int(arg) // 1024
+            disk_params["PERFORMANCE_BOUNDARY_IN_KB"] = str(int(arg) // 1024)
     return disk_params
 
 
 def partition_size_in_kb(size):
     if not re.search("[a-zA-Z]+", size):
         return int(size) // 1024
-    if re.search("([0-9])*(?=([Kk]([Bb])*))", size):
-        return int(re.search("([0-9])*(?=([Kk]([Bb])*))", size).group(0))
-    if re.search("([0-9])*(?=([Mm]([Bb])*))", size):
-        return int(re.search("([0-9])*(?=([Mm]([Bb])*))", size).group(0)) * 1024
-    if re.search("([0-9])*(?=([Gg]([Bb])*))", size):
-        return int(re.search("([0-9])*(?=([Gg]([Bb])*))", size).group(0)) * 1024 * 1024
+    m = re.search("([0-9]+)(?=[Kk][Bb]?)", size)
+    if m:
+        return int(m.group(0))
+    m = re.search("([0-9]+)(?=[Mm][Bb]?)", size)
+    if m:
+        return int(m.group(0)) * 1024
+    m = re.search("([0-9]+)(?=[Gg][Bb]?)", size)
+    if m:
+        return int(m.group(0)) * 1024 * 1024
+    raise ValueError("Unrecognized size format: '%s'" % size)
 
 
 def partition_options(argv):
@@ -140,7 +145,7 @@ def partition_options(argv):
 
 
 def parse_partition_entries(partition_entries):
-    partitions_params = {}
+    partitions_params: dict[int, list[dict[str, str]]] = {}
 
     for partition_entry in partition_entries:
         opts_list = list(partition_entry.split(" "))
@@ -256,6 +261,8 @@ try:
 
     except Exception as argerr:
         print(str(argerr))
+        usage()
+    if input_file is None or output_xml is None:
         usage()
     f = open(input_file)
     line = f.readline()
