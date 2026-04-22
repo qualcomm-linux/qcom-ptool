@@ -54,21 +54,21 @@ NumPhyPartitions = 0
 PartitionCollection = (
     []
 )  # An array of Partition objects. Partition is a hash of information about partition
-PhyPartition = {}  # An array of PartitionCollection objects
+PhyPartition: dict = {}  # An array of PartitionCollection objects
 
 MinSectorsNeeded = 0
 # Ex. PhyPartition[0] holds the PartitionCollection that holds all the info for partitions in PHY partition 0
 
-AvailablePartitions = {}
+AvailablePartitions: dict = {}
 XMLFile = "module_common.py"
 
 ExtendedPartitionBegins = 0
-instructions = []
-HashStruct = {}
+instructions: list = []
+HashStruct: dict = {}
 
-StructPartitions = []
-StructAdditionalFields = []
-AllPartitions = {}
+StructPartitions: list = []
+StructAdditionalFields: list = []
+AllPartitions: dict = {}
 
 PARTITION_SYSTEM_GUID = 0x3BC93EC9A0004BBA11D2F81FC12A7328
 PARTITION_MSFT_RESERVED_GUID = 0xAE1502F02DF97D814DB80B5CE3C9E316
@@ -3483,13 +3483,10 @@ for o, a in opts:
 
     elif o in ("-p", "--partition"):
         UsingGetOpts = True
-        PhysicalPartitionNumber = a
         m = re.search(r"^(\d)$", a)  # 0|1|2
         if m is None:
             PrintBigError(
-                "ERROR: PhysicalPartitionNumber (-p) must be a number, you supplied *",
-                a,
-                "*",
+                f"ERROR: PhysicalPartitionNumber (-p) must be a number, you supplied *{a}*"
             )
         else:
             PhysicalPartitionNumber = int(m.group(1))
