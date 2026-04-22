@@ -25,12 +25,8 @@ all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
 	$(TOPDIR)/gen_contents.py -p $< -t $@.in -o $@ $${BUILD_ID:+ -b $(BUILD_ID)}
 
 lint:
-	# W605: invalid escape sequence
-	pycodestyle --select=W605 *.py
-
-	# gen_contents.py is nearly perfect except E501: line too long.
-	# Ensure there are no regressions.
-	pycodestyle --ignore=E501 gen_contents.py
+	ruff check *.py
+	mypy *.py
 
 integration: all
 	# make sure generated output has created expected files
