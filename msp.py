@@ -1783,7 +1783,8 @@ def CalculateMinDiskSize():
 ## ==============================================================================================
 ## ==============================================================================================
 
-AvailablePartitions = {}
+AvailablePartitions: dict = {}
+Devices: list = []
 
 try:
     opts, args = getopt.getopt(
@@ -1911,11 +1912,11 @@ for o, a in opts:
                     DiskSizeInBytes = os.path.getsize(
                         disk_name
                     )  # and thus singleimage.bin must already exist
-                except Exception as x:
+                except Exception as e:
 
                     PrintBigError("")
                     device_log("Can't get size of %s" % Filename)
-                    device_log("REASON: %s" % (x))
+                    device_log("REASON: %s" % (e))
                     Usage()
                     device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
                     sys.exit()
@@ -1983,10 +1984,10 @@ if (Operation & OPERATION_PATCH) > 0:
             PrintBigError('You must specify an "patch" XML file for option -p')
 
 NumPhyPartitions = 0
-WriteArray = []
-ReadArray = []
-PatchArray = []
-PhyPartition = {}  # Main HASH that holds all the partition info
+WriteArray: list = []
+ReadArray: list = []
+PatchArray: list = []
+PhyPartition: dict = {}  # Main HASH that holds all the partition info
 
 ## At this point DiskSizeInBytes is either known or equal to 0
 if rawprogram_filename is not None:
