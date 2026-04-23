@@ -39,7 +39,6 @@ from time import localtime, sleep, strftime
 from xml.etree import ElementTree as ET
 
 # from elementtree.ElementTree import ElementTree
-
 from utils import CalcCRC32, EnsureDirectoryExists
 from utils import PrintBigError as _PrintBigError
 from utils import PrintBigWarning as _PrintBigWarning
@@ -123,7 +122,7 @@ def PrintBigError(sz):
 def PrettyPrintArray(bytes_read):
     Bytes = struct.unpack("%dB" % len(bytes_read), bytes_read)
 
-    for k in range(len(Bytes) // SECTOR_SIZE):
+    for _k in range(len(Bytes) // SECTOR_SIZE):
         print("-" * 78)
         for j in range(32):
             for i in range(16):
@@ -158,7 +157,7 @@ def external_call(command, capture_output=True):
     finally:
         # if not output is None:
         #    device_log("Result: %s" % output)
-        if (errors is not None) and (not errors == ""):
+        if (errors is not None) and (errors != ""):
             device_log("Process stderr: %s" % errors)
     return output
 
@@ -184,10 +183,7 @@ def HandleNUM_DISK_SECTORS(field):
 
     m = re.search("NUM_DISK_SECTORS", field)
     if m is not None:
-        if DiskSizeInBytes > 0:
-            field = DiskSizeInBytes // SECTOR_SIZE
-        else:
-            field = EMMCBLD_MAX_DISK_SIZE_IN_BYTES // SECTOR_SIZE
+        field = DiskSizeInBytes // SECTOR_SIZE if DiskSizeInBytes > 0 else EMMCBLD_MAX_DISK_SIZE_IN_BYTES // SECTOR_SIZE
 
     if not isinstance(field, str):
         return field
@@ -693,24 +689,23 @@ def PerformWrite():
                     search_paths.append(temppath)
                 device_log("\n")
 
-        if noprompt is False:
-            if size == 0:
+        if noprompt is False and size == 0:
+            device_log(
+                "WARNING: This file is 0 bytes, do you want to load this file? (y|N|q)",
+                0,
+            )
+            loadfile = input(
+                "WARNING: This file is 0 bytes, do you want to load this file? (y|N|q)"
+            )
+            if loadfile == "N" or loadfile == "n" or loadfile == "":
+                continue
+            elif loadfile == "q" or loadfile == "Q":
                 device_log(
-                    "WARNING: This file is 0 bytes, do you want to load this file? (y|N|q)",
-                    0,
+                    "\nmsp.py exiting - user pressed Q (quit) - Log is log_msp.txt\n\n"
                 )
-                loadfile = input(
-                    "WARNING: This file is 0 bytes, do you want to load this file? (y|N|q)"
-                )
-                if loadfile == "N" or loadfile == "n" or loadfile == "":
-                    continue
-                elif loadfile == "q" or loadfile == "Q":
-                    device_log(
-                        "\nmsp.py exiting - user pressed Q (quit) - Log is log_msp.txt\n\n"
-                    )
-                    sys.exit()
-                else:
-                    pass
+                sys.exit()
+            else:
+                pass
 
         if Write["num_partition_sectors"] == 0:
             Write["num_partition_sectors"] = int(size / SECTOR_SIZE)
@@ -1078,16 +1073,15 @@ def PerformWrite():
         # if Write['filename']=="sbl3.mbn":
         #    sys.exit()
 
-    if os.path.basename(Filename) == "singleimage.bin":
-        if CurrentSector < int(DiskSizeInBytes / SECTOR_SIZE):
-            device_log(
-                "\n\nSingleImageSize %i bytes (%i sectors)"
-                % (CurrentSector * SECTOR_SIZE, CurrentSector)
-            )
-            device_log("CurrentSector=%i" % CurrentSector)
-            device_log(
-                "DiskSizeInBytes=%i sectors" % int(DiskSizeInBytes / SECTOR_SIZE)
-            )
+    if os.path.basename(Filename) == "singleimage.bin" and CurrentSector < int(DiskSizeInBytes / SECTOR_SIZE):
+        device_log(
+            "\n\nSingleImageSize %i bytes (%i sectors)"
+            % (CurrentSector * SECTOR_SIZE, CurrentSector)
+        )
+        device_log("CurrentSector=%i" % CurrentSector)
+        device_log(
+            "DiskSizeInBytes=%i sectors" % int(DiskSizeInBytes / SECTOR_SIZE)
+        )
 
     device_log("\nDone Writing Files\n")
 
@@ -1255,10 +1249,7 @@ def PerformPatching():
                     )
                     sys.exit(1)
 
-        if Patching == "DISK":
-            FileWithPath = Filename
-        else:
-            FileWithPath = find_file(FileToOpen, search_paths)
+        FileWithPath = Filename if Patching == "DISK" else find_file(FileToOpen, search_paths)
 
         while FileWithPath is None:
 
@@ -1429,7 +1420,7 @@ def PerformPatching():
                 bytes_read = opfile.read(64 * SECTOR_SIZE)
                 if len(bytes_read) != (64 * SECTOR_SIZE):
                     PrintBigError(
-                        "Didn't get the read size 64*SECTOR_SIZE" % FileWithPath
+                        "Didn't get the read size 64*SECTOR_SIZE in '%s'" % FileWithPath
                     )
             else:
                 bytes_read = opfile.read(SECTOR_SIZE)
@@ -1792,7 +1783,8 @@ def CalculateMinDiskSize():
 ## ==============================================================================================
 ## ==============================================================================================
 
-AvailablePartitions = {}
+AvailablePartitions: dict = {}
+Devices: list = []
 
 try:
     opts, args = getopt.getopt(
@@ -1920,11 +1912,11 @@ for o, a in opts:
                     DiskSizeInBytes = os.path.getsize(
                         disk_name
                     )  # and thus singleimage.bin must already exist
-                except Exception as x:
+                except Exception as e:
 
                     PrintBigError("")
                     device_log("Can't get size of %s" % Filename)
-                    device_log("REASON: %s" % (x))
+                    device_log("REASON: %s" % (e))
                     Usage()
                     device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
                     sys.exit()
@@ -1945,7 +1937,7 @@ for o, a in opts:
         for x in a.strip("\n").split(","):
             file_list.append(x)
     else:
-        assert False, "unhandled option"
+        raise AssertionError("unhandled option")
 
 
 if Operation == 0:  ## Means nothing was specified above
@@ -1992,10 +1984,10 @@ if (Operation & OPERATION_PATCH) > 0:
             PrintBigError('You must specify an "patch" XML file for option -p')
 
 NumPhyPartitions = 0
-WriteArray = []
-ReadArray = []
-PatchArray = []
-PhyPartition = {}  # Main HASH that holds all the partition info
+WriteArray: list = []
+ReadArray: list = []
+PatchArray: list = []
+PhyPartition: dict = {}  # Main HASH that holds all the partition info
 
 ## At this point DiskSizeInBytes is either known or equal to 0
 if rawprogram_filename is not None:
@@ -2007,17 +1999,16 @@ if len(WriteArray) > 0:
 if len(ReadArray) > 0:
     Operation |= OPERATION_READ
 
-if DiskSizeInBytes > 0:
-    if DiskSizeInBytes < int(MinDiskSizeInSectors) * SECTOR_SIZE:
-        PrintBigError("")
-        device_log(
-            "\nERROR: Current eMMC/SD card is too small to program these partitions"
-        )
-        device_log(
-            "       Need at least %s" % ReturnSizeString(int(MinDiskSizeInSectors))
-        )
-        device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
-        sys.exit(1)
+if DiskSizeInBytes > 0 and DiskSizeInBytes < int(MinDiskSizeInSectors) * SECTOR_SIZE:
+    PrintBigError("")
+    device_log(
+        "\nERROR: Current eMMC/SD card is too small to program these partitions"
+    )
+    device_log(
+        "       Need at least %s" % ReturnSizeString(int(MinDiskSizeInSectors))
+    )
+    device_log("\nmsp.py failed - Log is log_msp.txt\n\n")
+    sys.exit(1)
 
 
 ## rawprogram0.xml is random in terms of start_sector. It's important for
@@ -2132,22 +2123,21 @@ if (Operation & OPERATION_PROGRAM) > 0:
             % (Filename, ReturnSizeString(DiskSizeInBytes))
         )
 
-        if noprompt is False:
-            if (DiskSizeInBytes / (1024.0 * 1024.0)) > 100:
+        if noprompt is False and (DiskSizeInBytes / (1024.0 * 1024.0)) > 100:
+            device_log(
+                "\nThis will be a LARGE singleimage.bin, it will take a long time, Do you want to continue? (Y|n)",
+                0,
+            )
+            var = input(
+                "\nThis will be a LARGE singleimage.bin, it will take a long time, Do you want to continue? (Y|n)"
+            )
+            if var == "Y" or var == "y" or var == "":
+                pass
+            else:
                 device_log(
-                    "\nThis will be a LARGE singleimage.bin, it will take a long time, Do you want to continue? (Y|n)",
-                    0,
+                    "\nmsp.py exiting - User didn't want to continue - Log is log_msp.txt\n\n"
                 )
-                var = input(
-                    "\nThis will be a LARGE singleimage.bin, it will take a long time, Do you want to continue? (Y|n)"
-                )
-                if var == "Y" or var == "y" or var == "":
-                    pass
-                else:
-                    device_log(
-                        "\nmsp.py exiting - User didn't want to continue - Log is log_msp.txt\n\n"
-                    )
-                    sys.exit()
+                sys.exit()
     else:
         if noprompt is True:
             # means don't bug them, i.e. automation
@@ -2245,29 +2235,27 @@ elif (Operation & OPERATION_PATCH) > 0:
     if verbose is True:
         DoubleCheckDiskSize()
 
-if (Operation & OPERATION_PROGRAM) > 0:
+if (Operation & OPERATION_PROGRAM) > 0 and os.path.basename(Filename) == "singleimage.bin":
+    device_log("\nNOTE: This program does *not* pad the last partition, therefore")
+    device_log(
+        "      singleimage.bin might be smaller than %d sectors (%.2f MB)"
+        % (int(DiskSizeInBytes / SECTOR_SIZE), DiskSizeInBytes / (1048576.0))
+    )
 
-    if os.path.basename(Filename) == "singleimage.bin":
-        device_log("\nNOTE: This program does *not* pad the last partition, therefore")
+    device_log("\n\nSUCCESS - %s created" % Filename)
+    device_log("SUCCESS - %s created" % Filename)
+    device_log("SUCCESS - %s created\n" % Filename)
+
+    if FileNotFoundShowWarning == 1:
         device_log(
-            "      singleimage.bin might be smaller than %d sectors (%.2f MB)"
-            % (int(DiskSizeInBytes / SECTOR_SIZE), DiskSizeInBytes / (1048576.0))
+            "\nWARNING: 1 or more files were *not* found, your singleimage.bin is *NOT* complete"
         )
-
-        device_log("\n\nSUCCESS - %s created" % Filename)
-        device_log("SUCCESS - %s created" % Filename)
-        device_log("SUCCESS - %s created\n" % Filename)
-
-        if FileNotFoundShowWarning == 1:
-            device_log(
-                "\nWARNING: 1 or more files were *not* found, your singleimage.bin is *NOT* complete"
-            )
-            device_log(
-                "\nWARNING: 1 or more files were *not* found, your singleimage.bin is *NOT* complete"
-            )
-            device_log(
-                "\nWARNING: 1 or more files were *not* found, your singleimage.bin is *NOT* complete\n\n"
-            )
+        device_log(
+            "\nWARNING: 1 or more files were *not* found, your singleimage.bin is *NOT* complete"
+        )
+        device_log(
+            "\nWARNING: 1 or more files were *not* found, your singleimage.bin is *NOT* complete\n\n"
+        )
 
 device_log("\nmsp.py exiting SUCCESSFULLY- Log is log_msp.txt\n\n")
 

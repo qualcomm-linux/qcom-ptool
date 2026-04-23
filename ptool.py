@@ -54,21 +54,21 @@ NumPhyPartitions = 0
 PartitionCollection = (
     []
 )  # An array of Partition objects. Partition is a hash of information about partition
-PhyPartition = {}  # An array of PartitionCollection objects
+PhyPartition: dict = {}  # An array of PartitionCollection objects
 
 MinSectorsNeeded = 0
 # Ex. PhyPartition[0] holds the PartitionCollection that holds all the info for partitions in PHY partition 0
 
-AvailablePartitions = {}
+AvailablePartitions: dict = {}
 XMLFile = "module_common.py"
 
 ExtendedPartitionBegins = 0
-instructions = []
-HashStruct = {}
+instructions: list = []
+HashStruct: dict = {}
 
-StructPartitions = []
-StructAdditionalFields = []
-AllPartitions = {}
+StructPartitions: list = []
+StructAdditionalFields: list = []
+AllPartitions: dict = {}
 
 PARTITION_SYSTEM_GUID = 0x3BC93EC9A0004BBA11D2F81FC12A7328
 PARTITION_MSFT_RESERVED_GUID = 0xAE1502F02DF97D814DB80B5CE3C9E316
@@ -205,19 +205,18 @@ def UpdateRawProgram(
         num_partition_sectors = 0
         size_in_KB = 0
 
-    if erasefirst:
-        if label != "cdt":
-            SubElement(
-                RawProgramXML,
-                "erase",
-                {
-                    "start_sector": szStartSector,
-                    "physical_partition_number": str(PHYPartition),
-                    "num_partition_sectors": str(num_partition_sectors),
-                    "filename": filename,
-                    "SECTOR_SIZE_IN_BYTES": str(SECTOR_SIZE_IN_BYTES),
-                },
-            )
+    if erasefirst and label != "cdt":
+        SubElement(
+            RawProgramXML,
+            "erase",
+            {
+                "start_sector": szStartSector,
+                "physical_partition_number": str(PHYPartition),
+                "num_partition_sectors": str(num_partition_sectors),
+                "filename": filename,
+                "SECTOR_SIZE_IN_BYTES": str(SECTOR_SIZE_IN_BYTES),
+            },
+        )
 
     SubElement(
         RawProgramXML,
@@ -276,9 +275,8 @@ def ValidGUIDForm(GUID):
 def ValidateTYPE(Type):
     # for type I must support the original "4C" and if they put "0x4C"
 
-    if isinstance(Type, int):
-        if Type >= 0 and Type <= 255:
-            return Type
+    if isinstance(Type, int) and Type >= 0 and Type <= 255:
+        return Type
 
     if not isinstance(Type, str):
         Type = str(Type)
@@ -1046,7 +1044,7 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber, UserProvided=False):
             PrimaryGPT[i] = 0x00
             i += 1
 
-        for b in range(36 - len(PhyPartition[k][j]["label"])):
+        for _b in range(36 - len(PhyPartition[k][j]["label"])):
             PrimaryGPT[i] = 0x00
             i += 1
             PrimaryGPT[i] = 0x00
@@ -1250,9 +1248,7 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber, UserProvided=False):
     LastUseableLBA = LastLBA - 1
     BackupLBA = LastUseableLBA + BackupGPTNumLBAs
     print(
-        "BackupLBA {0} = LastUseableLBA {1} + BackupGPTNumLBAs {2}".format(
-            BackupLBA, LastUseableLBA, BackupGPTNumLBAs
-        )
+        f"BackupLBA {BackupLBA} = LastUseableLBA {LastUseableLBA} + BackupGPTNumLBAs {BackupGPTNumLBAs}"
     )
     # Update GPT Backup LBA, this field may be updated by patching.
     i = UpdatePrimaryGPT(BackupLBA, 8, i)
@@ -2241,12 +2237,8 @@ def ParseXML(XMLFile):
         ## to be here means we're *not* growing final partition, thereore, obey the sizes they've specified
         for j in range(len(PhyPartition)):
             TempNumPartitions = len(PhyPartition[j])
-            if TempNumPartitions > 4:
-                MinSectorsNeeded = 1 + (
-                    TempNumPartitions - 3
-                )  # need MBR + TempNumPartitions-3 EBRs
-            else:
-                MinSectorsNeeded = 1  # need MBR only
+            # need MBR + TempNumPartitions-3 EBRs, or just MBR
+            MinSectorsNeeded = 1 + (TempNumPartitions - 3) if TempNumPartitions > 4 else 1
 
             for Partition in PhyPartition[j]:
                 print(
@@ -2576,10 +2568,7 @@ def UpdatePartitionTable(Bootable, Type, StartSector, Size, Offset, Record):
 
     # print "Size = %i" % Size
 
-    if Bootable == "true":
-        Bootable = 0x80
-    else:
-        Bootable = 0x00
+    Bootable = 128 if Bootable == "true" else 0
 
     Type = ValidateTYPE(Type)
 
@@ -3348,11 +3337,10 @@ def ReturnNumSectorsTillBoundary(CurrentLBA, BoundaryInKB):
     ##import pdb; pdb.set_trace()
 
     x = 0
-    if BoundaryInKB > 0:
-        if (CurrentLBA % ConvertKBtoSectors(BoundaryInKB)) > 0:
-            x = ConvertKBtoSectors(BoundaryInKB) - (
-                CurrentLBA % ConvertKBtoSectors(BoundaryInKB)
-            )
+    if BoundaryInKB > 0 and (CurrentLBA % ConvertKBtoSectors(BoundaryInKB)) > 0:
+        x = ConvertKBtoSectors(BoundaryInKB) - (
+            CurrentLBA % ConvertKBtoSectors(BoundaryInKB)
+        )
 
     ##print "\tFYI: Increase by %dKB (%d sectors) if you want to align to %i KB boundary at sector %d" % (x/2,x,BoundaryInKB,CurrentLBA+x)
     return x
@@ -3480,10 +3468,7 @@ for o, a in opts:
     elif o in ("-k", "--use128partitions"):
         ## Force there to be 128 partitions in the partition table
         m = re.search(r"\d", a)  # mbr|gpt
-        if m is None:
-            force128partitions = 0
-        else:
-            force128partitions = 1
+        force128partitions = 0 if m is None else 1
 
     elif o in ("-e", "--erasefirst"):
         erasefirst = 1
@@ -3494,20 +3479,14 @@ for o, a in opts:
     elif o in ("-g", "--sequentialguid"):
         ## also allow seperating commas
         m = re.search(r"\d", a)  # mbr|gpt
-        if m is None:
-            sequentialguid = 0
-        else:
-            sequentialguid = 1
+        sequentialguid = 0 if m is None else 1
 
     elif o in ("-p", "--partition"):
         UsingGetOpts = True
-        PhysicalPartitionNumber = a
         m = re.search(r"^(\d)$", a)  # 0|1|2
         if m is None:
             PrintBigError(
-                "ERROR: PhysicalPartitionNumber (-p) must be a number, you supplied *",
-                a,
-                "*",
+                f"ERROR: PhysicalPartitionNumber (-p) must be a number, you supplied *{a}*"
             )
         else:
             PhysicalPartitionNumber = int(m.group(1))
@@ -3516,7 +3495,7 @@ for o, a in opts:
         verbose = True
     else:
         print("o=", o)
-        assert False, "unhandled option"
+        raise AssertionError("unhandled option")
 
 if UsingGetOpts is False:
     # ParseCommandLine()

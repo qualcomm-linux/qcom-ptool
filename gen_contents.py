@@ -33,13 +33,13 @@ def ParseXML(XMLFile):
 
 def UpdateMetaData(TemplateRoot, PartitionRoot, BuildId):
     ChipIdList = TemplateRoot.findall("product_info/chipid")
-    DefaultStorageType = None
+    DefaultStorageType: str = ""
     for ChipId in ChipIdList:
         Flavor = ChipId.get("flavor")
         StorageType = ChipId.get("storage_type")
         print(f"Chipid Flavor: {Flavor} Storage Type: {StorageType}")
         if Flavor == "default":
-            DefaultStorageType = ChipId.get("storage_type")
+            DefaultStorageType = ChipId.get("storage_type", "")
 
     PhyPartition = PartitionRoot.findall("physical_partition")
     Partitions = []
@@ -67,6 +67,8 @@ def UpdateMetaData(TemplateRoot, PartitionRoot, BuildId):
     builds = TemplateRoot.findall("builds_flat/build")
     for build in builds:
         Name = build.find("name")
+        if Name is None or Name.text is None:
+            continue
         print(f"Build Name: {Name.text}")
         new_build_id = ET.SubElement(build, "build_id")
         new_build_id.text = BuildId
