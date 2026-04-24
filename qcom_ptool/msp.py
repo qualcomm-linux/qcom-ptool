@@ -39,9 +39,9 @@ from time import localtime, sleep, strftime
 from xml.etree import ElementTree as ET
 
 # from elementtree.ElementTree import ElementTree
-from utils import CalcCRC32, EnsureDirectoryExists
-from utils import PrintBigError as _PrintBigError
-from utils import PrintBigWarning as _PrintBigWarning
+from qcom_ptool.utils import CalcCRC32, EnsureDirectoryExists
+from qcom_ptool.utils import PrintBigError as _PrintBigError
+from qcom_ptool.utils import PrintBigWarning as _PrintBigWarning
 
 DiskSectors = 0
 
