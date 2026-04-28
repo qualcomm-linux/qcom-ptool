@@ -21,9 +21,11 @@ jobs:
           sudo apt-get install -y mypy
 
       - name: Build all platforms and run tests
+        env:
+          PTOOL_SEED: qcom-ptool-ci
         run: |
           make lint
-          make all integration
+          make all integration check-checksums
 
       - name: Run cargo
         run: |
