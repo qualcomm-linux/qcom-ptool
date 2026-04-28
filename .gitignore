@@ -7,3 +7,8 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .venv/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/

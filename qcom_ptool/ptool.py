@@ -42,7 +42,7 @@ from xml.etree import ElementTree as ET
 # from elementtree.ElementTree import ElementTree
 from xml.etree.ElementTree import Comment, Element, SubElement
 
-from utils import CalcCRC32, EnsureDirectoryExists, PrintBigError, PrintBigWarning
+from qcom_ptool.utils import CalcCRC32, EnsureDirectoryExists, PrintBigError, PrintBigWarning
 
 OutputFolder = ""
 

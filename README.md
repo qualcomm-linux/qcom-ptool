@@ -5,12 +5,33 @@ qcom-ptool contains various device partitioning utilities like ptool.py, gen_par
 - (preferred) "edk2/UEFI": PBL => XBL => edk2/UEFI => high-level OS (Linux)
 - (legacy) "U-Boot/UEFI": PBL => XBL => ABL => U-Boot/UEFI => high-level OS (Linux)
 
+# Installation
+
+The project is packaged as a standard Python distribution and installs a
+single `qcom-ptool` command with subcommands for each utility:
+
+```sh
+pip install .
+```
+
+Once installed, the tool is invoked as:
+
+```sh
+qcom-ptool gen_partition -i platforms/<soc>/<variant>/partitions.conf -o partitions.xml
+qcom-ptool gen_contents  -p partitions.xml -t contents.xml.in -o contents.xml
+qcom-ptool ptool         -x partitions.xml
+qcom-ptool msp           -r rawprogram0.xml -d /dev/sdX -p patch0.xml
+```
+
+Run `qcom-ptool <subcommand> -h` to see the options accepted by each
+subcommand.
+
 # Development
 
 ## Dependencies
 
-The scripts use only the Python standard library (Python 3.8+), so no
-runtime dependencies need to be installed.
+At runtime, the scripts use only the Python standard library (Python 3.8+),
+so no runtime dependencies need to be installed beyond the package itself.
 
 For development, `make lint` invokes `ruff` and `mypy` directly from the
 command line. On Debian/Ubuntu, install them as follows (ruff is not
@@ -27,15 +48,21 @@ sudo apt install mypy
 | Target        | Description                                                |
 |---------------|------------------------------------------------------------|
 | `all`         | Generate partition XML and GPT binaries for all platforms  |
-| `lint`        | Run ruff (linter) and mypy (type checker) on all scripts   |
+| `lint`        | Run ruff (linter) and mypy (type checker) on the package   |
 | `integration` | Build all platforms and verify generated files are present |
 | `check`       | Run both `lint` and `integration`                          |
-| `install`     | Install scripts to `$(DESTDIR)$(PREFIX)/bin`               |
+| `install`     | Install the package (`pip install .`)                      |
 | `clean`       | Remove generated XML and binary files from platforms/      |
+
+The Makefile invokes `qcom-ptool` from `PATH`. Install the package (or
+`pip install -e .` from the repo root) before running `make all`.
 
 ### Quick start
 
 ```sh
+# install the tool
+pip install -e .
+
 # install linters (Debian/Ubuntu)
 sudo snap install ruff
 sudo apt install mypy
