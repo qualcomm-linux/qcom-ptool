@@ -1,0 +1,24 @@
+#!/bin/sh
+# Copyright (c) 2026 Qualcomm Innovation Center, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+# Verify generated artifacts match the pinned checksums in
+# tests/integration/checksums.sha256. Requires the build to have run
+# with the same PTOOL_SEED used to produce the manifest (see CI
+# workflow). To regenerate after an intentional change:
+#
+#   PTOOL_SEED=qcom-ptool-ci make clean all
+#   LC_ALL=C find platforms -type f \( -name '*.bin' -o -name '*.xml' \) \
+#     ! -name '*.xml.in' -print0 | LC_ALL=C sort -z | xargs -0 sha256sum \
+#     > tests/integration/checksums.sha256
+
+set -eu
+
+manifest="tests/integration/checksums.sha256"
+
+if [ ! -r "${manifest}" ]; then
+    echo "Missing manifest: ${manifest}" >&2
+    exit 1
+fi
+
+sha256sum --quiet --check "${manifest}"

@@ -25,7 +25,7 @@ jobs:
           PTOOL_SEED: qcom-ptool-ci
         run: |
           make lint
-          make all integration
+          make all integration check-checksums
 
       - name: Run cargo
         run: |
