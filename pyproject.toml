@@ -53,3 +53,10 @@ ignore_missing_imports = true
 module = ["qcom_ptool.msp", "qcom_ptool.ptool"]
 # Legacy scripts - enable gradually
 check_untyped_defs = false
+
+[tool.pytest.ini_options]
+# Allow running `pytest` from the repo root without requiring an editable
+# install of the package; tests under tests/unit/ import qcom_ptool directly
+# from the source tree.
+pythonpath = ["."]
+testpaths = ["tests/unit"]
