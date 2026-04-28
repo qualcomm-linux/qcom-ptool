@@ -27,6 +27,8 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import annotations
+
 import getopt
 import re
 import sys
@@ -69,13 +71,9 @@ partition_entry_defaults = {
 }
 
 ##################################################################
-# store entries read from input file
-disk_entry = None
-partition_entries = []
-# store partition image map passed from command line
+# Store partition image map passed from command line. Populated by main()
+# and read by partition_options() during parsing of each --partition line.
 partition_image_map: dict[str, str] = {}
-input_file = None
-output_xml = None
 
 
 def disk_options(argv):
@@ -236,58 +234,73 @@ def generate_partition_xml(disk_params, partitions, output_xml):
 
 ###############################################################################
 # main
-disk_entry_err_msg = "contains more than one --disk entries"
 
-if len(sys.argv) < 3:
-    usage()
 
-try:
-    if sys.argv[1] == "-h" or sys.argv[1] == "--help":
+def main(argv: list[str] | None = None) -> int:
+    if argv is None:
+        argv = sys.argv
+
+    disk_entry_err_msg = "contains more than one --disk entries"
+
+    if len(argv) < 3:
         usage()
+
+    input_file: str | None = None
+    output_xml: str | None = None
+    disk_entry: str | None = None
+    partition_entries: list[str] = []
+    partition_image_map.clear()
+
     try:
-        opts, rem = getopt.getopt(sys.argv[1:], "i:o:m:")
-        for opt, arg in opts:
-            if opt in ["-i"]:
-                input_file = arg
-            elif opt in ["-o"]:
-                output_xml = arg
-            elif opt in ["-m"]:
-                for mapping in arg.split(","):
-                    tags = mapping.split("=")
-                    if len(tags) > 1:
-                        partition_image_map[tags[0]] = tags[1]
-            else:
-                usage()
-
-    except Exception as argerr:
-        print(str(argerr))
-        usage()
-    if input_file is None or output_xml is None:
-        usage()
-    f = open(input_file)
-    line = f.readline()
-    while line:
-        if not re.search(r"^\s*#", line) and not re.search(r"^\s*$", line):
-            line = line.strip()
-            if re.search("^--disk", line):
-                if disk_entry is None:
-                    disk_entry = line
+        if argv[1] == "-h" or argv[1] == "--help":
+            usage()
+        try:
+            opts, _rem = getopt.getopt(argv[1:], "i:o:m:")
+            for opt, arg in opts:
+                if opt in ["-i"]:
+                    input_file = arg
+                elif opt in ["-o"]:
+                    output_xml = arg
+                elif opt in ["-m"]:
+                    for mapping in arg.split(","):
+                        tags = mapping.split("=")
+                        if len(tags) > 1:
+                            partition_image_map[tags[0]] = tags[1]
                 else:
-                    print("%s %s" % (sys.argv[1], disk_entry_err_msg))
-                    print("%s\n%s" % (disk_entry, line))
-                    sys.exit(1)
-            elif re.search("^--partition", line):
-                partition_entries.append(line)
-            else:
-                print("Ignoring %s" % (line))
+                    usage()
+
+        except Exception as argerr:
+            print(str(argerr))
+            usage()
+        if input_file is None or output_xml is None:
+            usage()
+        f = open(input_file)
         line = f.readline()
-    f.close()
-except Exception as e:
-    print("Error: ", e)
-    sys.exit(1)
+        while line:
+            if not re.search(r"^\s*#", line) and not re.search(r"^\s*$", line):
+                line = line.strip()
+                if re.search("^--disk", line):
+                    if disk_entry is None:
+                        disk_entry = line
+                    else:
+                        print("%s %s" % (argv[1], disk_entry_err_msg))
+                        print("%s\n%s" % (disk_entry, line))
+                        return 1
+                elif re.search("^--partition", line):
+                    partition_entries.append(line)
+                else:
+                    print("Ignoring %s" % (line))
+            line = f.readline()
+        f.close()
+    except Exception as e:
+        print("Error: ", e)
+        return 1
 
-disk_params = parse_disk_entry(disk_entry)
-partitions = parse_partition_entries(partition_entries)
-generate_partition_xml(disk_params, partitions, output_xml)
+    disk_params = parse_disk_entry(disk_entry)
+    partitions = parse_partition_entries(partition_entries)
+    generate_partition_xml(disk_params, partitions, output_xml)
+    return 0
 
-sys.exit(0)
+
+if __name__ == "__main__":
+    sys.exit(main())
