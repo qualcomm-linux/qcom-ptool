@@ -33,14 +33,14 @@ subcommand.
 At runtime, the scripts use only the Python standard library (Python 3.8+),
 so no runtime dependencies need to be installed beyond the package itself.
 
-For development, `make lint` invokes `ruff` and `mypy` directly from the
-command line. On Debian/Ubuntu, install them as follows (ruff is not
-packaged in apt on all releases/architectures, so we install it from
-snap):
+For development, `make lint` invokes `ruff` and `mypy` and `make unit-test`
+runs the `pytest` suite under `tests/unit/`. On Debian/Ubuntu, install
+them as follows (ruff is not packaged in apt on all releases/architectures,
+so we install it from snap):
 
 ```sh
 sudo snap install ruff
-sudo apt install mypy
+sudo apt install mypy python3-pytest
 ```
 
 ## Makefile targets
@@ -49,8 +49,9 @@ sudo apt install mypy
 |---------------|------------------------------------------------------------|
 | `all`         | Generate partition XML and GPT binaries for all platforms  |
 | `lint`        | Run ruff (linter) and mypy (type checker) on the package   |
+| `unit-test`   | Run the pytest suite under `tests/unit/`                   |
 | `integration` | Build all platforms and verify generated files are present |
-| `check`       | Run both `lint` and `integration`                          |
+| `check`       | Run `lint`, `unit-test`, and `integration`                 |
 | `install`     | Install the package (`pip install .`)                      |
 | `clean`       | Remove generated XML and binary files from platforms/      |
 
@@ -63,12 +64,13 @@ The Makefile invokes `qcom-ptool` from `PATH`. Install the package (or
 # install the tool
 pip install -e .
 
-# install linters (Debian/Ubuntu)
+# install linters and test runner (Debian/Ubuntu)
 sudo snap install ruff
-sudo apt install mypy
+sudo apt install mypy python3-pytest
 
-# run linters
+# run linters and unit tests
 make lint
+make unit-test
 
 # build all platforms and run tests
 make check

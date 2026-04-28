@@ -12,7 +12,7 @@ QCOM_PTOOL ?= qcom-ptool
 # optional build_id for Axiom contents.xml files
 BUILD_ID ?=
 
-.PHONY: all check check-checksums clean generate-checksums install lint integration
+.PHONY: all check check-checksums clean generate-checksums install lint integration unit-test
 
 all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
 
@@ -28,6 +28,9 @@ all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
 lint:
 	ruff check qcom_ptool
 	mypy qcom_ptool
+
+unit-test:
+	pytest
 
 integration: all
 	# make sure generated output has created expected files
@@ -46,7 +49,7 @@ generate-checksums: all
 	  ! -name '*.xml.in' -print0 | LC_ALL=C sort -z | xargs -0 sha256sum \
 	  > tests/integration/checksums.sha256
 
-check: lint integration
+check: lint unit-test integration
 
 install:
 	pip install .
