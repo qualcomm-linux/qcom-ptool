@@ -25,6 +25,8 @@ jobs:
           pip install -e .
 
       - name: Build all platforms and run tests
+        env:
+          PTOOL_SEED: qcom-ptool-ci
         run: |
           make lint
           make all integration
