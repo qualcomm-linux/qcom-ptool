@@ -1,0 +1,17 @@
+#!/bin/sh
+# Copyright (c) 2026 Qualcomm Innovation Center, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+# Verify generated artifacts match the pinned checksums in
+# tests/integration/checksums.sha256.
+
+set -eu
+
+manifest="tests/integration/checksums.sha256"
+
+if [ ! -r "${manifest}" ]; then
+    echo "Missing manifest: ${manifest}" >&2
+    exit 1
+fi
+
+sha256sum --quiet --check "${manifest}"
