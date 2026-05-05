@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "qcom-ptool"
 version = "1.0.0"
@@ -5,6 +9,12 @@ description = "Qualcomm partition tool - GPT partition table generator and mass 
 readme = "README.md"
 license = "BSD-3-Clause"
 requires-python = ">=3.8"
+
+[project.scripts]
+qcom-ptool = "qcom_ptool.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["qcom_ptool*"]
 
 [tool.ruff]
 target-version = "py38"
@@ -29,7 +39,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["gen_partition", "gen_contents", "ptool", "msp", "utils"]
+known-first-party = ["qcom_ptool"]
 
 [tool.mypy]
 python_version = "3.9"
@@ -40,6 +50,6 @@ check_untyped_defs = true
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["msp", "ptool"]
+module = ["qcom_ptool.msp", "qcom_ptool.ptool"]
 # Legacy scripts - enable gradually
 check_untyped_defs = false

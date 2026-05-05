@@ -5,28 +5,29 @@ PLATFORMS := $(patsubst %/partitions.conf,%/gpt, $(PARTITIONS))
 
 CONTENTS_XML_IN := $(wildcard platforms/*/*/contents.xml.in)
 CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN))
-BINS := gen_contents.py gen_partition.py msp.py ptool.py
-PREFIX ?= /usr/local
+
+# Single CLI entry point installed by `pip install .`
+QCOM_PTOOL ?= qcom-ptool
 
 # optional build_id for Axiom contents.xml files
 BUILD_ID ?=
 
-.PHONY: all check clean lint integration
+.PHONY: all check clean lint integration install
 
 all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
 
 %/gpt: %/partitions.xml
-	cd $(shell dirname $^) && $(TOPDIR)/ptool.py -x partitions.xml
+	cd $(shell dirname $^) && $(QCOM_PTOOL) ptool -x partitions.xml
 
 %/partitions.xml: %/partitions.conf
-	$(TOPDIR)/gen_partition.py -i $^ -o $@
+	$(QCOM_PTOOL) gen_partition -i $^ -o $@
 
 %/contents.xml: %/partitions.xml %/contents.xml.in
-	$(TOPDIR)/gen_contents.py -p $< -t $@.in -o $@ $${BUILD_ID:+ -b $(BUILD_ID)}
+	$(QCOM_PTOOL) gen_contents -p $< -t $@.in -o $@ $${BUILD_ID:+ -b $(BUILD_ID)}
 
 lint:
-	ruff check *.py
-	mypy *.py
+	ruff check qcom_ptool
+	mypy qcom_ptool
 
 integration: all
 	# make sure generated output has created expected files
@@ -34,9 +35,8 @@ integration: all
 
 check: lint integration
 
-install: $(BINS)
-	install -d $(DESTDIR)$(PREFIX)/bin
-	install -m 755 $^ $(DESTDIR)$(PREFIX)/bin
+install:
+	pip install .
 
 clean:
 	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin
