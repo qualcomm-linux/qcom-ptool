@@ -3515,6 +3515,14 @@ XMLFile = find_file(XMLFile, search_paths)
 if XMLFile is None:
     PrintBigError("ERROR: Could not find file")
 
+# If PTOOL_SEED is set in the environment, seed the RNG with it so
+# DiskGUID and any random UniquePartitionGUIDs become reproducible
+# across runs. Intended for CI builds that want to compare artifacts
+# by checksum; left unset for normal use, preserving random GUIDs.
+_seed = os.environ.get("PTOOL_SEED")
+if _seed:
+    random.seed(_seed)
+
 ParseXML(XMLFile)  # parses XMLFile, discovers if GPT or MBR
 
 PrintBanner("OutputToCreate ===> '%s'" % OutputToCreate)

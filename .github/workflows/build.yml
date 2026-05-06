@@ -25,9 +25,21 @@ jobs:
           pip install -e .
 
       - name: Build all platforms and run tests
+        env:
+          PTOOL_SEED: qcom-ptool-ci
         run: |
           make lint
-          make all integration
+          make all integration check-checksums
+
+      - name: Verify checksum manifest is up to date
+        env:
+          PTOOL_SEED: qcom-ptool-ci
+        run: |
+          make generate-checksums
+          if ! git diff --exit-code tests/integration/checksums.sha256; then
+            echo "::error::tests/integration/checksums.sha256 is out of date; run 'make generate-checksums' locally and commit the result"
+            exit 1
+          fi
 
       - name: Run cargo
         run: |
