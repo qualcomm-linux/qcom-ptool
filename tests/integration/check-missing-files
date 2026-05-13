@@ -48,6 +48,7 @@ for xml in "$@"; do
           cpucp_dtbs.elf) ;;
           dcd.mbn) ;;
           devcfg.mbn) ;;
+          devcfg_full.img) ;;
           devcfg_iot.mbn) ;;
           devcfg_rfcomm.mbn) ;;
           devcfg_windows_hyp.mbn) ;;
@@ -76,6 +77,8 @@ for xml in "$@"; do
           qupv3fw.elf) ;;
           rootfs.img) ;;
           rpm.mbn) ;;
+          rubikpi_config.img) ;;
+          rubikpi_dtso.img) ;;
           sailhyp.elf) ;;
           sailsw1.elf) ;;
           sbc_1.0_8016.bin) ;;
