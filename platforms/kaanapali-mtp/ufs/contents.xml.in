@@ -59,6 +59,38 @@
         <file_name>{image_name}</file_name>
         <file_path>.</file_path>
       </download_file>
+      <download_file qsahara_image_id="61">
+        <file_name>tme_config.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file qsahara_image_id="60">
+        <file_name>signed_firmware_soc_view.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file qsahara_image_id="59">
+        <file_name>sequencer_ram.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file qsahara_image_id="21">
+        <file_name>xbl_sc.elf</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file qsahara_image_id="36">
+        <file_name>multi_image_qti.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <download_file qsahara_image_id="37">
+        <file_name>multi_image.mbn</file_name>
+        <file_path>.</file_path>
+      </download_file>
+      <device_programmer cmm_file_var="DEV_PRG" qsahara_image_id="13">
+        <file_name>prog_firehose_ddr.elf</file_name>
+        <file_path>.</file_path>
+      </device_programmer>
+      <device_programmer cmm_file_var="XBL_CFG" qsahara_image_id="38">
+        <file_name>xbl_config_devprg.elf</file_name>
+        <file_path>.\</file_path>
+      </device_programmer>
       <partition_file>
         <storage_type>{storage_type}</storage_type>
         <file_name>{partition_file_name}</file_name>
