@@ -104,6 +104,7 @@ for xml in "$@"; do
           xbl.elf) ;;
           xbl_ac_config.mbn) ;;
           xbl_config.elf) ;;
+          xbl_config_devprg.elf) ;;
           xbl_feature_config.elf) ;;
           xbl_s.melf) ;;
           xbl_s_devprg_ns.melf) ;;
