@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+# Copyright (c) 2026 Qualcomm Innovation Center, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+# Validate platforms/*/*/partitions.conf files for common authoring mistakes:
+#
+#   - duplicate --name within the same physical partition (LUN)
+#   - --partition entry missing --name or --size
+
+import re
+import sys
+from pathlib import Path
+
+# Files with pre-existing duplicates not addressed by this check. Remove
+# entries as the underlying configurations are corrected.
+DUP_NAME_ALLOWLIST = {
+    # Pending separate fix for the SYSFW_VERSION duplicate around line 74.
+    "platforms/glymur-crd/spinor/partitions.conf",
+}
+
+
+def parse(path: Path):
+    """Yield (lineno, lun, name, size) for each --partition line."""
+    for lineno, raw in enumerate(path.read_text().splitlines(), 1):
+        line = raw.strip()
+        if not line.startswith("--partition"):
+            continue
+        lun_m = re.search(r"--(?:lun|phys-part)=(\S+)", line)
+        name_m = re.search(r"--name=(\S+)", line)
+        size_m = re.search(r"--size=(\S+)", line)
+        yield (
+            lineno,
+            lun_m.group(1) if lun_m else "0",
+            name_m.group(1) if name_m else None,
+            size_m.group(1) if size_m else None,
+        )
+
+
+def check(path: Path) -> tuple[list[str], list[str]]:
+    """Return (errors, warnings) for path."""
+    errors: list[str] = []
+    warnings: list[str] = []
+    by_lun_name: dict[str, dict[str, list[int]]] = {}
+
+    for lineno, lun, name, size in parse(path):
+        if name is None:
+            errors.append(f"{path}:{lineno}: --partition without --name")
+            continue
+        if size is None:
+            errors.append(f"{path}:{lineno}: --partition '{name}' without --size")
+        by_lun_name.setdefault(lun, {}).setdefault(name, []).append(lineno)
+
+    allowlisted = str(path) in DUP_NAME_ALLOWLIST
+    for lun, names in by_lun_name.items():
+        for name, linenos in names.items():
+            if len(linenos) > 1:
+                msg = (
+                    f"{path}: lun={lun} duplicate partition name '{name}' "
+                    f"on lines {linenos}"
+                )
+                if allowlisted:
+                    warnings.append(f"{msg} (allowlisted)")
+                else:
+                    errors.append(msg)
+
+    return errors, warnings
+
+
+def main() -> int:
+    all_errors: list[str] = []
+    for path in sorted(Path("platforms").glob("*/*/partitions.conf")):
+        errors, warnings = check(path)
+        for w in warnings:
+            print(f"WARN: {w}", file=sys.stderr)
+        for e in errors:
+            print(f"ERROR: {e}", file=sys.stderr)
+        all_errors.extend(errors)
+
+    if all_errors:
+        print(
+            f"\n{len(all_errors)} partition-configuration error(s) found.",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

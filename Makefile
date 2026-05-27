@@ -12,7 +12,7 @@ QCOM_PTOOL ?= qcom-ptool
 # optional build_id for Axiom contents.xml files
 BUILD_ID ?=
 
-.PHONY: all check check-checksums clean generate-checksums install lint integration
+.PHONY: all check check-checksums check-partitions clean generate-checksums install lint integration
 
 all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
 
@@ -29,9 +29,13 @@ lint:
 	ruff check qcom_ptool
 	mypy qcom_ptool
 
-integration: all
+integration: all check-partitions
 	# make sure generated output has created expected files
 	tests/integration/check-missing-files platforms/*/*/*.xml
+
+check-partitions:
+	# validate partitions.conf for duplicate names and missing required fields
+	tests/integration/check-partitions
 
 check-checksums: all
 	# verify generated artifacts match tests/integration/checksums.sha256
