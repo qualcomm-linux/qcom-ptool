@@ -2259,6 +2259,44 @@ def ParseXML(XMLFile):
         PrintBanner("MBR type discovered in XML file, Output will be MBR")
 
 
+def ValidatePartitions():
+    """Validate the partition layout:
+
+      - duplicate --name entries are checked per-LUN (two partitions
+        sharing a name on one LUN cannot be addressed unambiguously);
+      - A/B slot pairing is checked across all LUNs, since some boot
+        firmware (e.g. xbl_a on LUN1, xbl_b on LUN2) is split across
+        separate boot LUNs by design.
+    """
+    errors = []
+    bases_a: set[str] = set()
+    bases_b: set[str] = set()
+
+    for lun, parts in PhyPartition.items():
+        labels = [p["label"] for p in parts]
+
+        seen: dict[str, int] = {}
+        for idx, label in enumerate(labels):
+            if label in seen:
+                errors.append(
+                    f"lun={lun}: duplicate partition name '{label}' "
+                    f"(positions {seen[label]} and {idx})"
+                )
+            else:
+                seen[label] = idx
+
+        bases_a.update(label[:-2] for label in labels if label.endswith("_a"))
+        bases_b.update(label[:-2] for label in labels if label.endswith("_b"))
+
+    for base in sorted(bases_a - bases_b):
+        errors.append(f"'{base}_a' present but '{base}_b' missing")
+    for base in sorted(bases_b - bases_a):
+        errors.append(f"'{base}_b' present but '{base}_a' missing")
+
+    if errors:
+        PrintBigError("Partition validation failed:\n  " + "\n  ".join(errors))
+
+
 #    PrintPartitionCollection( PhyPartition[0] )
 def PrintPartitionCollection(PartitionCollection):
 
@@ -3524,6 +3562,7 @@ if _seed:
     random.seed(_seed)
 
 ParseXML(XMLFile)  # parses XMLFile, discovers if GPT or MBR
+ValidatePartitions()  # reject configs that would produce an invalid GPT
 
 PrintBanner("OutputToCreate ===> '%s'" % OutputToCreate)
 
