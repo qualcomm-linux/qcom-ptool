@@ -30,7 +30,7 @@
   <product_info>
     <product_name>Kaanapali.LE.0.0</product_name>
     <chipid flavor="default" storage_type="ufs" flash_phase="1">KAANAPALI</chipid>
-    <additional_chipid>KAANAPALI</additional_chipid>
+    <additional_chipid>SM8850</additional_chipid>
     <meta_type>FULL_STACK</meta_type>
     <build_type>K2L</build_type>
   </product_info>
