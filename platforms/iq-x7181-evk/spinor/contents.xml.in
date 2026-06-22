@@ -38,7 +38,7 @@
     <product_name>Hamoa_IOT.UBUN.1.0</product_name>
     <chipid flavor="default" storage_type="spinor" flash_phase="1">HAMOA</chipid>
     <chipid flavor="ub_qcom_server" storage_type="UFS" flash_phase="2">HAMOA</chipid>
-    <additional_chipid>HAMOA,Hamoa_IOT,Purwa_IoT</additional_chipid>
+    <additional_chipid>HAMOA,Hamoa_IOT,Purwa_IoT,IQX7181,IQX5121MD</additional_chipid>
     <meta_type>FULL_STACK</meta_type>
     <build_type>K2L</build_type>
   </product_info>
