@@ -15,6 +15,10 @@ In general, contributors should develop on branches based off of `main` and pull
 1. Create a new branch based on `main`: `git checkout -b <my-branch-name> main`.
 1. Make your changes, add tests, and make sure the tests still pass.
 1. Commit your changes using the [DCO](http://developercertificate.org/). You can attest to the DCO by commiting with the **-s** or **--signoff** options or manually adding the "Signed-off-by":
+1. Before pushing changes for review, run the following commands locally:
+   - `export PTOOL_SEED=qcom-ptool-ci`
+   - `make lint`
+   - `make all integration check-checksums`
 1. Push to your fork and submit a pull request from your branch to `main`.
 1. Pat yourself on the back and wait for your pull request to be reviewed.
 
