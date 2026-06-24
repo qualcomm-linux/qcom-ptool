@@ -18,6 +18,7 @@ In general, contributors should develop on branches based off of `main` and pull
 1. Before pushing changes for review, run the following commands locally:
    - `export PTOOL_SEED=qcom-ptool-ci`
    - `make lint`
+   - If a new file is added, its checksum also needs to be added. Run the command `make generate-checksums` to add it.
    - `make all integration check-checksums`
 1. Push to your fork and submit a pull request from your branch to `main`.
 1. Pat yourself on the back and wait for your pull request to be reviewed.
