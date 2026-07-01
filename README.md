@@ -30,8 +30,10 @@ subcommand.
 
 ## Dependencies
 
-At runtime, the scripts use only the Python standard library (Python 3.8+),
-so no runtime dependencies need to be installed beyond the package itself.
+At runtime the tool targets Python 3.8+ and depends on two third-party
+libraries, `PyYAML` and `jsonschema`, used to load and validate the YAML
+partition source. Both are declared in `pyproject.toml` and pulled in
+automatically by `pip install .`.
 
 For development, `make lint` invokes `ruff` and `mypy` and `make unit-test`
 runs the `pytest` suite under `tests/unit/`. On Debian/Ubuntu, install
