@@ -1,0 +1,10 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Debian HLOS variant (qcom-deb-images): 32 GiB rootfs, stock filename.
+storage:
+  - id: nvme0
+    partitions:
+      - name: rootfs
+        size: "33554432KB"
+        filename: rootfs.img
