@@ -41,8 +41,13 @@ from qcom_ptool.spec import DiskParams, PartitionsByLun
 
 def usage() -> NoReturn:
     print(
-        "\n\tUsage: %s -i <input> -o <output> -m [partition_name1=image_filename1,partition_name2=image_filename2,...]\n\tVersion 1.0\n"
-        % (sys.argv[0])
+        "\n\tUsage:\n"
+        "\t  %s -i <input> -o <output> "
+        "[-m name1=image1,name2=image2,...]\n"
+        "\t  %s --board <board.yaml> [--hlos <name>] [--boot-fw <name>] "
+        "[--root <dir>] -o <out1> [-o <out2> ...]\n"
+        "\n\tIn --board mode one -o is given per storage, in declared order.\n"
+        "\tVersion 1.0\n" % (sys.argv[0], sys.argv[0])
     )
     sys.exit(1)
 
@@ -101,18 +106,32 @@ def main(argv: list[str] | None = None) -> int:
         usage()
 
     input_file: str | None = None
-    output_xml: str | None = None
+    board_file: str | None = None
+    root: str | None = None
+    hlos: str | None = None
+    boot_fw: str | None = None
+    outputs: list[str] = []
     image_map: dict[str, str] = {}
 
     if argv[1] == "-h" or argv[1] == "--help":
         usage()
     try:
-        opts, _rem = getopt.getopt(argv[1:], "i:o:m:")
+        opts, _rem = getopt.getopt(
+            argv[1:], "i:o:m:", ["board=", "hlos=", "boot-fw=", "root="]
+        )
         for opt, arg in opts:
             if opt == "-i":
                 input_file = arg
             elif opt == "-o":
-                output_xml = arg
+                outputs.append(arg)
+            elif opt == "--board":
+                board_file = arg
+            elif opt == "--hlos":
+                hlos = arg
+            elif opt == "--boot-fw":
+                boot_fw = arg
+            elif opt == "--root":
+                root = arg
             elif opt == "-m":
                 for mapping in arg.split(","):
                     tags = mapping.split("=")
@@ -124,16 +143,57 @@ def main(argv: list[str] | None = None) -> int:
         print(str(argerr))
         usage()
 
-    if input_file is None or output_xml is None:
+    if (board_file is None) == (input_file is None):
+        print("Error: pass exactly one of -i <input> or --board <board.yaml>")
+        usage()
+    if not outputs:
         usage()
 
+    if board_file is not None:
+        return _run_board(board_file, root, hlos, boot_fw, outputs, image_map)
+
+    if input_file is None or len(outputs) != 1:
+        print("Error: -i single-storage mode takes exactly one -o")
+        usage()
     try:
         spec = load_spec(input_file, image_map=image_map)
     except Exception as e:
         print("Error: ", e)
         return 1
 
-    generate_partition_xml(spec["disk"], spec["partitions"], output_xml)
+    generate_partition_xml(spec["disk"], spec["partitions"], outputs[0])
+    return 0
+
+
+def _run_board(
+    board_file: str,
+    root: str | None,
+    hlos: str | None,
+    boot_fw: str | None,
+    outputs: list[str],
+    image_map: dict[str, str],
+) -> int:
+    # Late import so the -i path never pulls in PyYAML / jsonschema.
+    from qcom_ptool.board import board_to_specs, resolve_board
+
+    try:
+        board = resolve_board(board_file, root=root, hlos=hlos, boot_fw=boot_fw)
+        specs = board_to_specs(board, image_map=image_map)
+    except Exception as e:
+        print("Error: ", e)
+        return 1
+
+    if len(outputs) != len(specs):
+        ids = ", ".join(sid for sid, _ in specs)
+        print(
+            "Error: board declares %d storage(s) [%s] but %d -o output(s) given"
+            % (len(specs), ids, len(outputs))
+        )
+        return 1
+
+    for (sid, spec), output in zip(specs, outputs):
+        print("Storage %s -> %s" % (sid, output))
+        generate_partition_xml(spec["disk"], spec["partitions"], output)
     return 0
 
 
