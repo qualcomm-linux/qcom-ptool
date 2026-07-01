@@ -9,6 +9,10 @@ description = "Qualcomm partition tool - GPT partition table generator and mass 
 readme = "README.md"
 license = "BSD-3-Clause"
 requires-python = ">=3.8"
+dependencies = [
+    "PyYAML>=5.1",
+    "jsonschema>=3.2",
+]
 
 [project.scripts]
 qcom-ptool = "qcom_ptool.cli:main"
