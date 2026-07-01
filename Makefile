@@ -1,7 +1,21 @@
 TOPDIR := $(PWD)
-PARTITIONS := $(wildcard platforms/*/*/partitions.conf)
-PARTITIONS_XML := $(patsubst %.conf,%.xml, $(PARTITIONS))
-PLATFORMS := $(patsubst %/partitions.conf,%/gpt, $(PARTITIONS))
+
+# Partition sources come in two forms:
+#   * legacy boards - platforms/<board>/<storage>/partitions.conf
+#   * migrated boards - a YAML board under platforms/boards/ that emits one
+#     partitions.xml per storage (see the grouped rules below).
+
+# Migrated board: Glymur-CRD (YAML board, Debian HLOS variant).
+GLYMUR_XML := platforms/glymur-crd/nvme/partitions.xml \
+              platforms/glymur-crd/spinor/partitions.xml
+
+YAML_PARTITIONS_XML := $(GLYMUR_XML)
+
+# Legacy .conf sources, excluding any board already migrated to YAML.
+YAML_CONF_EXCLUDE := $(patsubst %.xml,%.conf, $(YAML_PARTITIONS_XML))
+PARTITIONS := $(filter-out $(YAML_CONF_EXCLUDE), $(wildcard platforms/*/*/partitions.conf))
+PARTITIONS_XML := $(patsubst %.conf,%.xml, $(PARTITIONS)) $(YAML_PARTITIONS_XML)
+PLATFORMS := $(patsubst %/partitions.xml,%/gpt, $(PARTITIONS_XML))
 
 CONTENTS_XML_IN := $(wildcard platforms/*/*/contents.xml.in)
 CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN))
@@ -21,6 +35,15 @@ all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
 
 %/partitions.xml: %/partitions.conf
 	$(QCOM_PTOOL) gen_partition -i $^ -o $@
+
+# Glymur-CRD: both storage XMLs are emitted by one board resolution.
+# The storage output dirs may not exist on a fresh checkout (a migrated
+# storage need not carry any tracked file), so create them first.
+$(GLYMUR_XML) &: platforms/boards/glymur-crd.yaml \
+                 platforms/variants/hlos/qcom-deb-images.yaml
+	@mkdir -p $(dir $(GLYMUR_XML))
+	$(QCOM_PTOOL) gen_partition --board platforms/boards/glymur-crd.yaml \
+	    --hlos qcom-deb-images $(addprefix -o ,$(GLYMUR_XML))
 
 %/contents.xml: %/partitions.xml %/contents.xml.in
 	$(QCOM_PTOOL) gen_contents -p $< -t $@.in -o $@ $${BUILD_ID:+ -b $(BUILD_ID)}
