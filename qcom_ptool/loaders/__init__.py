@@ -37,4 +37,9 @@ def load(path: str, image_map: Mapping[str, str] | None = None) -> LoadedSpec:
         from qcom_ptool.loaders import conf
 
         return conf.load(path, image_map=image_map)
+    if suffix in (".yaml", ".yml"):
+        # Late import so the .conf path never pays for PyYAML / jsonschema.
+        from qcom_ptool.loaders import yaml as yaml_loader
+
+        return yaml_loader.load(path, image_map=image_map)
     raise UnsupportedFormatError(f"No loader registered for suffix {suffix!r}")
