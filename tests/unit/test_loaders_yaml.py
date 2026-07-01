@@ -21,10 +21,9 @@ from qcom_ptool.loaders import load
 from qcom_ptool.loaders import yaml as yaml_loader
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-GLYMUR_NVME_CONF = os.path.join(
-    REPO_ROOT, "platforms", "glymur-crd", "nvme", "partitions.conf"
-)
+# Self-contained fixtures (not a live board): glymur-crd migrated to YAML,
+# so the parity reference lives here rather than under platforms/.
+GLYMUR_NVME_CONF = os.path.join(DATA_DIR, "glymur-crd-nvme.conf")
 GLYMUR_NVME_YAML = os.path.join(DATA_DIR, "glymur-crd-nvme.yaml")
 
 
