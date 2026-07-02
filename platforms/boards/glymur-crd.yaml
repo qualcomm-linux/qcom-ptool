@@ -1,0 +1,93 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Glymur-CRD board definition (structured YAML source, proof of concept).
+# Multi-storage: NVMe (HLOS) + SPI-NOR (boot / platform-config).
+# Partition order is preserved verbatim from the legacy .conf files so
+# the emitted XML and GPT are byte-identical. The NVMe rootfs size and
+# filename are supplied by an --hlos variant (variants/hlos/*.yaml).
+platform:
+  name: glymur-crd
+
+storage:
+  - id: nvme0
+    type: nvme
+    size: 68719476736            # 64 GiB
+    sector-size: 512
+    write-protect-boundary: 65536
+    grow-last-partition: true
+    partitions:
+      - {name: efi, size: "524288KB", type-guid: "C12A7328-F81F-11D2-BA4B-00A0C93EC93B", filename: efi.bin}
+      - {name: rootfs, type-guid: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE"}
+
+  - id: spinor0
+    type: spinor
+    size: 67108864              # 64 MiB
+    sector-size: 4096
+    write-protect-boundary: 0
+    partitions:
+      - {name: cdt, size: "4KB", type-guid: "A19F205F-CCD8-4B6D-8F1E-2D9BC24CFFB1", filename: cdt.bin}
+      - {name: SD_MGR, size: "528KB", type-guid: "5E463172-D0AC-4DD4-91B8-CD3EE1281579"}
+      - {name: VarStore, size: "728KB", type-guid: "165BD6BC-9250-4AC8-95A7-A93F4A440066"}
+      - {name: QWESLICCACHE, size: "36KB", type-guid: "7DDC813A-E88A-491A-95DC-4811A869D313"}
+      - {name: QWESLICSTORE, size: "128KB", type-guid: "7BAB3C93-5F73-4D02-B8CB-5B9F899D29A8"}
+      - {name: QWESLICSTORE_HMAC, size: "4KB", type-guid: "C1AA9678-A187-4FC4-A04E-EAFA96CA007E"}
+      - {name: QWESLICSTORE_BACKUP, size: "128KB", type-guid: "1A702852-77D3-40E6-BE75-884E0E601787"}
+      - {name: QWESLICSTORE_BACKUP_HMAC, size: "4KB", type-guid: "206E91D6-C375-4A82-8234-FD5FF6F46AA5"}
+      - {name: SOCCP_DATA, size: "4KB", type-guid: "b716b66d-3c3f-4c56-9602-31a1cf375cd7"}
+      - {name: SOCCP_DATA_HMAC, size: "4KB", type-guid: "3b6d8a27-8ed6-4036-aad4-6b33f5395b64"}
+      - {name: SOCCP_DATA_BACKUP, size: "4KB", type-guid: "ca6c26b9-229c-4baa-b50f-10bf04fef77c"}
+      - {name: SOCCP_DATA_BACKUP_HMAC, size: "4KB", type-guid: "f85b1281-9024-4899-89c6-1484fa60188d"}
+      - {name: DPP, size: "600KB", type-guid: "F97B8793-3ABF-4719-896B-7C3E9B85E104"}
+      - {name: DPP_HMAC, size: "8KB", type-guid: "EA672D1E-D692-476D-B58C-049F7552F166"}
+      - {name: DPP_BACKUP, size: "600KB", type-guid: "BBB2113E-27EF-47BD-9DF1-E6082380A928"}
+      - {name: DPP_BACKUP_HMAC, size: "8KB", type-guid: "AF97B2E7-B593-4FEE-A752-1D9257FE4111"}
+      - {name: SSD, size: "8KB", type-guid: "2C86E742-745E-4FDD-BFD8-B6A7AC638772"}
+      - {name: SSD_HMAC, size: "4KB", type-guid: "C958B529-DEF9-4FDD-AB17-8C73669C89ED"}
+      - {name: SSD_BACKUP, size: "8KB", type-guid: "AD8BB1AC-598A-4B71-A9AE-78AB515D2DCC"}
+      - {name: SSD_BACKUP_HMAC, size: "4KB", type-guid: "525600C9-9B85-4F1A-8842-648C7797B33B"}
+      - {name: SMBIOS, size: "16KB", type-guid: "04A856B8-84C1-4075-8391-9A994235E5F0"}
+      - {name: SMBIOS_HMAC, size: "4KB", type-guid: "F0D69946-3FAE-4A1A-8BDE-80BCD9F257A4"}
+      - {name: SMBIOS_BACKUP, size: "16KB", type-guid: "72D243D7-D540-48FA-AAB8-03D6E05CA358"}
+      - {name: SMBIOS_BACKUP_HMAC, size: "4KB", type-guid: "582A7680-0F07-40C5-B308-67F1B94B96DB"}
+      - {name: ddr, size: "240KB", type-guid: "20A0C19C-286A-42FA-9CE7-F64C3226A794"}
+      - {name: ddr_HMAC, size: "4KB", type-guid: "FFCD927B-74E1-4597-A863-D9AC803DF191"}
+      - {name: ddr_BACKUP, size: "240KB", type-guid: "78A54EF3-D7D7-4518-91D5-1E972C82B282"}
+      - {name: ddr_BACKUP_HMAC, size: "4KB", type-guid: "5CC13258-DE5A-479A-8ECA-6B349294A5E9"}
+      - {name: limits, size: "4KB", type-guid: "10A0C19C-516A-5444-5CE3-664C3226A794"}
+      - {name: limits_HMAC, size: "4KB", type-guid: "D9307477-9E76-44C2-9BFB-27151CB08C39"}
+      - {name: limits_BACKUP, size: "4KB", type-guid: "C8C25968-A2CD-4DC4-9E17-07FC0F0D99DA"}
+      - {name: limits_BACKUP_HMAC, size: "4KB", type-guid: "36E332BE-BE07-4190-AB98-75CAB2815179"}
+      - {name: SYSFW_VERSION, size: "4KB", type-guid: "3C44F88B-1878-4C29-B122-EE78766442A7"}
+      - {name: SYSFW_VERSION_HMAC, size: "4KB", type-guid: "DD7B74CE-A009-45CB-8A95-41863216B447"}
+      - {name: SYSFW_VERSION_BACKUP, size: "4KB", type-guid: "A94B037C-EBD2-477F-8BD2-3AF4A30FEDE7"}
+      - {name: SYSFW_VERSION_BACKUP_HMAC, size: "4KB", type-guid: "DE7930E6-FFA1-44EB-9F81-D896974FC2D2"}
+      - {name: SPU_NVM, size: "512KB", type-guid: "E42E2B4C-33B0-429B-B1EF-D341C547022C"}
+      - {name: Resiliency_Log, size: "16KB", type-guid: "3BB99F72-E524-4128-A815-7194CC190A3D"}
+      - {name: xbl_sc_test_mode, size: "4KB", type-guid: "91FDD2B9-8ED3-4176-BC42-260F2E34D04A"}
+      - {name: xbl_sc_logs, size: "80KB", type-guid: "F7EECB66-781A-439A-8955-70E12ED4A7A0"}
+      - {name: recoveryinfo, size: "4KB", type-guid: "7374B391-291C-49FA-ABC2-0463AB5F713F"}
+      - {name: resilience_driver, size: "8KB", type-guid: "4A2864F7-CB02-49F2-BA75-485E49C00966"}
+      - {name: RecoveryGPT, size: "48KB", type-guid: "452E8C3B-B67F-4C66-80D9-AD457F74CB0A"}
+      - {name: SECDATA, size: "28KB", type-guid: "76CFC7EF-039D-4E2C-B81E-4DD8C2CB2A93"}
+      - {name: ddr_debug, size: "2160KB", type-guid: "2D58205E-BA35-4BF9-B6C1-C6FDC80A373B"}
+      - {name: APDP, size: "64KB", type-guid: "E6E98DA2-E22A-4D12-AB33-169E7DEAA507"}
+      - {name: XBL_SC, size: "2520KB", type-guid: "DEA0BA2C-CBDD-4805-B4F9-F428251C3E98", filename: xbl_s.melf}
+      - {name: BOOT_FW1, size: "12288KB", type-guid: "CD6CDFAB-B3F7-46C6-BFFE-1A1D2B8B7BA0", filename: bootfw1.bin}
+      - {name: BOOT_FW2, size: "6200KB", type-guid: "FA99213C-D1C9-4EA7-8689-EBC1C3EFAB7E", filename: bootfw2.bin}
+      - {name: XBL_RAMDUMP, size: "512KB", type-guid: "0382F197-E41F-4E84-B18B-0B564AEAD875"}
+      - {name: TZAPPS, size: "768KB", type-guid: "14D11C40-2A3D-4F97-882D-103A1EC09333"}
+      - {name: MULTIIMGQTI, size: "32KB", type-guid: "846C6F05-EB46-4C0A-A1A3-3648EF3F9D0E"}
+      - {name: dtb_a, size: "4096KB", type-guid: "2A1A52FC-AA0B-401C-A808-5EA0F91068F8"}
+      - {name: APDP_BACKUP, size: "64KB", type-guid: "110F198D-8174-4193-9AF1-5DA94CDC59C9"}
+      - {name: XBL_SC_BACKUP, size: "2520KB", type-guid: "7A3DF1A3-A31A-454D-BD78-DF259ED486BE", filename: xbl_s.melf}
+      - {name: BOOT_FW1_BACKUP, size: "12288KB", type-guid: "08E98E12-0ACF-4D3F-B881-E7A2D87949DF", filename: bootfw1.bin}
+      - {name: BOOT_FW2_BACKUP, size: "6200KB", type-guid: "0A849567-3DDF-409C-A9BB-26BC8CF8D079", filename: bootfw2.bin}
+      - {name: QC_RESERVED, size: "64KB", type-guid: "5A62D5E4-2E26-4560-95DA-E86CDC7CC0D4"}
+      - {name: QC_RESERVED_BACKUP, size: "64KB", type-guid: "8CF0B012-6EF8-44D9-ADF6-3892140979DA"}
+      - {name: OEM_RESERVED, size: "2048KB", type-guid: "A9CE4DC1-9004-49A2-A8C7-A4C060B35D8E"}
+      - {name: XBL_RAMDUMP_BACKUP, size: "512KB", type-guid: "FF608BF6-AEDF-4084-BEC5-C92AB4E4534D"}
+      - {name: TZAPPS_BACKUP, size: "768KB", type-guid: "BE3719E5-48A7-4ABC-B494-304864D02148"}
+      - {name: MULTIIMGQTI_BACKUP, size: "32KB", type-guid: "D30C8B21-DDD9-45B6-8DE0-3165D34395C9"}
+      - {name: SPU_PROD_BACKUP, size: "1024KB", type-guid: "C759F596-F8FE-4A1A-851E-5BF0F291793E"}
+      - {name: dtb_b, size: "4096KB", type-guid: "A166F11A-2B39-4FAA-B7E7-F8AA080D0587"}

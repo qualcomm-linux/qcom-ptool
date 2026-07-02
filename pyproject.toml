@@ -9,12 +9,19 @@ description = "Qualcomm partition tool - GPT partition table generator and mass 
 readme = "README.md"
 license = "BSD-3-Clause"
 requires-python = ">=3.8"
+dependencies = [
+    "PyYAML>=5.1",
+    "jsonschema>=3.2",
+]
 
 [project.scripts]
 qcom-ptool = "qcom_ptool.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["qcom_ptool*"]
+
+[tool.setuptools.package-data]
+"qcom_ptool.schema" = ["*.json"]
 
 [tool.ruff]
 target-version = "py38"
@@ -53,3 +60,10 @@ ignore_missing_imports = true
 module = ["qcom_ptool.msp", "qcom_ptool.ptool"]
 # Legacy scripts - enable gradually
 check_untyped_defs = false
+
+[tool.pytest.ini_options]
+# Allow running `pytest` from the repo root without requiring an editable
+# install of the package; tests under tests/unit/ import qcom_ptool directly
+# from the source tree.
+pythonpath = ["."]
+testpaths = ["tests/unit"]
