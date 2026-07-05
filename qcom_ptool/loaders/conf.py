@@ -111,6 +111,12 @@ def partition_options(
             attribute_bits = int(arg, 16)
             entry["bootable"] = "true" if attribute_bits & (1 << 2) else "false"
             entry["readonly"] = "true" if attribute_bits & (1 << 60) else "false"
+        elif opt == "--active":
+            entry["active"] = arg
+        elif opt == "--successful":
+            entry["successful"] = arg
+        elif opt == "--unbootable":
+            entry["unbootable"] = arg
         elif opt == "--filename":
             entry["filename"] = arg
         elif opt == "--sparse":
@@ -142,6 +148,9 @@ _PARTITION_LONG_OPTS = [
     "type-guid=",
     "filename=",
     "attributes=",
+    "active=",
+    "successful=",
+    "unbootable=",
     "sparse=",
 ]
 
