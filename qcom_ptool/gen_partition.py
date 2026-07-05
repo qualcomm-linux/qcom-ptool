@@ -66,6 +66,9 @@ partition_entry_defaults = {
     "readonly": "true",
     "filename": "",
     "sparse": "false",
+    "active": "false",
+    "successful": "false",
+    "unbootable": "false",
 }
 
 ##################################################################
@@ -135,6 +138,12 @@ def partition_options(argv):
                 partition_entry["readonly"] = "true"
             else:
                 partition_entry["readonly"] = "false"
+        elif opt in ["--active"]:
+            partition_entry["active"] = arg
+        elif opt in ["--successful"]:
+            partition_entry["successful"] = arg
+        elif opt in ["--unbootable"]:
+            partition_entry["unbootable"] = arg
         elif opt in ["--filename"]:
             partition_entry["filename"] = arg
         elif opt in ["--sparse"]:
@@ -162,6 +171,9 @@ def parse_partition_entries(partition_entries):
                         "type-guid=",
                         "filename=",
                         "attributes=",
+                        "active=",
+                        "successful=",
+                        "unbootable=",
                         "sparse=",
                     ],
                 )
