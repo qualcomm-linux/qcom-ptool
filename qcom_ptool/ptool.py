@@ -1017,7 +1017,8 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber, UserProvided=False):
         if PhyPartition[k][j]["system"] == "true":
             Attributes |= 1 << 0
         if PhyPartition[k][j]["tries_remaining"] > 0:
-            Attributes |= PhyPartition[k][j]["tries_remaining"] << 52
+            # max_retry counter is bits 51-53 (gpt-utils.h PART_ATT_MAX_RETRY_CNT_BIT)
+            Attributes |= PhyPartition[k][j]["tries_remaining"] << 51
         if PhyPartition[k][j]["priority"] > 0:
             Attributes |= PhyPartition[k][j]["priority"] << 48
 
