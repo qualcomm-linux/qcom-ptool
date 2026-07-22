@@ -115,9 +115,21 @@ def partition_size_in_kb(size):
     raise ValueError("Unrecognized size format: '%s'" % size)
 
 
+def to_bool(arg):
+    return "true" if arg.strip().lower() in ("1", "y", "yes", "true") else "false"
+
+
 def partition_options(argv):
     partition_entry = partition_entry_defaults.copy()
     phys_part = 0
+
+    # Intentional: --attributes first so a named flag always wins.
+    for opt, arg in argv:
+        if opt in ["--attributes"]:
+            attribute_bits = int(arg, 16)
+            partition_entry["bootable"] = to_bool(str(attribute_bits >> 2 & 1))
+            partition_entry["readonly"] = to_bool(str(attribute_bits >> 60 & 1))
+
     for opt, arg in argv:
         if opt in ["--lun", "--phys-part"]:
             phys_part = arg
@@ -128,26 +140,24 @@ def partition_options(argv):
             partition_entry["size_in_kb"] = str(kbytes)
         elif opt in ["--type-guid"]:
             partition_entry["type"] = arg
-        elif opt in ["--attributes"]:
-            attribute_bits = int(arg, 16)
-            if attribute_bits & (1 << 2):
-                partition_entry["bootable"] = "true"
-            else:
-                partition_entry["bootable"] = "false"
-            if attribute_bits & (1 << 60):
-                partition_entry["readonly"] = "true"
-            else:
-                partition_entry["readonly"] = "false"
+        elif opt in ["--bootable"]:
+            partition_entry["bootable"] = to_bool(arg)
+        elif opt in ["--readonly"]:
+            partition_entry["readonly"] = to_bool(arg)
+        elif opt in ["--priority"]:
+            partition_entry["priority"] = str(int(arg) & 0x03)
+        elif opt in ["--tries-remaining"]:
+            partition_entry["triesremaining"] = str(int(arg) & 0x07)
         elif opt in ["--active"]:
-            partition_entry["active"] = arg
+            partition_entry["active"] = to_bool(arg)
         elif opt in ["--successful"]:
-            partition_entry["successful"] = arg
+            partition_entry["successful"] = to_bool(arg)
         elif opt in ["--unbootable"]:
-            partition_entry["unbootable"] = arg
+            partition_entry["unbootable"] = to_bool(arg)
         elif opt in ["--filename"]:
             partition_entry["filename"] = arg
         elif opt in ["--sparse"]:
-            partition_entry["sparse"] = arg
+            partition_entry["sparse"] = to_bool(arg)
         if partition_entry["label"] in partition_image_map:
             partition_entry["filename"] = partition_image_map[partition_entry["label"]]
     return phys_part, partition_entry
@@ -171,6 +181,10 @@ def parse_partition_entries(partition_entries):
                         "type-guid=",
                         "filename=",
                         "attributes=",
+                        "bootable=",
+                        "readonly=",
+                        "priority=",
+                        "tries-remaining=",
                         "active=",
                         "successful=",
                         "unbootable=",
