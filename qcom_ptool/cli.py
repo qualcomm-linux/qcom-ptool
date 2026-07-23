@@ -12,6 +12,7 @@ SUBCOMMANDS = {
     "gen_contents": "qcom_ptool.gen_contents",
     "ptool": "qcom_ptool.ptool",
     "msp": "qcom_ptool.msp",
+    "show": "qcom_ptool.show",
 }
 
 

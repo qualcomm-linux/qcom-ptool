@@ -1,0 +1,91 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/qualcomm-linux/qcom-ptool/partitions.schema.json",
+    "title": "qcom-ptool single-storage partition spec",
+    "description": "Structured YAML source for one storage device and its partitions. Reduces to a LoadedSpec (see qcom_ptool/spec.py).",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["disk", "partitions"],
+    "properties": {
+        "disk": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "size"],
+            "properties": {
+                "type": {
+                    "description": "Storage class.",
+                    "type": "string",
+                    "enum": ["emmc", "nand", "nvme", "spinor", "ufs"]
+                },
+                "size": {
+                    "description": "Total device size in bytes.",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "sector-size": {
+                    "description": "Sector size in bytes.",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "write-protect-boundary": {
+                    "description": "Write-protect boundary in KB.",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "grow-last-partition": {
+                    "description": "Grow the last partition to fill the device.",
+                    "type": "boolean"
+                },
+                "align-partitions": {
+                    "description": "Performance alignment boundary in bytes.",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "partitions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "size", "type-guid"],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "size": {
+                        "description": "Partition size as a quoted string: bytes ('1024') or with a K/M/G[B] suffix ('524288KB'). Quoting is required so values are never misparsed as numbers.",
+                        "type": "string",
+                        "pattern": "^[0-9]+([KkMmGg][Bb]?)?$"
+                    },
+                    "type-guid": {
+                        "description": "Partition type GUID; must be a quoted string to avoid integer misparsing.",
+                        "type": "string",
+                        "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"
+                    },
+                    "filename": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "description": "GPT attribute bits as a hexadecimal string.",
+                        "type": "string",
+                        "pattern": "^[0-9A-Fa-f]+$"
+                    },
+                    "sparse": {
+                        "type": "boolean"
+                    },
+                    "lun": {
+                        "description": "Physical partition / LUN index (mandatory for multi-LUN UFS).",
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "phys-part": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            }
+        }
+    }
+}
