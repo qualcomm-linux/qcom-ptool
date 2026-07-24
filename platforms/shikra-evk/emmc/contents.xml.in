@@ -30,7 +30,7 @@
   <product_info>
     <product_name>CQ2390.LE.0.0</product_name>
     <chipid flavor="default" storage_type="emmc" flash_phase="1">SHIKRA</chipid>
-    <additional_chipid>CQ2390,CQ2390M,CQ2390S</additional_chipid>
+    <additional_chipid>CQ2390,CQ2390M,CQ2390S,IQ2390S</additional_chipid>
     <meta_type>FULL_STACK</meta_type>
     <build_type>K2L</build_type>
   </product_info>
