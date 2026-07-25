@@ -84,6 +84,10 @@ def disk_options(argv: list[tuple[str, str]]) -> DiskParams:
     return disk
 
 
+def to_bool(arg: str) -> str:
+    return "true" if arg.strip().lower() in ("1", "y", "yes", "true") else "false"
+
+
 def partition_options(
     argv: list[tuple[str, str]],
     image_map: Mapping[str, str] | None = None,
@@ -98,6 +102,12 @@ def partition_options(
         image_map = {}
     entry: PartitionEntry = PARTITION_ENTRY_DEFAULTS.copy()
     phys_part: str = "0"
+    # Intentional: --attributes first so a named flag always wins.
+    for opt, arg in argv:
+        if opt == "--attributes":
+            attribute_bits = int(arg, 16)
+            entry["bootable"] = "true" if attribute_bits & (1 << 2) else "false"
+            entry["readonly"] = "true" if attribute_bits & (1 << 60) else "false"
     for opt, arg in argv:
         if opt in ("--lun", "--phys-part"):
             phys_part = arg
@@ -107,20 +117,24 @@ def partition_options(
             entry["size_in_kb"] = str(partition_size_in_kb(arg))
         elif opt == "--type-guid":
             entry["type"] = arg
-        elif opt == "--attributes":
-            attribute_bits = int(arg, 16)
-            entry["bootable"] = "true" if attribute_bits & (1 << 2) else "false"
-            entry["readonly"] = "true" if attribute_bits & (1 << 60) else "false"
+        elif opt == "--bootable":
+            entry["bootable"] = to_bool(arg)
+        elif opt == "--readonly":
+            entry["readonly"] = to_bool(arg)
+        elif opt == "--priority":
+            entry["priority"] = str(int(arg) & 0x03)
+        elif opt == "--tries-remaining":
+            entry["triesremaining"] = str(int(arg) & 0x07)
         elif opt == "--active":
-            entry["active"] = arg
+            entry["active"] = to_bool(arg)
         elif opt == "--successful":
-            entry["successful"] = arg
+            entry["successful"] = to_bool(arg)
         elif opt == "--unbootable":
-            entry["unbootable"] = arg
+            entry["unbootable"] = to_bool(arg)
         elif opt == "--filename":
             entry["filename"] = arg
         elif opt == "--sparse":
-            entry["sparse"] = arg
+            entry["sparse"] = to_bool(arg)
     if entry["label"] in image_map:
         entry["filename"] = image_map[entry["label"]]
     return phys_part, entry
@@ -148,6 +162,10 @@ _PARTITION_LONG_OPTS = [
     "type-guid=",
     "filename=",
     "attributes=",
+    "bootable=",
+    "readonly=",
+    "priority=",
+    "tries-remaining=",
     "active=",
     "successful=",
     "unbootable=",
