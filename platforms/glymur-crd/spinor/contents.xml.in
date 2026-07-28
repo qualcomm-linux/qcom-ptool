@@ -36,6 +36,7 @@
   </product_flavors>
   <product_info>
     <product_name>Glymur.LE.0.0</product_name>
+    <hlos_type>LE</hlos_type>
     <chipid flavor="default" storage_type="spinor" flash_phase="1">GLYMUR</chipid>
     <chipid flavor="qcom_server" storage_type="NVME" flash_phase="2">GLYMUR</chipid>
     <additional_chipid>SC8480XP</additional_chipid>
