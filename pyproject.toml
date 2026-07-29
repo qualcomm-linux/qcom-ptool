@@ -8,6 +8,7 @@ version = "1.0.0"
 description = "Qualcomm partition tool - GPT partition table generator and mass storage programmer"
 readme = "README.md"
 license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 requires-python = ">=3.8"
 
 [project.scripts]
