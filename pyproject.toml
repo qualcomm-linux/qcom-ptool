@@ -11,6 +11,12 @@ license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 requires-python = ">=3.8"
 
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+
 [project.scripts]
 qcom-ptool = "qcom_ptool.cli:main"
 
