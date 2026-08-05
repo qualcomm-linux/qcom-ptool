@@ -137,6 +137,8 @@ def partition_options(argv):
             partition_entry["filename"] = arg
         elif opt in ["--sparse"]:
             partition_entry["sparse"] = arg
+        elif opt in ["--uniqueguid"]:
+            partition_entry["uniqueguid"] = arg
         if partition_entry["label"] in partition_image_map:
             partition_entry["filename"] = partition_image_map[partition_entry["label"]]
     return phys_part, partition_entry
@@ -161,6 +163,7 @@ def parse_partition_entries(partition_entries):
                         "filename=",
                         "attributes=",
                         "sparse=",
+                        "uniqueguid=",
                     ],
                 )
                 phys_part, partition = partition_options(options)
