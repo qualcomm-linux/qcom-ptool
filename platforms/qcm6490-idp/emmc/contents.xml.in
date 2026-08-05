@@ -29,6 +29,7 @@
   </product_flavors>
   <product_info>
     <product_name>QCM6490.LE.0.0</product_name>
+    <hlos_type>LE</hlos_type>
     <chipid flavor="default" storage_type="emmc" flash_phase="1">QCM6490</chipid>
     <additional_chipid>SM7325,QCS6490</additional_chipid>
     <meta_type>FULL_STACK</meta_type>
