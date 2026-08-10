@@ -167,6 +167,70 @@ def test_partition_options_attributes_bootable_and_readonly_bits() -> None:
     assert entry["readonly"] == "false"
 
 
+@pytest.mark.parametrize("arg", ["1", "y", "yes", "true", "TRUE", "  Yes  "])
+def test_to_bool_accepted_true_forms(arg: str) -> None:
+    assert conf.to_bool(arg) == "true"
+
+
+@pytest.mark.parametrize("arg", ["0", "n", "no", "false", "", "2", "yeah"])
+def test_to_bool_everything_else_is_false(arg: str) -> None:
+    assert conf.to_bool(arg) == "false"
+
+
+@pytest.mark.parametrize("flag", ["active", "successful", "unbootable"])
+def test_partition_options_ab_slot_flags(flag: str) -> None:
+    _, entry = conf.partition_options([("--%s" % flag, "yes")])
+    assert entry[flag] == "true"
+
+    _, entry = conf.partition_options([("--%s" % flag, "0")])
+    assert entry[flag] == "false"
+
+
+def test_partition_options_ab_slot_flags_default_false() -> None:
+    _, entry = conf.partition_options([("--name", "x")])
+    assert entry["active"] == "false"
+    assert entry["successful"] == "false"
+    assert entry["unbootable"] == "false"
+
+
+def test_partition_options_named_bootable_and_readonly() -> None:
+    _, entry = conf.partition_options([("--bootable", "1"), ("--readonly", "0")])
+    assert entry["bootable"] == "true"
+    assert entry["readonly"] == "false"
+
+
+@pytest.mark.parametrize(
+    "arg,expected", [("0", "0"), ("2", "2"), ("3", "3"), ("4", "0"), ("7", "3")]
+)
+def test_partition_options_priority_masked_to_two_bits(arg: str, expected: str) -> None:
+    _, entry = conf.partition_options([("--priority", arg)])
+    assert entry["priority"] == expected
+
+
+@pytest.mark.parametrize(
+    "arg,expected", [("0", "0"), ("6", "6"), ("7", "7"), ("8", "0"), ("9", "1")]
+)
+def test_partition_options_tries_remaining_masked_to_three_bits(
+    arg: str, expected: str
+) -> None:
+    _, entry = conf.partition_options([("--tries-remaining", arg)])
+    assert entry["triesremaining"] == expected
+
+
+@pytest.mark.parametrize(
+    "opts",
+    [
+        [("--attributes", "4"), ("--bootable", "0")],
+        [("--bootable", "0"), ("--attributes", "4")],
+    ],
+)
+def test_partition_options_named_flag_wins_over_attributes(
+    opts: list[tuple[str, str]],
+) -> None:
+    _, entry = conf.partition_options(opts)
+    assert entry["bootable"] == "false"
+
+
 def test_partition_options_image_map_overrides_filename() -> None:
     _, entry = conf.partition_options(
         [("--name", "rootfs"), ("--filename", "default.img")],
@@ -252,6 +316,21 @@ def test_parse_partition_lines_skips_non_partition_lines() -> None:
     # Lines not starting with --partition are silently ignored by this helper.
     lines = ["--disk --type=ufs --size=1024", "--something-else"]
     assert conf.parse_partition_lines(lines) == {}
+
+
+def test_parse_partition_lines_accepts_named_flags() -> None:
+    lines = [
+        "--partition --name=boot_a --size=128MB --bootable=1 --readonly=0 "
+        "--active=1 --successful=0 --unbootable=0 --priority=3 --tries-remaining=7"
+    ]
+    entry = conf.parse_partition_lines(lines)["0"][0]
+    assert entry["bootable"] == "true"
+    assert entry["readonly"] == "false"
+    assert entry["active"] == "true"
+    assert entry["successful"] == "false"
+    assert entry["unbootable"] == "false"
+    assert entry["priority"] == "3"
+    assert entry["triesremaining"] == "7"
 
 
 # ---------------------------------------------------------------------------
