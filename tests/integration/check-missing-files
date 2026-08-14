@@ -59,6 +59,7 @@ for xml in "$@"; do
           fs_image_linux.tar.gz.mbn.img) ;;
           hyp.mbn) ;;
           hypvm.mbn) ;;
+	  hypvmperformance.mbn) ;;
           hyp_ac_config.mbn) ;;
           imagefv.elf) ;;
           keymaster.mbn) ;;
