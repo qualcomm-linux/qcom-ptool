@@ -135,6 +135,8 @@ def partition_options(
             entry["filename"] = arg
         elif opt == "--sparse":
             entry["sparse"] = to_bool(arg)
+        elif opt == "--uniqueguid":
+            entry["uniqueguid"] = arg
     if entry["label"] in image_map:
         entry["filename"] = image_map[entry["label"]]
     return phys_part, entry
@@ -170,6 +172,7 @@ _PARTITION_LONG_OPTS = [
     "successful=",
     "unbootable=",
     "sparse=",
+    "uniqueguid=",
 ]
 
 
