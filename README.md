@@ -19,6 +19,7 @@ Once installed, the tool is invoked as:
 ```sh
 qcom-ptool gen_partition -i platforms/<soc>/<variant>/partitions.conf -o partitions.xml
 qcom-ptool gen_contents  -p partitions.xml -t contents.xml.in -o contents.xml
+qcom-ptool gen_udev_rules -i platforms/<soc>/<variant>/partitions.conf -o 55-qcom-raw-partitions-noblkid.rules
 qcom-ptool ptool         -x partitions.xml
 qcom-ptool msp           -r rawprogram0.xml -d /dev/sdX -p patch0.xml
 ```
