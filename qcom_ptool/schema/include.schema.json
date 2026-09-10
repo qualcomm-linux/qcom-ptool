@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/qualcomm-linux/qcom-ptool/include.schema.json",
+    "title": "qcom-ptool shared partition fragment",
+    "description": "A reusable partition group under platforms/_common/, pulled into a storage via 'includes:'. May itself pull in further fragments.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "includes": {
+            "type": "array",
+            "items": {"type": "string"}
+        },
+        "partitions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name"],
+                "properties": {
+                    "name": {"type": "string", "minLength": 1},
+                    "size": {"type": "string", "pattern": "^[0-9]+([KkMmGg][Bb]?)?$"},
+                    "type-guid": {"type": "string", "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"},
+                    "filename": {"type": "string"},
+                    "attributes": {"type": "string", "pattern": "^[0-9A-Fa-f]+$"},
+                    "sparse": {"type": "boolean"},
+                    "lun": {"type": "integer", "minimum": 0},
+                    "phys-part": {"type": "integer", "minimum": 0}
+                }
+            }
+        }
+    }
+}

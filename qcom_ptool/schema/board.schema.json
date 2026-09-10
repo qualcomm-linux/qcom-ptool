@@ -1,0 +1,65 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/qualcomm-linux/qcom-ptool/board.schema.json",
+    "title": "qcom-ptool board / variant source",
+    "description": "Structural schema for a board file, a derived (extends) board, or a variant overlay. Storage entries and partitions are permissive here because overrides are partial (e.g. a derived board may set only a partition size); the fully-resolved storage is validated strictly against partitions.schema.json.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["storage"],
+    "properties": {
+        "platform": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {"type": "string"}
+            }
+        },
+        "extends": {
+            "description": "Path (relative to the platforms root) of a single base board to inherit.",
+            "type": "string"
+        },
+        "storage": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id"],
+                "properties": {
+                    "id": {"type": "string", "minLength": 1},
+                    "type": {"type": "string", "enum": ["emmc", "nand", "nvme", "spinor", "ufs"]},
+                    "size": {"type": "integer", "minimum": 1},
+                    "sector-size": {"type": "integer", "minimum": 1},
+                    "write-protect-boundary": {"type": "integer", "minimum": 0},
+                    "grow-last-partition": {"type": "boolean"},
+                    "align-partitions": {"type": "integer", "minimum": 0},
+                    "includes": {
+                        "description": "Shared partition fragments (relative to the platforms root) concatenated into this storage's partition list.",
+                        "type": "array",
+                        "items": {"type": "string"}
+                    },
+                    "partitions": {
+                        "type": "array",
+                        "items": {"$ref": "#/definitions/partition"}
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "partition": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "size": {"type": "string", "pattern": "^[0-9]+([KkMmGg][Bb]?)?$"},
+                "type-guid": {"type": "string", "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"},
+                "filename": {"type": "string"},
+                "attributes": {"type": "string", "pattern": "^[0-9A-Fa-f]+$"},
+                "sparse": {"type": "boolean"},
+                "lun": {"type": "integer", "minimum": 0},
+                "phys-part": {"type": "integer", "minimum": 0}
+            }
+        }
+    }
+}
