@@ -1,0 +1,11 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Partition names known to contain filesystems.  Raw rules are generated for
+# every other partition name found in the supplied in-tree layouts.
+efi
+logfs
+persist
+rootfs
+userdata
+vm-data

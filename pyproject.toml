@@ -26,6 +26,7 @@ include = ["qcom_ptool*"]
 
 [tool.setuptools.package-data]
 "qcom_ptool.schema" = ["*.json"]
+"qcom_ptool.data" = ["*.in", "*.list"]
 
 [tool.ruff]
 target-version = "py38"
