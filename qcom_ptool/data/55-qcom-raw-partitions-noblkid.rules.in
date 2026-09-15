@@ -1,0 +1,35 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Skip filesystem probing for known Qualcomm raw GPT partitions.
+#
+# Match by GPT partition name instead of kernel disk name. Disk enumeration is
+# not stable across all boards, and a disk can contain both raw firmware and
+# mountable filesystem partitions.
+#
+# 60-persistent-storage.rules creates partition metadata links after the blkid
+# import. Since this rule skips that import for raw partitions, emit those
+# links here from kernel-provided PARTNAME/PARTUUID properties.
+ACTION=="remove", GOTO="qcom_raw_noblkid_end"
+SUBSYSTEM!="block", GOTO="qcom_raw_noblkid_end"
+ENV{DEVTYPE}!="partition", GOTO="qcom_raw_noblkid_end"
+ENV{PARTNAME}=="", GOTO="qcom_raw_links"
+
+# Raw partition name patterns
+@QCOM_RAW_PARTITION_RULES@
+GOTO="qcom_raw_noblkid_end"
+
+LABEL="qcom_raw_noblkid"
+# Supported since systemd v252. Older versions probe as usual.
+ENV{UDEV_DISABLE_PERSISTENT_STORAGE_BLKID_FLAG}="1"
+
+LABEL="qcom_raw_links"
+# persistent partition links
+ENV{ID_PATH}!="?*", IMPORT{parent}="ID_PATH"
+ENV{PARTUUID}=="?*", SYMLINK+="disk/by-partuuid/$env{PARTUUID}"
+ENV{PARTNAME}=="?*", OPTIONS+="string_escape=replace", SYMLINK+="disk/by-partlabel/$env{PARTNAME}"
+ENV{ID_PATH}=="?*", SYMLINK+="disk/by-path/$env{ID_PATH}-part/by-partnum/%n"
+ENV{ID_PATH}=="?*", ENV{PARTUUID}=="?*", SYMLINK+="disk/by-path/$env{ID_PATH}-part/by-partuuid/$env{PARTUUID}"
+ENV{ID_PATH}=="?*", ENV{PARTNAME}=="?*", OPTIONS+="string_escape=replace", SYMLINK+="disk/by-path/$env{ID_PATH}-part/by-partlabel/$env{PARTNAME}"
+
+LABEL="qcom_raw_noblkid_end"
