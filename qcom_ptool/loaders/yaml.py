@@ -105,6 +105,23 @@ def _partition_from_node(
         attribute_bits = int(str(node["attributes"]), 16)
         entry["bootable"] = "true" if attribute_bits & (1 << 2) else "false"
         entry["readonly"] = "true" if attribute_bits & (1 << 60) else "false"
+    # Named fields mirror the .conf options; applied after attributes so they win.
+    if "bootable" in node:
+        entry["bootable"] = _bool_str(node["bootable"])
+    if "readonly" in node:
+        entry["readonly"] = _bool_str(node["readonly"])
+    if "priority" in node:
+        entry["priority"] = str(int(node["priority"]) & 0x03)
+    if "tries-remaining" in node:
+        entry["triesremaining"] = str(int(node["tries-remaining"]) & 0x07)
+    if "active" in node:
+        entry["active"] = _bool_str(node["active"])
+    if "successful" in node:
+        entry["successful"] = _bool_str(node["successful"])
+    if "unbootable" in node:
+        entry["unbootable"] = _bool_str(node["unbootable"])
+    if "unique-guid" in node:
+        entry["uniqueguid"] = str(node["unique-guid"])
     if "filename" in node:
         entry["filename"] = str(node["filename"])
     if "sparse" in node:
