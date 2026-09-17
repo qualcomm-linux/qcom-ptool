@@ -201,3 +201,141 @@ def test_schema_rejects_invalid(tmp_path, text):
 def test_top_level_must_be_mapping(tmp_path):
     with pytest.raises(yaml_loader.YamlParseError):
         load(_write(tmp_path, "list.yaml", "- 1\n- 2\n"))
+
+
+# ---------------------------------------------------------------------------
+# Named GPT attribute fields (conf parity)
+# ---------------------------------------------------------------------------
+
+_GUID = "DEA0BA2C-CBDD-4805-B4F9-F428251C3E98"
+_UGUID = "11111111-2222-3333-4444-555555555555"
+
+
+def _conf_with(tmp_path, extra: str) -> str:
+    return _write(
+        tmp_path,
+        "p.conf",
+        "--disk --type=nvme --size=68719476736\n"
+        "--partition --name=boot_a --size=3584KB --type-guid=%s %s\n"
+        % (_GUID, extra),
+    )
+
+
+def _yaml_with(tmp_path, extra: str) -> str:
+    return _write(
+        tmp_path,
+        "p.yaml",
+        _VALID_DISK
+        + "partitions:\n"
+        + "  - name: boot_a\n"
+        + '    size: "3584KB"\n'
+        + '    type-guid: "%s"\n' % _GUID
+        + "    %s\n" % extra,
+    )
+
+
+@pytest.mark.parametrize(
+    ("yaml_field", "conf_opt", "entry_key", "expected"),
+    [
+        ("bootable: true", "--bootable=yes", "bootable", "true"),
+        ("readonly: false", "--readonly=no", "readonly", "false"),
+        ("priority: 2", "--priority=2", "priority", "2"),
+        ("tries-remaining: 6", "--tries-remaining=6", "triesremaining", "6"),
+        ("active: true", "--active=1", "active", "true"),
+        ("successful: false", "--successful=0", "successful", "false"),
+        ("unbootable: true", "--unbootable=true", "unbootable", "true"),
+        ('unique-guid: "%s"' % _UGUID, "--uniqueguid=%s" % _UGUID, "uniqueguid", _UGUID),
+        ("sparse: true", "--sparse=yes", "sparse", "true"),
+    ],
+)
+def test_named_field_matches_conf(tmp_path, yaml_field, conf_opt, entry_key, expected):
+    """Each named field loads to the exact entry the .conf option produces."""
+    conf_spec = load(_conf_with(tmp_path, conf_opt))
+    yaml_spec = load(_yaml_with(tmp_path, yaml_field))
+    assert yaml_spec == conf_spec
+    assert yaml_spec["partitions"]["0"][0][entry_key] == expected
+
+
+def test_named_fields_override_attributes(tmp_path):
+    """A named field wins over the raw attributes hex, as in the .conf loader."""
+    # attributes sets bootable (bit 2) and readonly (bit 60); named fields
+    # invert both.
+    conf_spec = load(
+        _conf_with(
+            tmp_path, "--attributes=1000000000000004 --bootable=no --readonly=no"
+        )
+    )
+    yaml_spec = load(
+        _write(
+            tmp_path,
+            "o.yaml",
+            _VALID_DISK
+            + "partitions:\n"
+            + "  - name: boot_a\n"
+            + '    size: "3584KB"\n'
+            + '    type-guid: "%s"\n' % _GUID
+            + '    attributes: "1000000000000004"\n'
+            + "    bootable: false\n"
+            + "    readonly: false\n",
+        )
+    )
+    assert yaml_spec == conf_spec
+    entry = yaml_spec["partitions"]["0"][0]
+    assert entry["bootable"] == "false"
+    assert entry["readonly"] == "false"
+
+
+def test_named_fields_emit_byte_identical_xml(tmp_path):
+    """All named fields together still emit byte-identical XML per format."""
+    extra_conf = (
+        "--bootable=yes --readonly=no --priority=2 --tries-remaining=6 "
+        "--active=yes --successful=no --unbootable=no "
+        "--uniqueguid=%s --sparse=true" % _UGUID
+    )
+    extra_yaml = (
+        "    bootable: true\n"
+        "    readonly: false\n"
+        "    priority: 2\n"
+        "    tries-remaining: 6\n"
+        "    active: true\n"
+        "    successful: false\n"
+        "    unbootable: false\n"
+        '    unique-guid: "%s"\n'
+        "    sparse: true\n" % _UGUID
+    )
+    conf_spec = load(_conf_with(tmp_path, extra_conf))
+    yaml_spec = load(
+        _write(
+            tmp_path,
+            "full.yaml",
+            _VALID_DISK
+            + "partitions:\n"
+            + "  - name: boot_a\n"
+            + '    size: "3584KB"\n'
+            + '    type-guid: "%s"\n' % _GUID
+            + extra_yaml,
+        )
+    )
+    conf_xml = tmp_path / "from_conf.xml"
+    yaml_xml = tmp_path / "from_yaml.xml"
+    generate_partition_xml(conf_spec["disk"], conf_spec["partitions"], str(conf_xml))
+    generate_partition_xml(yaml_spec["disk"], yaml_spec["partitions"], str(yaml_xml))
+    assert yaml_xml.read_bytes() == conf_xml.read_bytes()
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # priority beyond the 2-bit field.
+        _partition(priority="4"),
+        # tries-remaining beyond the 3-bit field.
+        _partition(**{"tries-remaining": "8"}),
+        # named flags must be booleans, not strings.
+        _partition(active='"yes"'),
+        # malformed unique GUID.
+        _partition(**{"unique-guid": '"not-a-guid"'}),
+    ],
+)
+def test_schema_rejects_invalid_named_fields(tmp_path, text):
+    with pytest.raises(yaml_loader.YamlParseError):
+        load(_write(tmp_path, "bad.yaml", text))
