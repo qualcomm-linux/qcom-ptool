@@ -68,9 +68,46 @@
                         "type": "string"
                     },
                     "attributes": {
-                        "description": "GPT attribute bits as a hexadecimal string.",
+                        "description": "GPT attribute bits as a hexadecimal string. The named fields below override the bits they cover.",
                         "type": "string",
                         "pattern": "^[0-9A-Fa-f]+$"
+                    },
+                    "bootable": {
+                        "description": "Legacy BIOS bootable flag (GPT attribute bit 2).",
+                        "type": "boolean"
+                    },
+                    "readonly": {
+                        "description": "Read-only flag (GPT attribute bit 60).",
+                        "type": "boolean"
+                    },
+                    "priority": {
+                        "description": "A/B slot priority (GPT attribute bits 48-49).",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 3
+                    },
+                    "tries-remaining": {
+                        "description": "A/B slot retry count (GPT attribute bits 51-53).",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                    },
+                    "active": {
+                        "description": "A/B slot active flag (GPT attribute bit 50).",
+                        "type": "boolean"
+                    },
+                    "successful": {
+                        "description": "A/B slot boot-successful flag (GPT attribute bit 54).",
+                        "type": "boolean"
+                    },
+                    "unbootable": {
+                        "description": "A/B slot unbootable flag (GPT attribute bit 55).",
+                        "type": "boolean"
+                    },
+                    "unique-guid": {
+                        "description": "Partition unique GUID; must be a quoted string to avoid integer misparsing.",
+                        "type": "string",
+                        "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"
                     },
                     "sparse": {
                         "type": "boolean"
