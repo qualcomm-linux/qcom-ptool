@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import getopt
+import os
 import sys
 import xml.etree.ElementTree as ET
 from typing import NoReturn
@@ -43,8 +44,11 @@ def usage() -> NoReturn:
         "\t  %s -i <input> -o <output> "
         "[-m name1=image1,name2=image2,...]\n"
         "\t  %s --board <board.yaml> [--hlos <name>] [--boot-fw <name>] "
-        "[--root <dir>] -o <out1> [-o <out2> ...]\n"
-        "\n\tIn --board mode one -o is given per storage, in declared order.\n"
+        "[--root <dir>] [-C <outdir> | -o <out1> -o <out2> ...]\n"
+        "\n\tIn --board mode each storage is written to "
+        "<outdir>/<storage-id>/partitions.xml\n"
+        "\t(default outdir: .), or to one explicit -o per storage in "
+        "declared order.\n"
         "\tVersion 1.0\n" % (sys.argv[0], sys.argv[0])
     )
     sys.exit(1)
@@ -109,13 +113,14 @@ def main(argv: list[str] | None = None) -> int:
     hlos: str | None = None
     boot_fw: str | None = None
     outputs: list[str] = []
+    outdir: str | None = None
     image_map: dict[str, str] = {}
 
     if argv[1] == "-h" or argv[1] == "--help":
         usage()
     try:
         opts, _rem = getopt.getopt(
-            argv[1:], "i:o:m:", ["board=", "hlos=", "boot-fw=", "root="]
+            argv[1:], "i:o:m:C:", ["board=", "hlos=", "boot-fw=", "root="]
         )
         for opt, arg in opts:
             if opt == "-i":
@@ -130,6 +135,8 @@ def main(argv: list[str] | None = None) -> int:
                 boot_fw = arg
             elif opt == "--root":
                 root = arg
+            elif opt == "-C":
+                outdir = arg
             elif opt == "-m":
                 for mapping in arg.split(","):
                     tags = mapping.split("=")
@@ -144,11 +151,12 @@ def main(argv: list[str] | None = None) -> int:
     if (board_file is None) == (input_file is None):
         print("Error: pass exactly one of -i <input> or --board <board.yaml>")
         usage()
-    if not outputs:
+    if outputs and outdir is not None:
+        print("Error: pass either -C <outdir> or explicit -o outputs, not both")
         usage()
 
     if board_file is not None:
-        return _run_board(board_file, root, hlos, boot_fw, outputs, image_map)
+        return _run_board(board_file, root, hlos, boot_fw, outputs, outdir, image_map)
 
     if input_file is None or len(outputs) != 1:
         print("Error: -i single-storage mode takes exactly one -o")
@@ -169,6 +177,7 @@ def _run_board(
     hlos: str | None,
     boot_fw: str | None,
     outputs: list[str],
+    outdir: str | None,
     image_map: dict[str, str],
 ) -> int:
     # Late import so the -i path never pulls in PyYAML / jsonschema.
@@ -180,6 +189,13 @@ def _run_board(
     except Exception as e:
         print("Error: ", e)
         return 1
+
+    if not outputs:
+        # Default layout: one <outdir>/<storage-id>/partitions.xml per storage.
+        base = outdir if outdir is not None else "."
+        outputs = [os.path.join(base, sid, "partitions.xml") for sid, _ in specs]
+        for path in outputs:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
 
     if len(outputs) != len(specs):
         ids = ", ".join(sid for sid, _ in specs)
