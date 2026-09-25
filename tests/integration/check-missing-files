@@ -80,6 +80,10 @@ for xml in "$@"; do
           qupv3fw.elf) ;;
           rootfs.img) ;;
           rpm.mbn) ;;
+          rtsshyp.elf) ;;
+          rtsssw1.elf) ;;
+          rtsssw2.elf) ;;
+          rtsssw3.elf) ;;
           rubikpi_config.img) ;;
           rubikpi_dtso.img) ;;
           sailcal.elf) ;;
@@ -136,4 +140,3 @@ if [ "${errors}" != no ]; then
     exit 1
 fi
 exit 0
-
