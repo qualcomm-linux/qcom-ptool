@@ -1,7 +1,19 @@
 TOPDIR := $(PWD)
-PARTITIONS := $(wildcard platforms/*/*/partitions.conf)
-PARTITIONS_XML := $(patsubst %.conf,%.xml, $(PARTITIONS))
-PLATFORMS := $(patsubst %/partitions.conf,%/gpt, $(PARTITIONS))
+
+# Boards migrated to platforms/boards/<board>.yaml build via the grouped
+# rule template below. Storage ids are read from each board file to form
+# the output paths; a board must declare all its storages at top level.
+YAML_BOARDS := $(basename $(notdir $(wildcard platforms/boards/*.yaml)))
+board-storages = $(shell sed -n 's/^  - id: //p' platforms/boards/$(1).yaml)
+$(foreach b,$(YAML_BOARDS),$(eval $(b)_STORAGES := $(call board-storages,$(b))))
+
+YAML_SHARED := $(wildcard platforms/_common/*.yaml platforms/variants/*/*.yaml)
+YAML_PARTITIONS_XML := $(foreach b,$(YAML_BOARDS),$(foreach s,$($(b)_STORAGES),platforms/$(b)/$(s)/partitions.xml))
+YAML_CONF_EXCLUDE := $(patsubst %.xml,%.conf, $(YAML_PARTITIONS_XML))
+
+PARTITIONS := $(filter-out $(YAML_CONF_EXCLUDE), $(wildcard platforms/*/*/partitions.conf))
+PARTITIONS_XML := $(patsubst %.conf,%.xml, $(PARTITIONS)) $(YAML_PARTITIONS_XML)
+PLATFORMS := $(patsubst %/partitions.xml,%/gpt, $(PARTITIONS_XML))
 
 CONTENTS_XML_IN := $(wildcard platforms/*/*/contents.xml.in)
 CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN))
@@ -21,6 +33,14 @@ all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
 
 %/partitions.xml: %/partitions.conf
 	$(QCOM_PTOOL) gen_partition -i $^ -o $@
+
+# One grouped rule per YAML board: resolve once, emit all storage XMLs.
+define yaml-board-rule
+$(foreach s,$($(1)_STORAGES),platforms/$(1)/$(s)/partitions.xml) &: \
+    platforms/boards/$(1).yaml $(YAML_SHARED)
+	$$(QCOM_PTOOL) gen_partition --board platforms/boards/$(1).yaml -C platforms/$(1)
+endef
+$(foreach b,$(YAML_BOARDS),$(eval $(call yaml-board-rule,$(b))))
 
 %/contents.xml: %/partitions.xml %/contents.xml.in
 	$(QCOM_PTOOL) gen_contents -p $< -t $@.in -o $@ $${BUILD_ID:+ -b $(BUILD_ID)}
