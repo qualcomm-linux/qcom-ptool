@@ -1,0 +1,13 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Arduino SKU: the base layout plus a userdata partition.
+extends: boards/qrb2210-unoq-abl.yaml
+
+platform:
+  name: qrb2210-unoq-abl-arduino
+
+storage:
+  - id: emmc
+    partitions:
+      - {name: userdata, size: "2145728KB", type-guid: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE", filename: userdata.img}
