@@ -27,7 +27,9 @@ qcom-ptool msp           -r rawprogram0.xml -d /dev/sdX -p patch0.xml
 By default, the generator scans all `platforms/*/*/partitions.conf` files.
 Repeatable `-i` options can select specific layouts. It skips known filesystem
 partition names and emits exact `PARTNAME` rules for the others. Unknown names
-retain normal blkid probing. The rules use
+retain normal blkid probing. Matched partitions are marked with
+`QCOM_RAW_PARTITION=1` so later udev rules can reuse the generated
+classification. The rules use
 `UDEV_DISABLE_PERSISTENT_STORAGE_BLKID_FLAG` on systemd v252 and newer.
 
 Run `qcom-ptool <subcommand> -h` to see the options accepted by each
