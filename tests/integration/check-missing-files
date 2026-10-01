@@ -47,6 +47,7 @@ for xml in "$@"; do
           cpucp.elf) ;;
           cpucp_dtbs.elf) ;;
           dcd.mbn) ;;
+          ddr_lcp.elf) ;;
           devcfg.mbn) ;;
           devcfg_full.img) ;;
           devcfg_iot.mbn) ;;
