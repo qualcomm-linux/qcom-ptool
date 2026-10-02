@@ -101,23 +101,27 @@ def _read_mapping(path: str, schema: str) -> dict[str, Any]:
 
 
 def _merge_partitions(base: list[dict[str, Any]], overlay: Sequence[Mapping[str, Any]]) -> None:
-    """Merge ``overlay`` partitions into ``base`` by ``name``.
+    """Merge ``overlay`` partitions into ``base`` by ``(lun, name)``.
 
-    A same-named partition is deep-merged field-by-field in place (so an
-    override can set only ``size`` and inherit the rest); a new partition is
-    appended in overlay order. Nothing is ever moved or removed.
+    Names repeat across LUNs on multi-LUN storages, so identity is the
+    (lun, name) pair. A matched partition is deep-merged field-by-field in
+    place (so an override can set only ``size`` and inherit the rest); a new
+    partition is appended in overlay order. Nothing is ever moved or removed.
     """
-    index = {p["name"]: p for p in base if "name" in p}
+
+    def key(p: Mapping[str, Any]) -> tuple[Any, Any]:
+        return (p.get("lun", p.get("phys-part")), p.get("name"))
+
+    index = {key(p): p for p in base if "name" in p}
     for entry in overlay:
-        name = entry.get("name")
-        target = index.get(name)
+        target = index.get(key(entry))
         if target is not None:
             target.update(copy.deepcopy(dict(entry)))
         else:
             new_entry = copy.deepcopy(dict(entry))
             base.append(new_entry)
-            if name is not None:
-                index[name] = new_entry
+            if entry.get("name") is not None:
+                index[key(entry)] = new_entry
 
 
 def _merge_storage(base: dict[str, Any], overlay: Mapping[str, Any]) -> None:

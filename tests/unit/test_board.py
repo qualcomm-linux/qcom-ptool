@@ -211,6 +211,33 @@ def test_includes_are_transitive(tmp_path):
     assert _names(_by_id(board, "spinor0")) == ["LEAF", "MID"]
 
 
+def test_same_name_on_different_luns_is_not_merged(tmp_path):
+    """Partition identity is (lun, name): names repeat across LUNs."""
+    root = _tree(
+        tmp_path,
+        {
+            "_common/luns.yaml": """
+                partitions:
+                  - {name: last_parti, lun: 0, size: "4KB", type-guid: "%s"}
+                  - {name: last_parti, lun: 1, size: "4KB", type-guid: "%s"}
+            """ % (GUID_A, GUID_B),
+            "boards/b.yaml": """
+                storage:
+                  - id: ufs0
+                    type: ufs
+                    size: 137438953472
+                    includes: [_common/luns.yaml]
+                    partitions:
+                      - {name: last_parti, lun: 1, size: "8KB"}
+            """,
+        },
+    )
+    board = resolve_board(os.path.join(root, "boards/b.yaml"))
+    parts = _by_id(board, "ufs0")["partitions"]
+    # both survive; the inline override touched only the lun-1 entry.
+    assert [(p["lun"], p["size"]) for p in parts] == [(0, "4KB"), (1, "8KB")]
+
+
 def test_includes_cycle_is_rejected(tmp_path):
     root = _tree(
         tmp_path,
