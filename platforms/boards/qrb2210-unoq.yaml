@@ -1,0 +1,15 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Uses the shared qrb2210 eMMC layout from _common/qrb2210-emmc.yaml.
+platform:
+  name: qrb2210-unoq
+
+storage:
+  - id: emmc
+    type: emmc
+    size: 76841669632
+    sector-size: 512
+    write-protect-boundary: 65536
+    grow-last-partition: true
+    includes: [_common/qrb2210-emmc.yaml]
