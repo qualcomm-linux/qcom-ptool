@@ -37,15 +37,58 @@
                         "type": "array",
                         "items": {"type": "string"}
                     },
-                    "partitions": {
+                    "partitions": {"$ref": "#/definitions/partition-list"},
+                    "luns": {
+                        "description": "LUN groups (UFS), flattened in listed order; mutually exclusive with 'partitions' and 'phys-parts'. The group places its items; 'grow: false' appends the zero-GUID last_parti absorber.",
                         "type": "array",
-                        "items": {"$ref": "#/definitions/partition"}
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["lun"],
+                            "properties": {
+                                "lun": {"type": "integer", "minimum": 0},
+                                "grow": {"type": "boolean"},
+                                "partitions": {"$ref": "#/definitions/partition-list"}
+                            }
+                        }
+                    },
+                    "phys-parts": {
+                        "description": "Physical-partition groups (eMMC), flattened in listed order; mutually exclusive with 'partitions' and 'luns'. The group places its items; 'grow: false' appends the zero-GUID last_parti absorber.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["phys-part"],
+                            "properties": {
+                                "phys-part": {"type": "integer", "minimum": 0},
+                                "grow": {"type": "boolean"},
+                                "partitions": {"$ref": "#/definitions/partition-list"}
+                            }
+                        }
                     }
                 }
             }
         }
     },
     "definitions": {
+        "partition-list": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    {"$ref": "#/definitions/partition"},
+                    {"$ref": "#/definitions/include"}
+                ]
+            }
+        },
+        "include": {
+            "description": "Expands a shared fragment in place of this list item.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["include"],
+            "properties": {
+                "include": {"type": "string", "minLength": 1}
+            }
+        },
         "partition": {
             "type": "object",
             "additionalProperties": false,
