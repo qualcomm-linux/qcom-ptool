@@ -42,28 +42,35 @@ from qcom_ptool.loaders import UnsupportedFormatError, conf, load
         # GB / Gb / G -> *1024*1024
         ("1GB", 1024 * 1024),
         ("64GB", 64 * 1024 * 1024),
-        # mixed-prefix strings: regex returns the first numeric run before the suffix
-        ("foo123KB", 123),
     ],
 )
 def test_partition_size_in_kb_recognised_forms(size: str, expected: int) -> None:
     assert conf.partition_size_in_kb(size) == expected
 
 
-@pytest.mark.parametrize("size", ["abc", "1TB", "MB", "1PB"])
-def test_partition_size_in_kb_unrecognised_suffix_raises(size: str) -> None:
-    """Strings with letters that don't match K/M/G hit the explicit raise."""
+@pytest.mark.parametrize(
+    "size",
+    [
+        "abc",
+        "1TB",
+        "MB",
+        "1PB",
+        # decimals, signs, prefixes and spacing must not be silently misread
+        "1.5MB",
+        "0.5GB",
+        "2.5KB",
+        "-5KB",
+        "foo123KB",
+        "10 KB",
+        "5KBMB",
+        "",
+    ],
+)
+def test_partition_size_in_kb_unrecognised_forms_raise(size: str) -> None:
+    """Anything outside ^[0-9]+([KkMmGg][Bb]?)?$ (the YAML schema grammar)
+    raises rather than being silently misread, e.g. "1.5MB" is not 5MB."""
     with pytest.raises(ValueError, match="Unrecognized size format"):
         conf.partition_size_in_kb(size)
-
-
-def test_partition_size_in_kb_empty_string_raises_int_error() -> None:
-    """Empty strings take the "no letters -> int(size)" branch and surface
-    int()'s native ValueError rather than the explicit "Unrecognized" message.
-    Pinning this asymmetry so any future loader normalises empty strings
-    consistently."""
-    with pytest.raises(ValueError, match="invalid literal for int"):
-        conf.partition_size_in_kb("")
 
 
 # ---------------------------------------------------------------------------

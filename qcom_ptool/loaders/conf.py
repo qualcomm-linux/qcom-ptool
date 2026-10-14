@@ -43,21 +43,17 @@ def partition_size_in_kb(size: str) -> int:
 
     Bare integers are interpreted as bytes and divided by 1024. Strings with a
     K/M/G suffix (any case, with optional 'B') return the kilobyte equivalent.
-    Anything else raises ``ValueError``; callers may catch and reformat.
+    The accepted grammar matches the YAML schema (``^[0-9]+([KkMmGg][Bb]?)?$``);
+    anything else, including decimals such as "1.5MB", raises ``ValueError``
+    instead of being silently misread.
     """
-    if not re.search("[a-zA-Z]+", size):
-        return int(size) // 1024
-    m = re.search("([0-9]+)(?=[Kk][Bb]?)", size)
-    if m:
-        return int(m.group(0))
-    m = re.search("([0-9]+)(?=[Mm][Bb]?)", size)
-    if m:
-        return int(m.group(0)) * 1024
-    m = re.search("([0-9]+)(?=[Gg][Bb]?)", size)
-    if m:
-        return int(m.group(0)) * 1024 * 1024
-    raise ValueError("Unrecognized size format: '%s'" % size)
-
+    m = re.fullmatch(r"([0-9]+)(?:([KkMmGg])[Bb]?)?", size)
+    if not m:
+        raise ValueError("Unrecognized size format: '%s'" % size)
+    number, unit = int(m.group(1)), (m.group(2) or "").upper()
+    if not unit:
+        return number // 1024
+    return number * {"K": 1, "M": 1024, "G": 1024 * 1024}[unit]
 
 # ---------------------------------------------------------------------------
 # Option-list -> normalised dict
