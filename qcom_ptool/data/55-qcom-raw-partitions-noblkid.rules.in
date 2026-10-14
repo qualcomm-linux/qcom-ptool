@@ -20,6 +20,8 @@ ENV{PARTNAME}=="", GOTO="qcom_raw_links"
 GOTO="qcom_raw_noblkid_end"
 
 LABEL="qcom_raw_noblkid"
+# Expose the generated raw-partition classification to later udev rules.
+ENV{QCOM_RAW_PARTITION}="1"
 # Supported since systemd v252. Older versions probe as usual.
 ENV{UDEV_DISABLE_PERSISTENT_STORAGE_BLKID_FLAG}="1"
 

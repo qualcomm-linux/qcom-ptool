@@ -51,6 +51,7 @@ def test_generate_rules_preserves_persistent_links() -> None:
     rules = gen_udev_rules.generate_rules([LAYOUT])
 
     assert 'ENV{PARTNAME}=="", GOTO="qcom_raw_links"' in rules
+    assert 'ENV{QCOM_RAW_PARTITION}="1"' in rules
     assert 'ENV{UDEV_DISABLE_PERSISTENT_STORAGE_BLKID_FLAG}="1"' in rules
     assert "UDEV_DISABLE_PERSISTENT_STORAGE_RULES_FLAG" not in rules
     assert 'SYMLINK+="disk/by-partuuid/$env{PARTUUID}"' in rules
