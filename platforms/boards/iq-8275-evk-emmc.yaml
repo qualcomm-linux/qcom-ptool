@@ -1,0 +1,34 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Composes the shared qcs8275 partition sets from _common/ into the
+# eMMC layout: user area (phys-part 0) plus the cdt boot area
+# (phys-part 1).
+platform:
+  name: iq-8275-evk-emmc
+
+storage:
+  - id: emmc
+    type: emmc
+    size: 76841669632
+    sector-size: 512
+    write-protect-boundary: 65536
+    grow-last-partition: true
+    phys-parts:
+      - phys-part: 0        # last partition (rootfs) grows
+        partitions:
+          - include: _common/qcs8275-xbl.yaml
+          - include: _common/qcs8275-ddr.yaml
+          - include: _common/qcs8275-firmware.yaml
+          - {name: core_nhlos_a, size: "174080KB", type-guid: "6690B4CE-70E9-4817-B9F1-25D64D888357"}
+          - {name: core_nhlos_b, size: "174080KB", type-guid: "77036CD4-03D5-42BB-8ED1-37E5A88BAA34"}
+          - {name: cateloader, size: "2048KB", type-guid: "AA9A5C4C-4F1F-7D3A-014A-22BD33BF7191"}
+          - {name: uefivarstore, size: "512KB", type-guid: "165BD6BC-9250-4AC8-95A7-A93F4A440066"}
+          - {name: quantumsdk, size: "40960KB", type-guid: "AA9A5C4C-4F1F-7D3A-014A-22BD33BF7191"}
+          - {name: quantumfv, size: "512KB", type-guid: "80C23C26-C3F9-4A19-BB38-1E457DACEB09"}
+          - include: _common/qcs8275-persist.yaml
+          - include: _common/qcs8275-hlos.yaml
+      - phys-part: 1
+        grow: false
+        partitions:
+          - include: _common/qcs8275-cdt.yaml

@@ -8,10 +8,20 @@ with its own partitions. Three composition mechanisms layer on top:
 
 * board-level ``extends:`` - inherit a single base board and override by
   stable identifier (storage ``id``, partition ``name``);
-* storage-level ``includes:`` - concatenate shared partition fragments from
-  ``_common/`` into a storage's partition list;
+* ``luns:`` / ``phys-parts:`` groups - group a storage's partitions by LUN
+  (UFS) or physical partition (eMMC) instead of placing each entry
+  individually; ``grow: false`` appends the zero-GUID ``last_parti``
+  absorber so the group's partitions keep their declared sizes when the
+  storage grows its last partition;
+* ``include:`` directives - splice shared partition fragments from
+  ``_common/`` into a partition list, in place between inline partitions
+  or via the storage-level ``includes:`` prefix list;
 * variant overlays (``--hlos`` / ``--boot-fw``) - applied last, merged by the
   same identifiers.
+
+Groups are flattened into the plain ``partitions:`` list as each document
+is read, so every merge below operates on flat lists keyed by
+``(lun, name)`` regardless of which form a file uses.
 
 Resolution order is: base board -> derived board -> storage includes ->
 variant overlays. Merges are deep and field-by-field; entries are matched by
@@ -157,6 +167,54 @@ def _merge_storage_list(base: list[dict[str, Any]], overlay: Sequence[Mapping[st
 
 
 # ---------------------------------------------------------------------------
+# LUN groups
+# ---------------------------------------------------------------------------
+
+# Appended to a group with ``grow: false``: a zero-GUID placeholder that
+# absorbs the grow-last-partition patching, keeping the real partitions at
+# their declared sizes.
+_LAST_PARTI = {
+    "name": "last_parti",
+    "size": "0KB",
+    "type-guid": "00000000-0000-0000-0000-000000000000",
+}
+
+
+def _normalize_luns(document: dict[str, Any]) -> None:
+    """Flatten each storage's ``luns:`` / ``phys-parts:`` groups.
+
+    ``luns:`` (groups keyed by ``lun``, for UFS) and ``phys-parts:`` (groups
+    keyed by ``phys-part``, for eMMC) are the same mechanism under the name
+    matching the storage. Groups flatten in listed order into the plain
+    ``partitions:`` list; the group's placement is stamped on every item
+    (partition or include directive) that does not place itself.
+    ``grow: false`` appends the ``last_parti`` absorber after the group.
+    Runs on every document as it is read, before any merging.
+    """
+    for storage in document.get("storage", []):
+        present = [k for k in ("partitions", "luns", "phys-parts") if k in storage]
+        if len(present) > 1:
+            raise BoardResolveError(
+                "storage %r: %s are mutually exclusive"
+                % (storage.get("id", "?"), " and ".join("'%s'" % k for k in present))
+            )
+        groups = storage.pop("luns", None) or storage.pop("phys-parts", None)
+        if groups is None:
+            continue
+        flat: list[dict[str, Any]] = []
+        for group in groups:
+            placement = {k: group[k] for k in ("lun", "phys-part") if k in group}
+            for item in group.get("partitions", []):
+                entry = copy.deepcopy(dict(item))
+                if "lun" not in entry and "phys-part" not in entry:
+                    entry.update(placement)
+                flat.append(entry)
+            if group.get("grow") is False:
+                flat.append({**copy.deepcopy(_LAST_PARTI), **placement})
+        storage["partitions"] = flat
+
+
+# ---------------------------------------------------------------------------
 # Board-level extends
 # ---------------------------------------------------------------------------
 
@@ -167,6 +225,7 @@ def _load_board_with_extends(path: str, root: str, chain: tuple[str, ...]) -> di
     if real in chain:
         raise BoardResolveError("extends cycle detected at %s" % path)
     board = _read_mapping(path, "board.schema.json")
+    _normalize_luns(board)
     base_ref = board.pop("extends", None)
     if base_ref is None:
         return board
@@ -198,17 +257,36 @@ def _fragment_partitions(path: str, root: str, chain: tuple[str, ...]) -> list[d
 
 
 def _expand_includes(storage: dict[str, Any], root: str) -> None:
-    """Replace a storage's ``includes:`` + inline ``partitions:`` with one list.
+    """Replace a storage's ``includes:`` + ``partitions:`` with one flat list.
 
-    Ordering: included fragments in listed order first, then the storage's own
-    inline partitions, with same-named entries merged in place.
+    ``partitions:`` items are walked in order; an ``include:`` directive is
+    expanded in place, so fragments and inline partitions interleave freely
+    and the list order is the layout order. A ``lun`` / ``phys-part``
+    stamped on a directive by LUN-group flattening is forwarded to every
+    fragment entry that does not place itself, so one lun-less fragment can
+    serve several storages (or several LUNs of one storage). The
+    storage-level ``includes:`` list is sugar for directives ahead of
+    ``partitions:``; identical directives (e.g. repeated through
+    ``extends``) expand once.
     """
-    includes = storage.pop("includes", [])
+    items: list[dict[str, Any]] = [{"include": inc} for inc in storage.pop("includes", [])]
+    items.extend(storage.get("partitions", []))
     expanded: list[dict[str, Any]] = []
-    for inc in includes:
-        inc_parts = _fragment_partitions(os.path.join(root, inc), root, ())
-        _merge_partitions(expanded, inc_parts)
-    _merge_partitions(expanded, storage.get("partitions", []))
+    seen: list[dict[str, Any]] = []
+    for item in items:
+        if "include" not in item:
+            _merge_partitions(expanded, [item])
+            continue
+        if item in seen:
+            continue
+        seen.append(item)
+        parts = _fragment_partitions(os.path.join(root, item["include"]), root, ())
+        placement = {k: item[k] for k in ("lun", "phys-part") if k in item}
+        if placement:
+            for part in parts:
+                if "lun" not in part and "phys-part" not in part:
+                    part.update(placement)
+        _merge_partitions(expanded, parts)
     storage["partitions"] = expanded
 
 
@@ -263,6 +341,7 @@ def resolve_board(
         if name is None:
             continue
         overlay = _read_mapping(_variant_path(root, axis, name), "board.schema.json")
+        _normalize_luns(overlay)
         _merge_storage_list(storages, overlay.get("storage", []))
 
     for storage in storages:

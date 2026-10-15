@@ -1,0 +1,6 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Shared qcs8275 persist partition.
+partitions:
+  - {name: persist, size: "30720KB", type-guid: "6C95E238-E343-4BA8-B489-8681ED22AD0B"}
