@@ -29,6 +29,10 @@ for xml in "$@"; do
             fi
           ;;
           # known files that will be provided by the OS or boot binaries
+          DCB_LP5_V1_ASIC.elf) ;;
+          DCB_LP5_V2_ASIC.elf) ;;
+          DCB_LP6_V1_ASIC.elf) ;;
+          DCB_LP6_V2_ASIC.elf) ;;
           DISK) ;;
           XblRamdump.elf) ;;
           XblRamdump.xz) ;;
@@ -38,6 +42,7 @@ for xml in "$@"; do
           adsp_lite.lzma) ;;
           aop.mbn) ;;
           aop_devcfg.mbn) ;;
+          bl31.mbn) ;;
           boot.img) ;;
           bootfw1.bin) ;;
           bootfw2.bin) ;;
@@ -46,10 +51,14 @@ for xml in "$@"; do
           cmnlib64.mbn) ;;
           cpucp.elf) ;;
           cpucp_dtbs.elf) ;;
+          dcb.bin) ;;
           dcd.mbn) ;;
+          dcd_oem.mbn) ;;
+          dcp.bin) ;;
           ddr_lcp.elf) ;;
           devcfg.mbn) ;;
           devcfg_full.img) ;;
+          devcfg_hyp.mbn) ;;
           devcfg_iot.mbn) ;;
           devcfg_rfcomm.mbn) ;;
           devcfg_windows_hyp.mbn) ;;
@@ -76,6 +85,8 @@ for xml in "$@"; do
           pmic.elf) ;;
           prog_firehose_ddr.elf) ;;
           prog_firehose_lite.elf) ;;
+          psi.bin) ;;
+          qecp.mbn) ;;
           qsahara_device_programmer.xml) ;;
           qti_misc.mbn) ;;
           qupv3fw.elf) ;;
@@ -101,21 +112,27 @@ for xml in "$@"; do
           sed.dat) ;;
           sequencer_ram.elf) ;;
           shrm.elf) ;;
+          shrm_lp5.elf) ;;
+          shrm_lp6.elf) ;;
           signed_firmware_soc_view.elf) ;;
           soccp.bin) ;;
           soccp.mbn) ;;
           storsec.mbn) ;;
           tme_config.elf) ;;
+          tme_config_edl.elf) ;;
           tools.fv) ;;
           tz.mbn) ;;
           tzapps.bin) ;;
           tz_ac_config.mbn) ;;
+          tz_oem_config.mbn) ;;
           tz_qti_config.mbn) ;;
           uefi.elf) ;;
           uefi_dtbs.elf) ;;
           uefi_dtbs.xz) ;;
           uefi_sec.mbn) ;;
           userdata.img) ;;
+          vp_fw.elf) ;;
+          vp_fw_mini.elf) ;;
           xbl.elf) ;;
           xbl_ac_config.mbn) ;;
           xbl_config.elf) ;;
