@@ -1,7 +1,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# Shared qcs8275 XBL boot set.
+# Shared Monaco-family XBL boot set (qcs8275, qcs8300).
 partitions:
   - {name: xbl_a, size: "5120KB", type-guid: "DEA0BA2C-CBDD-4805-B4F9-F428251C3E98", filename: xbl.elf}
   - {name: xbl_b, size: "5120KB", type-guid: "7A3DF1A3-A31A-454D-BD78-DF259ED486BE", filename: xbl.elf}

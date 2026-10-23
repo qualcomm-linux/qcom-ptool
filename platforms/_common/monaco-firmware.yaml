@@ -1,7 +1,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# Shared qcs8275 firmware set.
+# Shared Monaco-family firmware set (qcs8275, qcs8300).
 partitions:
   - {name: aop_a, size: "256KB", type-guid: "D69E90A5-4CAB-0071-F6DF-AB977F141A7F", filename: aop.mbn}
   - {name: shrm_a, size: "80KB", type-guid: "CB74CA22-2F0D-4B82-A1D6-C4213F348D73", filename: shrm.elf}
