@@ -238,6 +238,215 @@ def test_same_name_on_different_luns_is_not_merged(tmp_path):
     assert [(p["lun"], p["size"]) for p in parts] == [(0, "4KB"), (1, "8KB")]
 
 
+def test_include_directive_expands_in_place(tmp_path):
+    """An include: item splices the fragment between inline partitions."""
+    root = _tree(
+        tmp_path,
+        {
+            "_common/boot.yaml": """
+                partitions:
+                  - name: XBL_SC
+                    size: "2520KB"
+                    type-guid: "%s"
+            """ % GUID_C,
+            "boards/b.yaml": """
+                storage:
+                  - id: spinor0
+                    type: spinor
+                    size: 67108864
+                    sector-size: 4096
+                    partitions:
+                      - {name: ALIGN, size: "4KB", type-guid: "%s"}
+                      - include: _common/boot.yaml
+                      - {name: cdt, size: "4KB", type-guid: "%s"}
+            """ % (GUID_A, GUID_B),
+        },
+    )
+    board = resolve_board(os.path.join(root, "boards/b.yaml"))
+    assert _names(_by_id(board, "spinor0")) == ["ALIGN", "XBL_SC", "cdt"]
+
+
+def test_lun_groups_place_partitions_and_fragments(tmp_path):
+    """A group's lun places lun-less items; one fragment copy serves two LUNs."""
+    root = _tree(
+        tmp_path,
+        {
+            "_common/xbl.yaml": """
+                partitions:
+                  - {name: xbl, size: "4KB", type-guid: "%s"}
+                  - {name: pinned, lun: 7, size: "4KB", type-guid: "%s"}
+            """ % (GUID_A, GUID_B),
+            "boards/b.yaml": """
+                storage:
+                  - id: ufs0
+                    type: ufs
+                    size: 137438953472
+                    luns:
+                      - lun: 1
+                        partitions:
+                          - include: _common/xbl.yaml
+                      - lun: 2
+                        partitions:
+                          - include: _common/xbl.yaml
+                          - {name: xbl, size: "8KB"}
+            """,
+        },
+    )
+    board = resolve_board(os.path.join(root, "boards/b.yaml"))
+    parts = _by_id(board, "ufs0")["partitions"]
+    # a fragment entry that places itself keeps its lun, so the second
+    # expansion merges into the first copy by (lun, name); the inline
+    # override matched the lun-2 copy the same way, keeping the order.
+    assert [(p["name"], p["lun"], p["size"]) for p in parts] == [
+        ("xbl", 1, "4KB"),
+        ("pinned", 7, "4KB"),
+        ("xbl", 2, "8KB"),
+    ]
+
+
+def test_phys_part_group_places_fragment(tmp_path):
+    """eMMC storages spell the same grouping as phys-parts:."""
+    root = _tree(
+        tmp_path,
+        {
+            "_common/cdt.yaml": """
+                partitions:
+                  - {name: cdt, size: "4KB", type-guid: "%s"}
+            """ % GUID_A,
+            "boards/b.yaml": """
+                storage:
+                  - id: emmc0
+                    type: emmc
+                    size: 137438953472
+                    phys-parts:
+                      - phys-part: 1
+                        partitions:
+                          - include: _common/cdt.yaml
+            """,
+        },
+    )
+    board = resolve_board(os.path.join(root, "boards/b.yaml"))
+    parts = _by_id(board, "emmc0")["partitions"]
+    assert [(p["name"], p["phys-part"]) for p in parts] == [("cdt", 1)]
+
+
+def test_lun_group_grow_false_appends_absorber(tmp_path):
+    root = _tree(
+        tmp_path,
+        {
+            "boards/b.yaml": """
+                storage:
+                  - id: ufs0
+                    type: ufs
+                    size: 137438953472
+                    grow-last-partition: true
+                    luns:
+                      - lun: 0
+                        partitions:
+                          - {name: rootfs, size: "4KB", type-guid: "%s"}
+                      - lun: 1
+                        grow: false
+                        partitions:
+                          - {name: xbl, size: "4KB", type-guid: "%s"}
+            """ % (GUID_A, GUID_B),
+        },
+    )
+    board = resolve_board(os.path.join(root, "boards/b.yaml"))
+    parts = _by_id(board, "ufs0")["partitions"]
+    # lun 0 grows its own last partition; lun 1 gets the zero-GUID absorber.
+    assert [(p["name"], p["lun"]) for p in parts] == [
+        ("rootfs", 0),
+        ("xbl", 1),
+        ("last_parti", 1),
+    ]
+    absorber = parts[-1]
+    assert absorber["size"] == "0KB"
+    assert absorber["type-guid"] == "00000000-0000-0000-0000-000000000000"
+
+
+def test_partitions_and_luns_are_mutually_exclusive(tmp_path):
+    root = _tree(
+        tmp_path,
+        {
+            "boards/b.yaml": """
+                storage:
+                  - id: ufs0
+                    type: ufs
+                    size: 137438953472
+                    partitions:
+                      - {name: a, size: "4KB", type-guid: "%s"}
+                    luns:
+                      - lun: 0
+                        partitions:
+                          - {name: b, size: "4KB", type-guid: "%s"}
+            """ % (GUID_A, GUID_B),
+        },
+    )
+    with pytest.raises(BoardResolveError, match="mutually exclusive"):
+        resolve_board(os.path.join(root, "boards/b.yaml"))
+
+
+def test_extends_overrides_partition_in_lun_group(tmp_path):
+    """Derived-board overrides merge by (lun, name) across both forms."""
+    root = _tree(
+        tmp_path,
+        {
+            "boards/base.yaml": """
+                storage:
+                  - id: ufs0
+                    type: ufs
+                    size: 137438953472
+                    luns:
+                      - lun: 0
+                        partitions:
+                          - {name: rootfs, size: "4KB", type-guid: "%s"}
+            """ % GUID_A,
+            "boards/b.yaml": """
+                extends: boards/base.yaml
+                storage:
+                  - id: ufs0
+                    luns:
+                      - lun: 0
+                        partitions:
+                          - {name: rootfs, size: "8KB"}
+            """,
+        },
+    )
+    board = resolve_board(os.path.join(root, "boards/b.yaml"))
+    parts = _by_id(board, "ufs0")["partitions"]
+    assert [(p["name"], p["lun"], p["size"]) for p in parts] == [("rootfs", 0, "8KB")]
+
+
+def test_identical_include_directives_expand_once(tmp_path):
+    """A directive repeated verbatim (e.g. through extends) expands once."""
+    root = _tree(
+        tmp_path,
+        {
+            "_common/boot.yaml": """
+                partitions:
+                  - {name: XBL_SC, size: "4KB", type-guid: "%s"}
+            """ % GUID_A,
+            "boards/base.yaml": """
+                storage:
+                  - id: spinor0
+                    type: spinor
+                    size: 67108864
+                    partitions:
+                      - include: _common/boot.yaml
+            """,
+            "boards/b.yaml": """
+                extends: boards/base.yaml
+                storage:
+                  - id: spinor0
+                    partitions:
+                      - include: _common/boot.yaml
+            """,
+        },
+    )
+    board = resolve_board(os.path.join(root, "boards/b.yaml"))
+    assert _names(_by_id(board, "spinor0")) == ["XBL_SC"]
+
+
 def test_includes_cycle_is_rejected(tmp_path):
     root = _tree(
         tmp_path,
