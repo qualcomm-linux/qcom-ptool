@@ -1,0 +1,7 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Shared Lemans-family CDT partition (qcs9075, qcs9100). Currently identical to
+# the Monaco set; replace the include with explicit partitions when the
+# families deviate.
+includes: [_common/monaco-cdt.yaml]
