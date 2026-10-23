@@ -1,0 +1,43 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Composes the shared Lemans partition sets from _common/ into the
+# per-LUN UFS layout. Differs from iq-8275-evk only in the rootfs
+# size, overridden in place below.
+platform:
+  name: qcs9100-ride-sx
+
+storage:
+  - id: ufs
+    type: ufs
+    size: 76841669632
+    sector-size: 4096
+    write-protect-boundary: 0
+    grow-last-partition: true
+    luns:
+      - lun: 0              # last partition (rootfs) grows
+        partitions:
+          - include: _common/lemans-hlos.yaml
+          - {name: rootfs, size: "29390848KB"}
+      - lun: 1
+        grow: false
+        partitions:
+          - include: _common/lemans-xbl.yaml
+      - lun: 2
+        grow: false
+        partitions:
+          - include: _common/lemans-xbl.yaml
+      - lun: 3
+        grow: false
+        partitions:
+          - {name: ALIGN_TO_128K_1, size: "104KB", type-guid: "FDE1604B-D68B-4BD4-973D-962AE7A1ED88"}
+          - include: _common/lemans-cdt.yaml
+          - include: _common/lemans-ddr.yaml
+      - lun: 4
+        grow: false
+        partitions:
+          - include: _common/lemans-firmware.yaml
+      - lun: 5
+        grow: false
+        partitions:
+          - include: _common/lemans-persist.yaml
