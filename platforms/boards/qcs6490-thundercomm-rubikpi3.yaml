@@ -1,0 +1,51 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Composes the shared Kodiak partition sets from _common/ into the
+# per-LUN UFS layout. The layout matches qcm6490-idp plus the
+# board-specific LUN 6.
+platform:
+  name: qcs6490-thundercomm-rubikpi3
+
+udev-rules: true
+
+storage:
+  - id: ufs
+    type: ufs
+    size: 137438953472
+    sector-size: 4096
+    write-protect-boundary: 0
+    grow-last-partition: true
+    luns:
+      - lun: 0              # last partition (rootfs) grows
+        partitions:
+          - include: _common/kodiak-hlos.yaml
+      - lun: 1
+        grow: false
+        partitions:
+          - include: _common/kodiak-xbl.yaml
+      - lun: 2
+        grow: false
+        partitions:
+          - include: _common/kodiak-xbl.yaml
+      - lun: 3
+        grow: false
+        partitions:
+          - {name: ALIGN_TO_128K_1, size: "104KB", type-guid: "FDE1604B-D68B-4BD4-973D-962AE7A1ED88"}
+          - include: _common/kodiak-cdt.yaml
+          - include: _common/kodiak-ddr.yaml
+      - lun: 4
+        grow: false
+        partitions:
+          - include: _common/kodiak-firmware.yaml
+      - lun: 5
+        grow: false
+        partitions:
+          - include: _common/kodiak-modem.yaml
+          - include: _common/kodiak-persist.yaml
+      - lun: 6
+        grow: false
+        partitions:
+          - {name: rubikpi_con, size: "8192KB", type-guid: "BC5955E1-B79F-426A-B20F-6F735CF43411", filename: rubikpi_config.img}
+          - {name: devcfg_full, size: "204800KB", type-guid: "29EF4121-8B11-4B2C-ABE5-0557F11B9D57", filename: devcfg_full.img}
+          - {name: dtb_con, size: "69632KB", type-guid: "2E59C2B6-288C-4C4C-9491-9265FD929D94", filename: rubikpi_dtso.img}
