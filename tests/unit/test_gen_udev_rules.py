@@ -11,7 +11,7 @@ from qcom_ptool import gen_udev_rules
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-LAYOUT = REPO_ROOT / "platforms" / "qcs6490-rb3gen2" / "ufs" / "partitions.conf"
+LAYOUT = REPO_ROOT / "platforms" / "boards" / "qcs6490-rb3gen2.yaml"
 
 
 def test_generate_rules_uses_layout_names() -> None:

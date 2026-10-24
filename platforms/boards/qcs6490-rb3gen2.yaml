@@ -1,0 +1,44 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Composes the shared Kodiak partition sets from _common/ into the
+# per-LUN UFS layout. The layout matches qcm6490-idp.
+platform:
+  name: qcs6490-rb3gen2
+
+udev-rules: true
+
+storage:
+  - id: ufs
+    type: ufs
+    size: 137438953472
+    sector-size: 4096
+    write-protect-boundary: 0
+    grow-last-partition: true
+    luns:
+      - lun: 0              # last partition (rootfs) grows
+        partitions:
+          - include: _common/kodiak-hlos.yaml
+      - lun: 1
+        grow: false
+        partitions:
+          - include: _common/kodiak-xbl.yaml
+      - lun: 2
+        grow: false
+        partitions:
+          - include: _common/kodiak-xbl.yaml
+      - lun: 3
+        grow: false
+        partitions:
+          - {name: ALIGN_TO_128K_1, size: "104KB", type-guid: "FDE1604B-D68B-4BD4-973D-962AE7A1ED88"}
+          - include: _common/kodiak-cdt.yaml
+          - include: _common/kodiak-ddr.yaml
+      - lun: 4
+        grow: false
+        partitions:
+          - include: _common/kodiak-firmware.yaml
+      - lun: 5
+        grow: false
+        partitions:
+          - include: _common/kodiak-modem.yaml
+          - include: _common/kodiak-persist.yaml
