@@ -30,6 +30,20 @@ def ParseXML(XMLFile):
         return None
 
 
+def RebaseFilePaths(TemplateRoot, PartitionXml, OutputXml):
+    """Re-base every file_path from the partitions directory to the output
+    directory, so references resolve from wherever contents.xml is written.
+    A no-op when both live in the same directory."""
+    rel = os.path.relpath(
+        os.path.dirname(os.path.abspath(PartitionXml)),
+        os.path.dirname(os.path.abspath(OutputXml)),
+    )
+    if rel == ".":
+        return
+    for element in TemplateRoot.iter("file_path"):
+        element.text = os.path.normpath(os.path.join(rel, element.text or "."))
+
+
 def UpdateMetaData(TemplateRoot, PartitionRoot, BuildId):
     ChipIdList = TemplateRoot.findall("product_info/chipid")
     DefaultStorageType: str = ""
@@ -157,6 +171,7 @@ try:
     partition_root = ParseXML(partition_xml)
 
     UpdateMetaData(xml_root, partition_root, build_id)
+    RebaseFilePaths(xml_root, partition_xml, output_xml)
 
     OutputTree = ET.ElementTree(xml_root)
     ET.indent(OutputTree, space="\t", level=0)
