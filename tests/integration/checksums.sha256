@@ -1,3 +1,4 @@
+c61921c97ded27d1b7517b377b1aeedcad486da5de415d871a5a34f6dfeccbdd  platforms/55-qcom-raw-partitions-noblkid.rules
 d8aea8477bea38a5dde49ce75b9958621ea3043d677346cca659ae1d04adfeda  platforms/apq8016-sbc/emmc/gpt_backup0.bin
 46a95cad6281225f8bfc0ecfb3e2f3a1324d67b9369269a647d3a8ab5ba8c0bd  platforms/apq8016-sbc/emmc/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/apq8016-sbc/emmc/gpt_empty0.bin
