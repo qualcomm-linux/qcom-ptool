@@ -6,6 +6,8 @@
 platform:
   name: iq-8275-evk
 
+udev-rules: true
+
 storage:
   - id: ufs
     type: ufs

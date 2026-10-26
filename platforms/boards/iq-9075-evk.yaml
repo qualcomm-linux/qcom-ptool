@@ -7,6 +7,8 @@
 platform:
   name: iq-9075-evk
 
+udev-rules: true
+
 storage:
   - id: ufs
     type: ufs

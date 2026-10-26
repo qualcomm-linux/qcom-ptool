@@ -6,6 +6,8 @@
 platform:
   name: glymur-crd
 
+udev-rules: true
+
 storage:
   - id: nvme
     type: nvme

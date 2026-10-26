@@ -7,6 +7,8 @@
 platform:
   name: qcs9100-ride-sx
 
+udev-rules: true
+
 storage:
   - id: ufs
     type: ufs

@@ -3,6 +3,8 @@
 #
 platform:
   name: hawi-mtp
+udev-rules: true
+
 storage:
   - id: ufs
     type: ufs

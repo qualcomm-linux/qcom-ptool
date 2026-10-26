@@ -6,6 +6,8 @@
 platform:
   name: qcs8300-ride-sx
 
+udev-rules: true
+
 storage:
   - id: ufs
     type: ufs
