@@ -1,6 +1,6 @@
 #!/bin/sh
 # Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
-# SPDX-License-Identifier: BSD-3-Clause-Clear
+# SPDX-License-Identifier: BSD-3-Clause
 
 # Takes rawprogram*.xml and contents.xml files as arguments, collects the
 # filenames referenced, and checks if any gpt_* or zeros_* file is missing
