@@ -1,0 +1,39 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Composes the shared Talos partition sets from _common/ into the UFS
+# layout. The XBL set populates both boot LUNs.
+platform:
+  name: iq-615-evk
+
+storage:
+  - id: ufs
+    type: ufs
+    size: 76841669632
+    sector-size: 4096
+    write-protect-boundary: 0
+    grow-last-partition: true
+    luns:
+      - lun: 0              # last partition (rootfs) grows
+        partitions:
+          - include: _common/talos-hlos.yaml
+      - lun: 1
+        grow: false
+        partitions:
+          - include: _common/talos-xbl.yaml
+      - lun: 2
+        grow: false
+        partitions:
+          - include: _common/talos-xbl.yaml
+      - lun: 3
+        grow: false
+        partitions:
+          - include: _common/talos-cdt.yaml
+      - lun: 4
+        grow: false
+        partitions:
+          - include: _common/talos-firmware.yaml
+      - lun: 5
+        grow: false
+        partitions:
+          - include: _common/talos-persist.yaml

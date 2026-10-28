@@ -1,0 +1,23 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Composes the shared Talos eMMC user area (phys-part 0) with the
+# board's cdt boot area (phys-part 1).
+platform:
+  name: iq-615-evk-emmc
+
+storage:
+  - id: emmc
+    type: emmc
+    size: 76841669632
+    sector-size: 512
+    write-protect-boundary: 65536
+    grow-last-partition: true
+    phys-parts:
+      - phys-part: 0        # last partition (rootfs) grows
+        partitions:
+          - include: _common/talos-emmc.yaml
+      - phys-part: 1
+        grow: false
+        partitions:
+          - {name: cdt, size: "4KB", type-guid: "A19F205F-CCD8-4B6D-8F1E-2D9BC24CFFB1", filename: cdt.bin}
