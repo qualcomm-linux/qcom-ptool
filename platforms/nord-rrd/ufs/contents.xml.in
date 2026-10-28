@@ -98,7 +98,7 @@
       </device_programmer>
       <device_programmer cmm_file_var="XBL_CFG" qsahara_image_id="38">
         <file_name>xbl_config_devprg.elf</file_name>
-        <file_path>.\</file_path>
+        <file_path>.</file_path>
       </device_programmer>
       <partition_file>
         <storage_type>{storage_type}</storage_type>
