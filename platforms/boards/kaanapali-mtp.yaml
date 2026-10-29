@@ -1,0 +1,113 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Composes the shared sun sets from _common/ with the board's own
+# boot, firmware and persist LUNs.
+platform:
+  name: kaanapali-mtp
+
+storage:
+  - id: ufs
+    type: ufs
+    size: 137438953472
+    sector-size: 4096
+    write-protect-boundary: 0
+    grow-last-partition: true
+    luns:
+      - lun: 0
+        partitions:          # last partition (rootfs) grows
+          - include: _common/sun-hlos.yaml
+      - lun: 1
+        grow: false
+        partitions:
+          - {name: tme_config_a, size: "128KB", type-guid: "A50BF003-B224-4DD8-881A-2FCC64274267", filename: tme_config.elf}
+          - {name: tme_fw_a, size: "1024KB", type-guid: "B8DF5B14-9304-442C-AAA3-10CFB51B38CE", filename: signed_firmware_soc_view.elf}
+          - {name: tme_seq_patch_a, size: "8KB", type-guid: "9542DF23-692D-4505-A2AD-EDE82AD0B2C2", filename: sequencer_ram.elf}
+          - {name: xbl_a, size: "3584KB", type-guid: "DEA0BA2C-CBDD-4805-B4F9-F428251C3E98", filename: xbl_sc.elf}
+          - {name: xbl_config_a, size: "460KB", type-guid: "5A325AE4-4276-B66D-0ADD-3494DF27706A", filename: xbl_config.elf}
+          - {name: xbl_ac_config_a, size: "128KB", type-guid: "AB3C2889-7AFC-4DB3-8C3F-B31829E769FC", filename: xbl_ac_config.mbn}
+      - lun: 2
+        grow: false
+        partitions:
+          - {name: tme_config_b, size: "128KB", type-guid: "5A79575A-9256-4901-B66A-3B42911E9A7C", filename: tme_config.elf}
+          - {name: tme_fw_b, size: "1024KB", type-guid: "625E89EC-17AC-4EBB-B45A-9B810AD9FCB4", filename: signed_firmware_soc_view.elf}
+          - {name: tme_seq_patch_b, size: "8KB", type-guid: "8B4E0DD9-8F18-4DB9-92F6-6F0F8E8ACD09", filename: sequencer_ram.elf}
+          - {name: xbl_b, size: "3584KB", type-guid: "7A3DF1A3-A31A-454D-BD78-DF259ED486BE", filename: xbl_sc.elf}
+          - {name: xbl_config_b, size: "460KB", type-guid: "F462E0EA-A20E-4B10-867A-2D4455366548", filename: xbl_config.elf}
+          - {name: xbl_ac_config_b, size: "128KB", type-guid: "0FAAFD35-CBC7-45CD-AB91-C4D57B4635F1", filename: xbl_ac_config.mbn}
+      - lun: 3
+        grow: false
+        partitions:
+          - include: _common/sun-cdt.yaml
+      - lun: 4
+        grow: false
+        partitions:
+          - {name: aop_a, size: "512KB", type-guid: "D69E90A5-4CAB-0071-F6DF-AB977F141A7F", filename: aop.mbn}
+          - {name: aop_config_a, size: "512KB", type-guid: "3D12F234-C882-4B46-A20C-17D52C8FC03D", filename: aop_devcfg.mbn}
+          - {name: apdp_a, size: "256KB", type-guid: "E6E98DA2-E22A-4D12-AB33-169E7DEAA507", filename: zeros_1sector.bin}
+          - {name: cpucp_a, size: "1024KB", type-guid: "1E8615BD-6D8C-41AD-B3EA-50E8BF40E43F", filename: cpucp.elf}
+          - {name: cpucp_dtb_a, size: "64KB", type-guid: "6C6018BC-4FBE-40C5-B148-4BCB1DB23748", filename: cpucp_dtbs.elf}
+          - {name: devcfg_a, size: "128KB", type-guid: "F65D4B16-343D-4E25-AAFC-BE99B6556A6D", filename: devcfg_rfcomm.mbn}
+          - {name: dtb_a, size: "65536KB", type-guid: "2A1A52FC-AA0B-401C-A808-5EA0F91068F8", filename: dtb.bin}
+          - {name: hyp_a, size: "8192KB", type-guid: "E1A6A689-0C8D-4CC6-B4E8-55A4320FBD8A", filename: hypvm.mbn}
+          - {name: hyp_ac_config_a, size: "256KB", type-guid: "05E0CA06-3F20-49C4-8B82-AC560268F2AE", filename: hyp_ac_config.mbn}
+          - {name: imagefv_a, size: "2048KB", type-guid: "17911177-C9E6-4372-933C-804B678E666F", filename: imagefv.elf}
+          - {name: multiimgqti_a, size: "32KB", type-guid: "846C6F05-EB46-4C0A-A1A3-3648EF3F9D0E", filename: multi_image_qti.mbn}
+          - {name: multiimgoem_a, size: "32KB", type-guid: "E126A436-757E-42D0-8D19-0F362F7A62B8", filename: multi_image.mbn}
+          - {name: pdp_a, size: "512KB", type-guid: "4D65EF4C-6B68-4563-80B5-2B079A9E649B", filename: pdp.elf}
+          - {name: pdp_cdb_a, size: "128KB", type-guid: "39F567C2-CBAA-4378-A88A-F1912512CE10", filename: pdp_cdb.elf}
+          - {name: qupfw_a, size: "80KB", type-guid: "21d1219f-2ed1-4ab4-930a-41a16ae75f7f", filename: qupv3fw.elf}
+          - {name: shrm_a, size: "256KB", type-guid: "CB74CA22-2F0D-4B82-A1D6-C4213F348D73", filename: shrm.elf}
+          - {name: soccp_a, size: "8192KB", type-guid: "E654E00B-F88A-452A-BB07-3E5F6FF94927", filename: soccp.bin}
+          - {name: soccp_dcd_a, size: "24KB", type-guid: "D67CC91F-B88A-43FA-9B3A-12EF5A1892DC", filename: dcd.mbn}
+          - {name: soccp_debug_a, size: "512KB", type-guid: "95825EE7-01DD-4A7C-A9EE-8C37B997FEC4", filename: sdi.mbn}
+          - {name: tz_a, size: "8192KB", type-guid: "A053AA7F-40B8-4B1C-BA08-2F68AC71A4F4", filename: tz.mbn}
+          - {name: tz_ac_config_a, size: "256KB", type-guid: "7437F5B5-215F-4E08-927A-F49f53CC1F5D", filename: tz_ac_config.mbn}
+          - {name: tz_qti_config_a, size: "200KB", type-guid: "71AF1E14-AE35-4184-8EA2-7809235BF8D7", filename: tz_qti_config.mbn}
+          - {name: uefi_a, size: "5120KB", type-guid: "400FFDCD-22E0-47E7-9A23-F16ED9382388", filename: uefi.elf}
+          - {name: uefi_dtb_a, size: "2048KB", type-guid: "C84D3B5E-EF34-4FA4-8118-30EAE18D3FA6", filename: uefi_dtbs.elf}
+          - {name: uefisecapp_a, size: "2048KB", type-guid: "BE8A7E08-1B7A-4CAE-993A-D5B7FB55B3C2", filename: uefi_sec.mbn}
+          - {name: xbl_ramdump_a, size: "2048KB", type-guid: "0382F197-E41F-4E84-B18B-0B564AEAD875", filename: XblRamdump.elf}
+          - {name: aop_b, size: "512KB", type-guid: "B8B27C4C-4B5B-8AB2-502F-A792B590A896", filename: aop.mbn}
+          - {name: aop_config_b, size: "512KB", type-guid: "BCED659F-F29C-47DA-B543-308E02414296", filename: aop_devcfg.mbn}
+          - {name: apdp_b, size: "256KB", type-guid: "110F198D-8174-4193-9AF1-5DA94CDC59C9", filename: zeros_1sector.bin}
+          - {name: cpucp_b, size: "1024KB", type-guid: "6C1111FB-5354-41DE-AC17-5B6E642BE836", filename: cpucp.elf}
+          - {name: cpucp_dtb_b, size: "64KB", type-guid: "57213A2B-39DE-4184-97DE-645D37913E4E", filename: cpucp_dtbs.elf}
+          - {name: devcfg_b, size: "128KB", type-guid: "169534E7-7809-4240-9763-0BA5DC37B5FF", filename: devcfg_rfcomm.mbn}
+          - {name: dtb_b, size: "65536KB", type-guid: "A166F11A-2B39-4FAA-B7E7-F8AA080D0587", filename: dtb.bin}
+          - {name: hyp_b, size: "8192KB", type-guid: "CB45ECA0-504E-42BB-91BA-C9B3236F6A6E", filename: hypvm.mbn}
+          - {name: hyp_ac_config_b, size: "256KB", type-guid: "43B68B3D-DE1F-4514-B280-69C970E2920A", filename: hyp_ac_config.mbn}
+          - {name: imagefv_b, size: "2048KB", type-guid: "920CFC3D-7285-4A47-9C1C-4A87590E0687", filename: imagefv.elf}
+          - {name: multiimgqti_b, size: "32KB", type-guid: "D30C8B21-DDD9-45B6-8DE0-3165D34395C9", filename: multi_image_qti.mbn}
+          - {name: multiimgoem_b, size: "32KB", type-guid: "3E3E3ECD-C512-4F95-9144-6063826A8970", filename: multi_image.mbn}
+          - {name: pdp_b, size: "512KB", type-guid: "23BC2066-6DF0-4869-B84D-84B6247E3C53", filename: pdp.elf}
+          - {name: pdp_cdb_b, size: "128KB", type-guid: "C49242AA-4C04-43C5-9E81-817AF9C23AD5", filename: pdp_cdb.elf}
+          - {name: qupfw_b, size: "80KB", type-guid: "04BA8D53-5091-4958-9CA1-0FE0941D2CBC", filename: qupv3fw.elf}
+          - {name: shrm_b, size: "256KB", type-guid: "39FD6C00-49EB-6BD1-6899-2FB849DD4F75", filename: shrm.elf}
+          - {name: soccp_b, size: "8192KB", type-guid: "B842FDD7-8ED5-4DAA-A755-D0B43FFF21E6", filename: soccp.bin}
+          - {name: soccp_dcd_b, size: "24KB", type-guid: "BF795A2C-F2EA-4110-85EA-95CC43FE1532", filename: dcd.mbn}
+          - {name: soccp_debug_b, size: "512KB", type-guid: "88CE4B5F-616E-4549-B875-565DAD984951", filename: sdi.mbn}
+          - {name: tz_b, size: "8192KB", type-guid: "C832EA16-8B0D-4398-A67B-EBB30EF98E7E", filename: tz.mbn}
+          - {name: tz_ac_config_b, size: "256KB", type-guid: "BD6B047C-0389-4D94-ABF3-BFBAE25BB440", filename: tz_ac_config.mbn}
+          - {name: tz_qti_config_b, size: "200KB", type-guid: "65849D22-7271-9046-90A9-C4DF1D12EAD6", filename: tz_qti_config.mbn}
+          - {name: uefi_b, size: "5120KB", type-guid: "9F234B5B-0EFB-4313-8E4C-0AF1F605536B", filename: uefi.elf}
+          - {name: uefi_dtb_b, size: "2048KB", type-guid: "5F7D760A-3EF5-4AA5-B915-69A4ECAAE662", filename: uefi_dtbs.elf}
+          - {name: uefisecapp_b, size: "2048KB", type-guid: "538CBDBA-D4A4-4438-A466-D7B356FAC165", filename: uefi_sec.mbn}
+          - {name: xbl_ramdump_b, size: "2048KB", type-guid: "FF608BF6-AEDF-4084-BEC5-C92AB4E4534D", filename: XblRamdump.elf}
+          - {name: devinfo, size: "4KB", type-guid: "65ADDCF4-0C5C-4D9A-AC2D-D90B5CBFCD03"}
+          - {name: questdatafv, size: "16384KB", type-guid: "7f86d79a-7c83-4fc8-bef2-7d0a7a97af23"}
+          - {name: qmcs, size: "30720KB", type-guid: "358740b1-34bd-4e4c-9656-3454f0a8fdd9"}
+          - {name: toolsfv, size: "1024KB", type-guid: "97745ABA-135A-44C3-9ADC-05616173C24C", filename: tools.fv}
+          - {name: logfs, size: "8192KB", type-guid: "BC0330EB-3410-4951-A617-03898DBE3372"}
+          - {name: uefivarstore, size: "512KB", type-guid: "165BD6BC-9250-4AC8-95A7-A93F4A440066"}
+          - {name: secdata, size: "25KB", type-guid: "76cfc7ef-039d-4e2c-b81e-4dd8c2cb2a93"}
+          - {name: quantumcontentfv, size: "1024KB", type-guid: "e12d830b-7f62-4f0b-b48a-8178c5bf3ac1"}
+          - {name: spunvm, size: "32768KB", type-guid: "e42e2b4c-33b0-429b-b1ef-d341c547022c"}
+          - {name: xbl_sc_test_mode, size: "64KB", type-guid: "91FDD2B9-8ED3-4176-BC42-260F2E34D04A"}
+          - {name: xbl_sc_logs, size: "128KB", type-guid: "F7EECB66-781A-439A-8955-70E12ED4A7A0"}
+          - {name: dpm, size: "8KB", type-guid: "A7A4F43A-888F-4913-8C2B-E1BC64BCE08F"}
+      - lun: 5
+        grow: false
+        partitions:
+          - {name: ALIGN_TO_128K_2, size: "104KB", type-guid: "6891a3b7-0ccc-4705-bb53-2673cac193bd"}
+          - {name: persist, size: "30720KB", type-guid: "6C95E238-E343-4BA8-B489-8681ED22AD0B"}
