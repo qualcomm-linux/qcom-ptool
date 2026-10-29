@@ -1,0 +1,19 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Composes the shared Talos eMMC user area; identical to iq-615-evk-emmc
+# except for the cdt boot area, which this board does not carry.
+platform:
+  name: qcs615-ride-emmc
+
+storage:
+  - id: emmc
+    type: emmc
+    size: 76841669632
+    sector-size: 512
+    write-protect-boundary: 65536
+    grow-last-partition: true
+    phys-parts:
+      - phys-part: 0        # last partition (rootfs) grows
+        partitions:
+          - include: _common/talos-emmc.yaml
