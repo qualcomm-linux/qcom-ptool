@@ -18,6 +18,10 @@
             "description": "Path (relative to the platforms root) of a single base board to inherit.",
             "type": "string"
         },
+        "udev-rules": {
+            "description": "Include this board's partition names when generating the raw-partition udev rules (gen_udev_rules default discovery).",
+            "type": "boolean"
+        },
         "storage": {
             "type": "array",
             "items": {

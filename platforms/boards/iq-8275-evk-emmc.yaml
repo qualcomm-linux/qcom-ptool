@@ -7,6 +7,8 @@
 platform:
   name: iq-8275-evk-emmc
 
+udev-rules: true
+
 storage:
   - id: emmc
     type: emmc

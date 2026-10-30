@@ -7,6 +7,8 @@ extends: boards/qrb2210-unoq.yaml
 platform:
   name: qrb2210-unoq-arduino
 
+udev-rules: true
+
 storage:
   - id: emmc
     partitions:

@@ -5,6 +5,8 @@
 platform:
   name: qrb2210-rb1
 
+udev-rules: true
+
 storage:
   - id: emmc
     type: emmc
