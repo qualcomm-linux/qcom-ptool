@@ -1,0 +1,9 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Shared CDT/DDR set (sm8750, kaanapali); LUN 3 sizes are 128KB-aligned.
+partitions:
+  - {name: ALIGN_TO_128K_1, size: "104KB", type-guid: "FDE1604B-D68B-4BD4-973D-962AE7A1ED88"}
+  - {name: cdt, size: "128KB", type-guid: "A19F205F-CCD8-4B6D-8F1E-2D9BC24CFFB1", filename: cdt.bin}
+  - {name: ddr_a, size: "1024KB", type-guid: "20A0C19C-286A-42FA-9CE7-F64C3226A794"}
+  - {name: ddr_b, size: "1024KB", type-guid: "325DEF02-1305-44A3-AA8D-AC82FEBE220E"}
