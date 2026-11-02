@@ -1,0 +1,38 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Glymur-QCB: NVMe (HLOS) + SPI-NOR (boot / platform-config), plus a UFS
+# storage carrying the same HLOS partitions. Shares its storage layouts with
+# Glymur-CRD via the _common/glymur-hlos.yaml and _common/glymur-spinor.yaml
+# fragments.
+platform:
+  name: glymur-qcb
+
+storage:
+  - id: nvme
+    type: nvme
+    size: 68719476736            # 64 GiB
+    sector-size: 512
+    write-protect-boundary: 65536
+    grow-last-partition: true
+    partitions:
+      - include: _common/glymur-hlos.yaml
+
+  - id: spinor
+    type: spinor
+    size: 67108864               # 64 MiB
+    sector-size: 4096
+    write-protect-boundary: 0
+    partitions:
+      - include: _common/glymur-spinor.yaml
+
+  - id: ufs
+    type: ufs
+    size: 68719476736            # 64 GiB
+    sector-size: 4096
+    write-protect-boundary: 0
+    grow-last-partition: true
+    luns:
+      - lun: 0
+        partitions:
+          - include: _common/glymur-hlos.yaml
