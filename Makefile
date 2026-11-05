@@ -16,7 +16,13 @@ PARTITIONS_XML := $(patsubst %.conf,%.xml, $(PARTITIONS)) $(YAML_PARTITIONS_XML)
 PLATFORMS := $(patsubst %/partitions.xml,%/gpt, $(PARTITIONS_XML))
 
 CONTENTS_XML_IN := $(wildcard platforms/*/*/contents.xml.in)
-CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN))
+
+# Templates describing several storages live at the board level; their
+# partitions.xml dependency is the storage named by the first chipid.
+BOARD_CONTENTS_XML_IN := $(wildcard platforms/*/contents.xml.in)
+template-storage = $(shell sed -n 's/.*<chipid[^>]*storage_type="\([a-z]*\)".*/\1/p' $(1) | head -n1)
+
+CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN) $(BOARD_CONTENTS_XML_IN))
 
 # Single CLI entry point installed by `pip install .`
 QCOM_PTOOL ?= qcom-ptool
@@ -45,6 +51,12 @@ $(foreach b,$(YAML_BOARDS),$(eval $(call yaml-board-rule,$(b))))
 %/contents.xml: %/partitions.xml %/contents.xml.in
 	$(QCOM_PTOOL) gen_contents -p $< -t $@.in -o $@ $${BUILD_ID:+ -b $(BUILD_ID)}
 
+define board-contents-rule
+$(patsubst %.xml.in,%.xml,$(1)): $(dir $(1))$(call template-storage,$(1))/partitions.xml $(1)
+	$$(QCOM_PTOOL) gen_contents -p $$< -t $(1) -o $$@ $$$${BUILD_ID:+ -b $$(BUILD_ID)}
+endef
+$(foreach t,$(BOARD_CONTENTS_XML_IN),$(eval $(call board-contents-rule,$(t))))
+
 lint:
 	ruff check qcom_ptool
 	mypy qcom_ptool
@@ -54,7 +66,7 @@ unit-test:
 
 integration: all
 	# make sure generated output has created expected files
-	tests/integration/check-missing-files platforms/*/*/*.xml
+	tests/integration/check-missing-files platforms/*/*/*.xml platforms/*/contents.xml
 
 check-checksums: all
 	# verify generated artifacts match tests/integration/checksums.sha256
@@ -75,4 +87,4 @@ install:
 	pip install .
 
 clean:
-	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin
+	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin platforms/*/contents.xml
