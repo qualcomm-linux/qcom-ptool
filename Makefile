@@ -24,6 +24,8 @@ template-storage = $(shell sed -n 's/.*<chipid[^>]*storage_type="\([a-z]*\)".*/\
 
 CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN) $(BOARD_CONTENTS_XML_IN))
 
+UDEV_RULES := platforms/55-qcom-raw-partitions-noblkid.rules
+
 # Single CLI entry point installed by `pip install .`
 QCOM_PTOOL ?= qcom-ptool
 
@@ -32,7 +34,7 @@ BUILD_ID ?=
 
 .PHONY: all check check-checksums clean generate-checksums install lint integration unit-test
 
-all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML)
+all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML) $(UDEV_RULES)
 
 %/gpt: %/partitions.xml
 	cd $(shell dirname $^) && $(QCOM_PTOOL) ptool -x partitions.xml
@@ -57,6 +59,12 @@ $(patsubst %.xml.in,%.xml,$(1)): $(dir $(1))$(call template-storage,$(1))/partit
 endef
 $(foreach t,$(BOARD_CONTENTS_XML_IN),$(eval $(call board-contents-rule,$(t))))
 
+# Raw-partition udev rules from every .conf layout and every YAML board.
+$(UDEV_RULES): $(PARTITIONS) $(wildcard platforms/boards/*.yaml) $(YAML_SHARED) \
+    qcom_ptool/data/filesystem-partition-names.list \
+    qcom_ptool/data/55-qcom-raw-partitions-noblkid.rules.in
+	$(QCOM_PTOOL) gen_udev_rules -o $@
+
 lint:
 	ruff check qcom_ptool
 	mypy qcom_ptool
@@ -77,7 +85,7 @@ generate-checksums: all
 	# regenerate tests/integration/checksums.sha256 from current artifacts
 	# (run with the same PTOOL_SEED that CI uses, otherwise the manifest
 	# will not match CI builds)
-	LC_ALL=C find platforms -type f \( -name '*.bin' -o -name '*.xml' \) \
+	LC_ALL=C find platforms -type f \( -name '*.bin' -o -name '*.xml' -o -name '*.rules' \) \
 	  ! -name '*.xml.in' -print0 | LC_ALL=C sort -z | xargs -0 sha256sum \
 	  > tests/integration/checksums.sha256
 
@@ -87,4 +95,4 @@ install:
 	pip install .
 
 clean:
-	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin platforms/*/contents.xml
+	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin platforms/*/contents.xml $(UDEV_RULES)
