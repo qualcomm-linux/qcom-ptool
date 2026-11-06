@@ -128,6 +128,7 @@ for xml in "$@"; do
           sbl1.mbn) ;;
           sdi.mbn) ;;
           sec.dat) ;;
+          secretkeeper.mbn) ;;
           secs2d.mbn) ;;
           sed.dat) ;;
           sequencer_ram.elf) ;;
@@ -137,6 +138,7 @@ for xml in "$@"; do
           signed_firmware_soc_view.elf) ;;
           soccp.bin) ;;
           soccp.mbn) ;;
+          spu_service.mbn) ;;
           storsec.mbn) ;;
           tme_config.elf) ;;
           tme_config_edl.elf) ;;
