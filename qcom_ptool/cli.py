@@ -41,14 +41,24 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> None:
-    parser = _build_parser()
-    args, rest = parser.parse_known_args()
+def main(argv: list[str] | None = None) -> None:
+    raw_args = sys.argv[1:] if argv is None else argv[1:]
 
-    module_name = SUBCOMMANDS[args.subcommand]
+    # If the first argument is a recognized subcommand, pass all remaining
+    # arguments (including -h/--help) directly to that subcommand instead of
+    # letting the top-level ArgumentParser intercept them.
+    if raw_args and raw_args[0] in SUBCOMMANDS:
+        subcommand = raw_args[0]
+        rest = raw_args[1:]
+    else:
+        parser = _build_parser()
+        args, rest = parser.parse_known_args(raw_args)
+        subcommand = args.subcommand
+
+    module_name = SUBCOMMANDS[subcommand]
     # Present argv to the legacy script as if it had been invoked directly as
     # "<subcommand> <args...>". The scripts read sys.argv via getopt.
-    sys.argv = [f"qcom-ptool {args.subcommand}", *rest]
+    sys.argv = [f"qcom-ptool {subcommand}", *rest]
     runpy.run_module(module_name, run_name="__main__")
 
 

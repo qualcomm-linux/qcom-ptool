@@ -21,12 +21,12 @@ import yaml  # type: ignore[import-untyped]
 from qcom_ptool.board import resolve_board
 
 
-def usage() -> NoReturn:
+def usage(exit_code: int = 1) -> NoReturn:
     print(
         "\n\tUsage: %s --board <board.yaml> [--hlos <name>] "
         "[--boot-fw <name>] [--root <dir>]\n" % sys.argv[0]
     )
-    sys.exit(1)
+    sys.exit(exit_code)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -39,9 +39,13 @@ def main(argv: list[str] | None = None) -> int:
     boot_fw: str | None = None
 
     try:
-        opts, _rem = getopt.getopt(argv[1:], "", ["board=", "hlos=", "boot-fw=", "root="])
+        opts, _rem = getopt.getopt(
+            argv[1:], "h", ["help", "board=", "hlos=", "boot-fw=", "root="]
+        )
         for opt, arg in opts:
-            if opt == "--board":
+            if opt in ("-h", "--help"):
+                usage(0)
+            elif opt == "--board":
                 board_file = arg
             elif opt == "--hlos":
                 hlos = arg
