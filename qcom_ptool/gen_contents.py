@@ -1,6 +1,8 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
+from __future__ import annotations
+
 import getopt
 import os
 import sys
@@ -135,35 +137,17 @@ def UpdateMetaData(TemplateRoot, PartitionRoot, BuildId):
                 )
 
 
-###############################################################################
-# main
-###############################################################################
+def WriteContents(xml_root, output_xml):
+    """Indent and write one generated contents tree."""
+    OutputTree = ET.ElementTree(xml_root)
+    ET.indent(OutputTree, space="\t", level=0)
+    OutputTree.write(
+        output_xml, encoding="utf-8", xml_declaration=True, short_empty_elements=False
+    )
 
 
-if len(sys.argv) < 3:
-    usage()
-
-try:
-    if sys.argv[1] == "-h" or sys.argv[1] == "--help":
-        usage()
-    try:
-        build_id = ""
-        opts, rem = getopt.getopt(sys.argv[1:], "t:p:o:b:")
-        for opt, arg in opts:
-            if opt in ["-t"]:
-                template = arg
-            elif opt in ["-p"]:
-                partition_xml = arg
-            elif opt in ["-o"]:
-                output_xml = arg
-            elif opt in ["-b"]:
-                build_id = arg
-            else:
-                usage()
-    except Exception as argerr:
-        print(str(argerr))
-        usage()
-
+def generate_from_template(template, partition_xml, output_xml, build_id):
+    """The classic path: fill one contents.xml.in template."""
     print("Selected Template:  " + template)
     xml_root = ParseXML(template)
 
@@ -172,14 +156,44 @@ try:
 
     UpdateMetaData(xml_root, partition_root, build_id)
     RebaseFilePaths(xml_root, partition_xml, output_xml)
+    WriteContents(xml_root, output_xml)
 
-    OutputTree = ET.ElementTree(xml_root)
-    ET.indent(OutputTree, space="\t", level=0)
-    OutputTree.write(
-        output_xml, encoding="utf-8", xml_declaration=True, short_empty_elements=False
-    )
-except Exception as e:
-    print(("Error: ", e))
-    sys.exit(1)
 
-sys.exit(0)
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
+
+    if len(argv) < 3:
+        usage()
+
+    try:
+        if argv[1] == "-h" or argv[1] == "--help":
+            usage()
+        try:
+            build_id = ""
+            opts, _rem = getopt.getopt(argv[1:], "t:p:o:b:")
+            for opt, arg in opts:
+                if opt in ["-t"]:
+                    template = arg
+                elif opt in ["-p"]:
+                    partition_xml = arg
+                elif opt in ["-o"]:
+                    output_xml = arg
+                elif opt in ["-b"]:
+                    build_id = arg
+                else:
+                    usage()
+        except Exception as argerr:
+            print(str(argerr))
+            usage()
+
+        generate_from_template(template, partition_xml, output_xml, build_id)
+    except Exception as e:
+        print(("Error: ", e))
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
