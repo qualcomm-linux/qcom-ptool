@@ -27,9 +27,10 @@ def usage() -> NoReturn:
         "\n\tUsage:\n"
         "\t  %s --board <board.yaml> [--hlos <name>] "
         "[--boot-fw <name>] [--root <dir>]\n"
-        "\t  %s --outputs <board.yaml> [<board.yaml> ...]\n"
-        "\n\t--outputs prints one line per board for build systems:\n"
-        "\t  <board>:<flavor-dir>/<storage>[:<flavor-dir>/<storage>...]\n" % (sys.argv[0], sys.argv[0])
+        "\t  %s --outputs | --contents <board.yaml> [<board.yaml> ...]\n"
+        "\n\t--outputs prints one '<board>:<flavor-dir>/<storage>...' line per\n"
+        "\tboard; --contents prints '<board>:<output>^<dependency>...' for\n"
+        "\tboards with contents metadata.\n" % (sys.argv[0], sys.argv[0])
     )
     sys.exit(1)
 
@@ -54,6 +55,29 @@ def _print_outputs(paths: list[str], root: str | None) -> int:
     return status
 
 
+def _print_contents(paths: list[str], root: str | None) -> int:
+    """One line per board with contents metadata: '<board>:<out>^<dep>...'."""
+    from qcom_ptool.contents_yaml import contents_paths
+
+    status = 0
+    for path in paths:
+        try:
+            flavors = resolve_board_flavors(path, root=root)
+        except Exception as e:
+            print("Error: %s" % e, file=sys.stderr)
+            status = 1
+            continue
+        cells = []
+        for flavor in flavors:
+            pair = contents_paths(flavor)
+            if pair is not None:
+                cells.append("%s^%s" % pair)
+        if cells:
+            base = os.path.splitext(os.path.basename(path))[0]
+            print(":".join([base, *cells]))
+    return status
+
+
 def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv
@@ -63,10 +87,11 @@ def main(argv: list[str] | None = None) -> int:
     hlos: str | None = None
     boot_fw: str | None = None
     outputs = False
+    contents = False
 
     try:
         opts, rem = getopt.getopt(
-            argv[1:], "", ["board=", "hlos=", "boot-fw=", "root=", "outputs"]
+            argv[1:], "", ["board=", "hlos=", "boot-fw=", "root=", "outputs", "contents"]
         )
         for opt, arg in opts:
             if opt == "--board":
@@ -79,15 +104,17 @@ def main(argv: list[str] | None = None) -> int:
                 root = arg
             elif opt == "--outputs":
                 outputs = True
+            elif opt == "--contents":
+                contents = True
     except Exception as argerr:
         print(str(argerr))
         usage()
 
-    if outputs:
+    if outputs or contents:
         paths = ([board_file] if board_file else []) + rem
         if not paths:
             usage()
-        return _print_outputs(paths, root)
+        return _print_contents(paths, root) if contents else _print_outputs(paths, root)
 
     if board_file is None:
         usage()
