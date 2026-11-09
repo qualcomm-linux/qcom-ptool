@@ -7,7 +7,8 @@ YAML_BOARDS := $(basename $(notdir $(wildcard platforms/boards/*.yaml)))
 board-storages = $(shell sed -n 's/^  - id: //p' platforms/boards/$(1).yaml)
 $(foreach b,$(YAML_BOARDS),$(eval $(b)_STORAGES := $(call board-storages,$(b))))
 
-YAML_SHARED := $(wildcard platforms/_common/*.yaml platforms/variants/*/*.yaml)
+YAML_SHARED := $(wildcard platforms/flavors/*.yaml platforms/_common/*.yaml \
+    platforms/variants/*/*.yaml)
 YAML_PARTITIONS_XML := $(foreach b,$(YAML_BOARDS),$(foreach s,$($(b)_STORAGES),platforms/$(b)/$(s)/partitions.xml))
 YAML_CONF_EXCLUDE := $(patsubst %.xml,%.conf, $(YAML_PARTITIONS_XML))
 
