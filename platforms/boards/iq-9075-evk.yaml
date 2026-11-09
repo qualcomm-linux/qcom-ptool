@@ -1,43 +1,46 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# Composes the shared Lemans partition sets from _common/ into the
-# per-LUN UFS layout. Differs from iq-8275-evk only in the rootfs
-# size, overridden in place below.
+# One physical board, two alternative boot-storage flavors: the shared
+# Lemans UFS layout, and an eMMC layout no other board uses, defined
+# inline (user area plus the cdt boot area; matches iq-8275-evk's eMMC
+# flavor with the Lemans partition sets).
 platform:
   name: iq-9075-evk
 
 storage:
   - id: ufs
-    type: ufs
     size: 76841669632
     sector-size: 4096
     write-protect-boundary: 0
     grow-last-partition: true
-    luns:
-      - lun: 0              # last partition (rootfs) grows
-        partitions:
-          - include: _common/lemans-hlos.yaml
-          - {name: rootfs, size: "29390848KB"}
-      - lun: 1
-        grow: false
-        partitions:
-          - include: _common/lemans-xbl.yaml
-      - lun: 2
-        grow: false
-        partitions:
-          - include: _common/lemans-xbl.yaml
-      - lun: 3
-        grow: false
-        partitions:
-          - {name: ALIGN_TO_128K_1, size: "104KB", type-guid: "FDE1604B-D68B-4BD4-973D-962AE7A1ED88"}
-          - include: _common/lemans-cdt.yaml
-          - include: _common/lemans-ddr.yaml
-      - lun: 4
-        grow: false
-        partitions:
-          - include: _common/lemans-firmware.yaml
-      - lun: 5
-        grow: false
-        partitions:
-          - include: _common/lemans-persist.yaml
+  - id: emmc
+    size: 76841669632
+    sector-size: 512
+    write-protect-boundary: 65536
+    grow-last-partition: true
+
+flavors:
+  - layout: flavors/lemans-ufs.yaml
+  - name: iq-9075-evk-emmc
+    storage:
+      - id: emmc
+        type: emmc
+        phys-parts:
+          - phys-part: 0        # last partition (rootfs) grows
+            partitions:
+              - include: _common/lemans-xbl.yaml
+              - include: _common/lemans-ddr.yaml
+              - include: _common/lemans-firmware.yaml
+              - {name: core_nhlos_a, size: "174080KB", type-guid: "6690B4CE-70E9-4817-B9F1-25D64D888357"}
+              - {name: core_nhlos_b, size: "174080KB", type-guid: "77036CD4-03D5-42BB-8ED1-37E5A88BAA34"}
+              - {name: cateloader, size: "2048KB", type-guid: "AA9A5C4C-4F1F-7D3A-014A-22BD33BF7191"}
+              - {name: uefivarstore, size: "512KB", type-guid: "165BD6BC-9250-4AC8-95A7-A93F4A440066"}
+              - {name: quantumsdk, size: "40960KB", type-guid: "AA9A5C4C-4F1F-7D3A-014A-22BD33BF7191"}
+              - {name: quantumfv, size: "512KB", type-guid: "80C23C26-C3F9-4A19-BB38-1E457DACEB09"}
+              - include: _common/lemans-persist.yaml
+              - include: _common/lemans-hlos.yaml
+          - phys-part: 1
+            grow: false
+            partitions:
+              - include: _common/lemans-cdt.yaml
