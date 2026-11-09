@@ -7,6 +7,16 @@
 platform:
   name: eliza-evk
 
+contents:
+  product-name: CQ7790.LE.0.0
+  hlos-type: LE
+  chip: Eliza
+  chipset: ELIZA
+  additional-chipids: [CQ7790S]
+  common:
+    - device-programmer: {file: xbl_s_devprg_ns.melf, attributes: {cmm_file_var: "FIREHOSE_DDR_ELF"}}
+    - device-programmer: {file: xbl_s_devprg_ns.melf, attributes: {firehose_type: "lite"}}
+
 storage:
   - id: emmc
     type: emmc

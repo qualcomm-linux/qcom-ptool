@@ -4,6 +4,13 @@
 platform:
   name: qcs8550-rb5gen2
 
+contents:
+  product-name: QCS8550.LE.0.0
+  chip: QCS8550
+  additional-chipids: [SM8550]
+  common:
+    - device-programmer: {file: xbl_s_devprg_ns.melf}
+
 storage:
   - id: ufs
     type: ufs
