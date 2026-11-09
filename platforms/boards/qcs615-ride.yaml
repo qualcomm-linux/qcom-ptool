@@ -1,39 +1,25 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# Composes the shared Talos partition sets from _common/ into the UFS
-# layout; identical to iq-615-evk. The XBL set populates both boot LUNs.
+# One physical board, two alternative boot-storage flavors on the Talos
+# layouts; identical to iq-615-evk except for the eMMC cdt boot area,
+# which this board does not carry.
 platform:
   name: qcs615-ride
 
 storage:
   - id: ufs
-    type: ufs
     size: 76841669632
     sector-size: 4096
     write-protect-boundary: 0
     grow-last-partition: true
-    luns:
-      - lun: 0              # last partition (rootfs) grows
-        partitions:
-          - include: _common/talos-hlos.yaml
-      - lun: 1
-        grow: false
-        partitions:
-          - include: _common/talos-xbl.yaml
-      - lun: 2
-        grow: false
-        partitions:
-          - include: _common/talos-xbl.yaml
-      - lun: 3
-        grow: false
-        partitions:
-          - include: _common/talos-cdt.yaml
-      - lun: 4
-        grow: false
-        partitions:
-          - include: _common/talos-firmware.yaml
-      - lun: 5
-        grow: false
-        partitions:
-          - include: _common/talos-persist.yaml
+  - id: emmc
+    size: 76841669632
+    sector-size: 512
+    write-protect-boundary: 65536
+    grow-last-partition: true
+
+flavors:
+  - layout: flavors/talos-ufs.yaml
+  - layout: flavors/talos-emmc.yaml
+    name: qcs615-ride-emmc
