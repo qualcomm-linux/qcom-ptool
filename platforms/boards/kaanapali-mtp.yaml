@@ -1,7 +1,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# Composes the shared sun sets from _common/ with the board's own
+# Composes the shared sun sets from flavors/_common/ with the board's own
 # boot, firmware and persist LUNs.
 platform:
   name: kaanapali-mtp
@@ -16,7 +16,7 @@ storage:
     luns:
       - lun: 0
         partitions:          # last partition (rootfs) grows
-          - include: _common/sm8750-hlos.yaml
+          - include: flavors/_common/sm8750-hlos.yaml
       - lun: 1
         grow: false
         partitions:
@@ -38,7 +38,7 @@ storage:
       - lun: 3
         grow: false
         partitions:
-          - include: _common/sm8750-cdt.yaml
+          - include: flavors/_common/sm8750-cdt.yaml
       - lun: 4
         grow: false
         partitions:

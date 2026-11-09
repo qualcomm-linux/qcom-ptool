@@ -12,7 +12,7 @@ BOARD_INDEX := $(shell $(QCOM_PTOOL) show --outputs platforms/boards/*.yaml)
 $(foreach t,$(BOARD_INDEX),$(eval \
     $(firstword $(subst :, ,$(t)))_OUTPUTS := $(wordlist 2,999,$(subst :, ,$(t)))))
 
-YAML_SHARED := $(wildcard platforms/flavors/*.yaml platforms/_common/*.yaml \
+YAML_SHARED := $(wildcard platforms/flavors/*.yaml platforms/flavors/_common/*.yaml \
     platforms/variants/*/*.yaml)
 YAML_PARTITIONS_XML := $(foreach b,$(YAML_BOARDS),$(foreach o,$($(b)_OUTPUTS),platforms/$(o)/partitions.xml))
 YAML_CONF_EXCLUDE := $(patsubst %.xml,%.conf, $(YAML_PARTITIONS_XML))

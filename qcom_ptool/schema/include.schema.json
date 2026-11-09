@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://github.com/qualcomm-linux/qcom-ptool/include.schema.json",
     "title": "qcom-ptool shared partition fragment",
-    "description": "A reusable partition group under platforms/_common/, pulled into a storage via 'includes:'. May itself pull in further fragments.",
+    "description": "A reusable partition group under platforms/flavors/_common/, pulled into a storage via 'includes:'. May itself pull in further fragments.",
     "type": "object",
     "additionalProperties": false,
     "properties": {
