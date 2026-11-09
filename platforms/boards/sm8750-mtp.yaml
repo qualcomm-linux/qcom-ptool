@@ -12,5 +12,13 @@ storage:
     write-protect-boundary: 0
     grow-last-partition: true
 
+contents:
+  product-name: Pakala.LE.0.0
+  hlos-type: LE
+  chip: PAKALA
+  additional-chipids: [SM8750]
+  common:
+    - device-programmer: {file: xbl_s_devprg_ns.melf, attributes: {cmm_file_var: "FIREHOSE_DDR_ELF"}}
+
 flavors:
   - layout: flavors/sm8750-ufs.yaml
