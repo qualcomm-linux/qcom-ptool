@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml  # type: ignore[import-untyped]
 
-from qcom_ptool.board import board_to_specs, resolve_board
+from qcom_ptool.board import board_to_specs, resolve_board_flavors
 from qcom_ptool.loaders import load as load_spec
 from qcom_ptool.spec import LoadedSpec
 
@@ -63,13 +63,18 @@ def _read_yaml_mapping(path: Path) -> Mapping[str, object] | None:
 def layout_specs(path: Path) -> list[LoadedSpec]:
     """Load every partition spec described by one layout file.
 
-    A YAML board file resolves to one spec per storage; everything else
-    (.conf, flat partitions YAML) is a single spec via the format loaders.
+    A YAML board file resolves to one spec per storage of every flavor;
+    everything else (.conf, flat partitions YAML) is a single spec via the
+    format loaders.
     """
     if path.suffix.lower() in (".yaml", ".yml"):
         document = _read_yaml_mapping(path)
-        if document is not None and "storage" in document:
-            return [spec for _storage, spec in board_to_specs(resolve_board(str(path)))]
+        if document is not None and ("storage" in document or "flavors" in document):
+            return [
+                spec
+                for flavor in resolve_board_flavors(str(path))
+                for _storage, spec in board_to_specs(flavor)
+            ]
     return [load_spec(str(path))]
 
 

@@ -45,10 +45,11 @@ def usage() -> NoReturn:
         "[-m name1=image1,name2=image2,...]\n"
         "\t  %s --board <board.yaml> [--hlos <name>] [--boot-fw <name>] "
         "[--root <dir>] [-C <outdir> | -o <out1> -o <out2> ...]\n"
-        "\n\tIn --board mode each storage is written to "
-        "<outdir>/<storage-id>/partitions.xml\n"
-        "\t(default outdir: .), or to one explicit -o per storage in "
-        "declared order.\n"
+        "\n\tIn --board mode each flavor's storages are written to "
+        "<outdir>/<flavor-name>/<storage-id>/partitions.xml\n"
+        "\t(default outdir: .; a board without flavors is one flavor named "
+        "after the board file),\n"
+        "\tor to one explicit -o per storage in declared order.\n"
         "\tVersion 1.0\n" % (sys.argv[0], sys.argv[0])
     )
     sys.exit(1)
@@ -181,31 +182,40 @@ def _run_board(
     image_map: dict[str, str],
 ) -> int:
     # Late import so the -i path never pulls in PyYAML / jsonschema.
-    from qcom_ptool.board import board_to_specs, resolve_board
+    from qcom_ptool.board import board_to_specs, resolve_board_flavors
 
     try:
-        board = resolve_board(board_file, root=root, hlos=hlos, boot_fw=boot_fw)
-        specs = board_to_specs(board, image_map=image_map)
+        flavors = resolve_board_flavors(board_file, root=root, hlos=hlos, boot_fw=boot_fw)
+        specs = [
+            (flavor, sid, spec)
+            for flavor in flavors
+            for sid, spec in board_to_specs(flavor, image_map=image_map)
+        ]
     except Exception as e:
         print("Error: ", e)
         return 1
 
+    # Every flavor emits to <outdir>/<flavor-name>/<storage-id>/; a board
+    # without flavors is its single default flavor, named after the board
+    # file, so its outputs land in <outdir>/<board>/<storage-id>/.
     if not outputs:
-        # Default layout: one <outdir>/<storage-id>/partitions.xml per storage.
         base = outdir if outdir is not None else "."
-        outputs = [os.path.join(base, sid, "partitions.xml") for sid, _ in specs]
+        outputs = [
+            os.path.join(base, flavor["name"], sid, "partitions.xml")
+            for flavor, sid, _ in specs
+        ]
         for path in outputs:
             os.makedirs(os.path.dirname(path), exist_ok=True)
 
     if len(outputs) != len(specs):
-        ids = ", ".join(sid for sid, _ in specs)
+        ids = ", ".join("%s/%s" % (flavor["name"], sid) for flavor, sid, _ in specs)
         print(
             "Error: board declares %d storage(s) [%s] but %d -o output(s) given"
             % (len(specs), ids, len(outputs))
         )
         return 1
 
-    for (sid, spec), output in zip(specs, outputs):
+    for (_flavor, sid, spec), output in zip(specs, outputs):
         print("Storage %s -> %s" % (sid, output))
         generate_partition_xml(spec["disk"], spec["partitions"], output)
     return 0

@@ -43,10 +43,12 @@ all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML) $(UDEV_RULES)
 	$(QCOM_PTOOL) gen_partition -i $^ -o $@
 
 # One grouped rule per YAML board: resolve once, emit all storage XMLs.
+# Each flavor lands in platforms/<flavor-name>/<storage>/; a board without
+# flavors is one flavor named after the board file.
 define yaml-board-rule
 $(foreach s,$($(1)_STORAGES),platforms/$(1)/$(s)/partitions.xml) &: \
     platforms/boards/$(1).yaml $(YAML_SHARED)
-	$$(QCOM_PTOOL) gen_partition --board platforms/boards/$(1).yaml -C platforms/$(1)
+	$$(QCOM_PTOOL) gen_partition --board platforms/boards/$(1).yaml -C platforms
 endef
 $(foreach b,$(YAML_BOARDS),$(eval $(call yaml-board-rule,$(b))))
 
