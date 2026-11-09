@@ -137,3 +137,48 @@ def test_show_applies_variants(tmp_path, capsys):
 def test_show_requires_board():
     with pytest.raises(SystemExit):
         show.main(["show"])
+
+
+def test_show_outputs_prints_board_index(tmp_path, capsys):
+    board = _board(tmp_path)
+    rc = show.main(["show", "--outputs", board])
+    assert rc == 0
+    assert capsys.readouterr().out.strip() == "demo:demo/nvme0:demo/spinor0"
+
+
+def test_show_outputs_covers_flavored_boards(tmp_path, capsys):
+    root = tmp_path / "platforms"
+    (root / "flavors").mkdir(parents=True)
+    (root / "boards").mkdir()
+    (root / "flavors" / "lay.yaml").write_text(
+        textwrap.dedent(
+            """
+            storage:
+              - id: emmc
+                type: emmc
+                partitions:
+                  - {name: boot, size: "8KB", type-guid: "%s"}
+            """
+            % GUID_A
+        )
+    )
+    (root / "boards" / "multi.yaml").write_text(
+        textwrap.dedent(
+            """
+            platform: {name: multi}
+            storage:
+              - id: emmc
+                size: 1073741824
+                sector-size: 512
+                write-protect-boundary: 0
+                grow-last-partition: true
+            flavors:
+              - layout: flavors/lay.yaml
+              - layout: flavors/lay.yaml
+                name: multi-abl
+            """
+        )
+    )
+    rc = show.main(["show", "--outputs", str(root / "boards" / "multi.yaml")])
+    assert rc == 0
+    assert capsys.readouterr().out.strip() == "multi:multi/emmc:multi-abl/emmc"
