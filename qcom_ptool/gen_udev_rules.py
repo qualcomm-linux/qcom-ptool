@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml  # type: ignore[import-untyped]
 
-from qcom_ptool.board import config_to_specs, resolve_platform
+from qcom_ptool.board import config_to_specs, resolve_file
 from qcom_ptool.loaders import load as load_spec
 from qcom_ptool.spec import LoadedSpec
 
@@ -64,15 +64,16 @@ def layout_specs(path: Path) -> list[LoadedSpec]:
     """Load every partition spec described by one layout file.
 
     A YAML platform file resolves to one spec per flashed storage of each
-    configuration; everything else (.conf, flat partitions YAML) is a
-    single spec via the format loaders.
+    configuration, a self-contained YAML board to one per flashed storage;
+    everything else (.conf, flat partitions YAML) is a single spec via the
+    format loaders.
     """
     if path.suffix.lower() in (".yaml", ".yml"):
         document = _read_yaml_mapping(path)
-        if document is not None and "board" in document:
+        if document is not None and ("board" in document or "storage" in document):
             return [
                 spec
-                for config in resolve_platform(str(path))
+                for config in resolve_file(str(path))
                 for _storage, spec in config_to_specs(config)
             ]
     return [load_spec(str(path))]
@@ -137,7 +138,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--input",
         action="append",
         type=Path,
-        help="partition layout (.conf or platform .yaml) to scan; may be repeated "
+        help="partition layout (.conf, platform or self-contained board .yaml) to scan; may be repeated "
         "(defaults to platforms/*/*/partitions.conf and platforms/*.yaml)",
     )
     parser.add_argument("-o", "--output", required=True, type=Path)

@@ -23,6 +23,12 @@ contributes the geometry and the ``id``. A platform is only a shortcut:
 ``resolve(board, flavor)`` composes the same configuration from explicit
 paths.
 
+A board may instead be **self-contained**: its storages carry their own
+partition layout (the keys a flavor storage has) and its ``contents:``
+may be complete, so a single file describes one whole configuration,
+e.g. an out-of-tree board. ``resolve(board)`` composes it without a
+flavor.
+
 Inside a flavor, partitions may be grouped by LUN (``luns:``, UFS) or by
 physical partition (``phys-parts:``, eMMC); ``grow: false`` on a group
 appends the zero-GUID ``last_parti`` absorber so the group keeps its
@@ -74,8 +80,12 @@ _DISK_KEYS = (
 _REF_KEYS = ("board", "flavor", "extends", "include")
 _REF_LIST_KEYS = ("flavors", "includes")
 
-# Contents keys a board may carry: the SoC identity and the boot-chain
-# firmware entries.
+# Storage keys that describe a partition layout: a flavor storage's keys,
+# which a self-contained board storage may carry as well.
+_LAYOUT_KEYS = ("grow-last-partition", "includes", "partitions", "luns", "phys-parts")
+
+# Contents keys a board (that is not self-contained) may carry: the SoC
+# identity and the boot-chain firmware entries.
 _SOC_CONTENTS_KEYS = ("chip", "chipset", "additional-chipids", "common")
 
 
@@ -357,8 +367,19 @@ def _load_board(path: str) -> dict[str, Any]:
     ids = [s["id"] for s in board["storage"]]
     if len(ids) != len(set(ids)):
         raise BoardResolveError("%s: storage ids must be unique" % path)
+    for storage in board["storage"]:
+        layout = {k: storage[k] for k in ("type", *_LAYOUT_KEYS) if k in storage}
+        if len(layout) > 1:
+            try:
+                jsonschema.validate({"storage": [layout]}, _load_schema("flavor.schema.json"))
+            except jsonschema.exceptions.ValidationError as exc:
+                raise BoardResolveError(
+                    "%s: storage %r: invalid layout: %s" % (path, storage["id"], exc.message)
+                ) from exc
     meta = board.get("contents")
-    if meta is not None:
+    if _is_self_contained(board):
+        board["contents"] = _validate_contents(meta, path)
+    elif meta is not None:
         extra = sorted(set(meta) - set(_SOC_CONTENTS_KEYS))
         if extra:
             raise BoardResolveError(
@@ -366,6 +387,10 @@ def _load_board(path: str) -> dict[str, Any]:
                 % (path, ", ".join(_SOC_CONTENTS_KEYS), ", ".join(extra))
             )
     return board
+
+
+def _is_self_contained(board: Mapping[str, Any]) -> bool:
+    return any(k in s for s in board["storage"] for k in _LAYOUT_KEYS)
 
 
 def _merge_contents(
@@ -385,20 +410,45 @@ def _merge_contents(
     return _validate_contents(merged, where)
 
 
+def _resolve_self_contained(board_file: str, board: dict[str, Any], name: str) -> Configuration:
+    """Compose a self-contained board: each storage with a layout is flashed."""
+    _normalize_luns(board)
+    storages: list[dict[str, Any]] = []
+    for storage in board["storage"]:
+        if not any(k in storage for k in _LAYOUT_KEYS):
+            continue
+        _expand_includes(storage)
+        _validate_resolved_storage(storage)
+        storages.append(storage)
+    if not storages:
+        raise BoardResolveError(
+            "%s: no storage carries partitions; pass a flavor to flash onto it" % board_file
+        )
+    return {"name": name, "storage": storages, "contents": board["contents"]}
+
+
 def resolve(
     board_file: str,
-    flavor_file: str,
+    flavor_file: str | None = None,
     name: str | None = None,
 ) -> Configuration:
     """Compose one flashable configuration: ``flavor_file`` on ``board_file``.
 
     Every flavor storage lands on the board storage of the same type,
     which must be unique on the board; board storages the flavor does not
-    target are not flashed. ``name`` defaults to the board file's name.
+    target are not flashed. Without ``flavor_file`` the board must be
+    self-contained and is composed on its own. ``name`` defaults to the
+    board file's name.
     """
     if name is None:
         name = os.path.splitext(os.path.basename(board_file))[0]
     board = _load_board(board_file)
+    if flavor_file is None:
+        return _resolve_self_contained(board_file, board, name)
+    if _is_self_contained(board):
+        raise BoardResolveError(
+            "%s: a self-contained board (with partitions) takes no flavor" % board_file
+        )
 
     by_type: dict[str, list[dict[str, Any]]] = {}
     for storage in board["storage"]:
@@ -461,6 +511,23 @@ def resolve_platform(path: str) -> list[Configuration]:
                 )
             outputs.add(key)
     return configs
+
+
+def is_platform_file(path: str) -> bool:
+    """Whether ``path`` is a platform file (as opposed to a board)."""
+    try:
+        with open(path) as f:
+            document = yaml.safe_load(f)
+    except OSError as exc:
+        raise BoardResolveError("cannot read %s: %s" % (path, exc)) from exc
+    return isinstance(document, Mapping) and "board" in document
+
+
+def resolve_file(path: str) -> list[Configuration]:
+    """Resolve a platform file, or a self-contained board, into its configurations."""
+    if is_platform_file(path):
+        return resolve_platform(path)
+    return [resolve(path)]
 
 
 # ---------------------------------------------------------------------------

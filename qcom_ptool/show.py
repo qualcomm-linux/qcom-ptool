@@ -30,8 +30,9 @@ from qcom_ptool.board import Configuration, resolve, resolve_platform
 def usage() -> NoReturn:
     print(
         "\n\tUsage: %s --platform <platform.yaml>\n"
-        "\t       %s --board <board.yaml> --flavor <flavor.yaml>\n"
+        "\t       %s --board <board.yaml> [--flavor <flavor.yaml>]\n"
         "\t       %s --outputs | --contents <platform.yaml>...\n"
+        "\n\tA board takes no flavor when it is self-contained.\n"
         % (sys.argv[0], sys.argv[0], sys.argv[0])
     )
     sys.exit(1)
@@ -114,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if rem or (platform_file is None) == (board_file is None):
         usage()
-    if (flavor_file is None) != (board_file is None):
+    if flavor_file is not None and board_file is None:
         usage()
 
     try:
@@ -122,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
         if platform_file is not None:
             configs = resolve_platform(platform_file)
         else:
-            assert board_file is not None and flavor_file is not None
+            assert board_file is not None
             configs = [resolve(board_file, flavor_file)]
     except Exception as e:
         print("Error: ", e)
