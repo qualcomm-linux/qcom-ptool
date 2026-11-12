@@ -18,6 +18,24 @@
             "description": "Path (relative to the platforms root) of a single base board to inherit.",
             "type": "string"
         },
+        "flavors": {
+            "description": "Flashable configurations of this board. Each references a complete layout under platforms/flavors/ and may override partitions in place; 'name' is the output directory under platforms/ and defaults to the board file's name. With 'flavors', the board-level 'storage' list carries the storage geometry, merged by id into the storages each flavor's layout declares.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "anyOf": [
+                    {"required": ["layout"]},
+                    {"required": ["storage"]}
+                ],
+                "properties": {
+                    "layout": {"type": "string", "minLength": 1},
+                    "name": {"type": "string", "minLength": 1},
+                    "storage": {"$ref": "#/properties/storage"}
+                }
+            }
+        },
         "storage": {
             "type": "array",
             "items": {

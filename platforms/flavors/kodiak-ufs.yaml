@@ -1,0 +1,36 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Kodiak-family (qcm6490/qcs6490) per-LUN UFS layout, composed from the
+# shared partition sets under _common/. Boards contribute the storage
+# geometry and any board-only partitions.
+storage:
+  - id: ufs
+    type: ufs
+    luns:
+      - lun: 0              # last partition (rootfs) grows
+        partitions:
+          - include: _common/kodiak-hlos.yaml
+      - lun: 1
+        grow: false
+        partitions:
+          - include: _common/kodiak-xbl.yaml
+      - lun: 2
+        grow: false
+        partitions:
+          - include: _common/kodiak-xbl.yaml
+      - lun: 3
+        grow: false
+        partitions:
+          - {name: ALIGN_TO_128K_1, size: "104KB", type-guid: "FDE1604B-D68B-4BD4-973D-962AE7A1ED88"}
+          - include: _common/kodiak-cdt.yaml
+          - include: _common/kodiak-ddr.yaml
+      - lun: 4
+        grow: false
+        partitions:
+          - include: _common/kodiak-firmware.yaml
+      - lun: 5
+        grow: false
+        partitions:
+          - include: _common/kodiak-modem.yaml
+          - include: _common/kodiak-persist.yaml
