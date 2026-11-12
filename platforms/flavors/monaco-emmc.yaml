@@ -5,8 +5,8 @@
 # area (phys-part 1), composed from the shared partition sets under
 # _common/. Boards contribute the eMMC geometry.
 storage:
-  - id: emmc
-    type: emmc
+  - type: emmc
+    grow-last-partition: true
     phys-parts:
       - phys-part: 0        # last partition (rootfs) grows
         partitions:

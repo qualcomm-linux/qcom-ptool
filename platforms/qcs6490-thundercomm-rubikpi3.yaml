@@ -1,0 +1,10 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/qcs6490-thundercomm-rubikpi3.yaml
+
+contents:
+  product-name: QCM6490.LE.0.0
+  hlos-type: LE
+
+flavors:
+  - flavors/kodiak-rubikpi3-ufs.yaml

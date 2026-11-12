@@ -1,0 +1,15 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/qrb2210-unoq.yaml
+
+contents:
+  product-name: QRB2210.LE.0.0
+
+flavors:
+  - flavors/qrb2210-emmc.yaml
+  - flavor: flavors/qrb2210-abl-emmc.yaml
+    name: qrb2210-unoq-abl
+  - flavor: flavors/qrb2210-arduino-emmc.yaml
+    name: qrb2210-unoq-arduino
+  - flavor: flavors/qrb2210-abl-arduino-emmc.yaml
+    name: qrb2210-unoq-abl-arduino

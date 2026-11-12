@@ -1,0 +1,10 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/shikra-evk.yaml
+
+contents:
+  product-name: CQ2390.LE.0.0
+  hlos-type: LE
+
+flavors:
+  - flavors/shikra-emmc.yaml

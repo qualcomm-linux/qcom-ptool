@@ -4,8 +4,8 @@
 # Talos-family eMMC layout: the shared user area (phys-part 0). A board
 # carrying a cdt boot area (phys-part 1) adds it as an in-place override.
 storage:
-  - id: emmc
-    type: emmc
+  - type: emmc
+    grow-last-partition: true
     phys-parts:
       - phys-part: 0        # last partition (rootfs) grows
         partitions:
