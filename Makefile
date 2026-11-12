@@ -16,13 +16,7 @@ PARTITIONS_XML := $(patsubst %.conf,%.xml, $(PARTITIONS)) $(YAML_PARTITIONS_XML)
 PLATFORMS := $(patsubst %/partitions.xml,%/gpt, $(PARTITIONS_XML))
 
 CONTENTS_XML_IN := $(wildcard platforms/*/*/contents.xml.in)
-
-# Templates describing several storages live at the board level; their
-# partitions.xml dependency is the storage named by the first chipid.
-BOARD_CONTENTS_XML_IN := $(wildcard platforms/*/contents.xml.in)
-template-storage = $(shell sed -n 's/.*<chipid[^>]*storage_type="\([a-z]*\)".*/\1/p' $(1) | head -n1)
-
-CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN) $(BOARD_CONTENTS_XML_IN))
+CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN))
 
 UDEV_RULES := platforms/55-qcom-raw-partitions-noblkid.rules
 
@@ -53,12 +47,6 @@ $(foreach b,$(YAML_BOARDS),$(eval $(call yaml-board-rule,$(b))))
 %/contents.xml: %/partitions.xml %/contents.xml.in
 	$(QCOM_PTOOL) gen_contents -p $< -t $@.in -o $@ $${BUILD_ID:+ -b $(BUILD_ID)}
 
-define board-contents-rule
-$(patsubst %.xml.in,%.xml,$(1)): $(dir $(1))$(call template-storage,$(1))/partitions.xml $(1)
-	$$(QCOM_PTOOL) gen_contents -p $$< -t $(1) -o $$@ $$$${BUILD_ID:+ -b $$(BUILD_ID)}
-endef
-$(foreach t,$(BOARD_CONTENTS_XML_IN),$(eval $(call board-contents-rule,$(t))))
-
 # Raw-partition udev rules from every .conf layout and every YAML board.
 $(UDEV_RULES): $(PARTITIONS) $(wildcard platforms/boards/*.yaml) $(YAML_SHARED) \
     qcom_ptool/data/filesystem-partition-names.list \
@@ -74,7 +62,7 @@ unit-test:
 
 integration: all
 	# make sure generated output has created expected files
-	tests/integration/check-missing-files platforms/*/*/*.xml platforms/*/contents.xml
+	tests/integration/check-missing-files platforms/*/*/*.xml
 
 check-checksums: all
 	# verify generated artifacts match tests/integration/checksums.sha256
@@ -95,4 +83,4 @@ install:
 	pip install .
 
 clean:
-	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin platforms/*/contents.xml $(UDEV_RULES)
+	@rm -f platforms/*/*/*.xml platforms/*/*/*.bin $(UDEV_RULES)
