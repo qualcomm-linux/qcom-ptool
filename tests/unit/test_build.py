@@ -128,3 +128,21 @@ def test_unresolvable_input_returns_1(tmp_path):
 def test_bad_arguments_print_usage(args):
     with pytest.raises(SystemExit):
         build.main(["build", *args])
+
+
+def test_include_dirs_let_out_of_tree_files_reuse_the_tree(tmp_path, monkeypatch):
+    """A platform file kept out of tree finds the in-tree boards and flavors."""
+    monkeypatch.setenv("PTOOL_SEED", "qcom-ptool-test")
+    platform = tmp_path / "ext" / "qcs6490-rb3gen2.yaml"
+    platform.parent.mkdir()
+    platform.write_text((PLATFORMS / "qcs6490-rb3gen2.yaml").read_text())
+
+    assert build.main(["build", "-o", str(tmp_path / "x"), str(platform)]) == 1
+    assert build.main(
+        ["build", "-I", str(PLATFORMS), "-o", str(tmp_path / "x"), str(platform)]
+    ) == 0
+    assert build.main(
+        ["build", "-o", str(tmp_path / "p"), str(PLATFORMS / "qcs6490-rb3gen2.yaml")]
+    ) == 0
+    assert _artifacts(tmp_path / "x") == _artifacts(tmp_path / "p")
+

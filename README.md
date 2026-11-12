@@ -17,8 +17,8 @@ pip install .
 Once installed, the tool is invoked as:
 
 ```sh
-qcom-ptool build         [-o out/] platforms/<platform>.yaml
-qcom-ptool build         [-o out/] -b <board.yaml> [-f <flavor.yaml>]
+qcom-ptool build         [-I dir]... [-o out/] platforms/<platform>.yaml
+qcom-ptool build         [-I dir]... [-o out/] -b <board.yaml> [-f <flavor.yaml>]
 qcom-ptool show          --platform platforms/<platform>.yaml
 qcom-ptool gen_partition --platform platforms/<platform>.yaml -C out/
 qcom-ptool gen_contents  [-o out/] platforms/<platform>.yaml
@@ -95,6 +95,15 @@ qcom-ptool build -o out/ -b my-board.yaml
 
 The output of `qcom-ptool show` for a configuration (without its `name`)
 is such a board.
+
+Files kept out of tree can reuse the in-tree boards, flavors and shared
+fragments: `build -I <dir>` (repeatable) looks up references that do not
+resolve relative to their own file in `<dir>`, in order. For example, a
+board whose storage says `includes: [_common/kodiak-hlos.yaml]`:
+
+```sh
+qcom-ptool build -I <qcom-ptool>/platforms/flavors -o out/ -b my-board.yaml
+```
 
 ## udev rules
 

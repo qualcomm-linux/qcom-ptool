@@ -40,7 +40,8 @@ each document is read, so every merge operates on flat lists keyed by
 are appended in file order and nothing is ever deleted.
 
 Every reference (``board``, ``flavor(s)``, ``extends``, ``include(s)``)
-is relative to the file that makes it; ``contents:`` holds none. Each
+is relative to the file that makes it, or else to the first include
+directory that has it; ``contents:`` holds none. Each
 fully-resolved storage is validated against the strict single-storage ``partitions.schema.json``
 and reduced to a :class:`qcom_ptool.spec.LoadedSpec` through the same
 helpers the YAML loader uses, so it emits byte-identical XML.
@@ -112,11 +113,21 @@ def _load_schema(name: str) -> dict[str, Any]:
     return schema
 
 
-def _absolutize_refs(node: Any, base_dir: str) -> None:
-    """Rewrite every file reference in ``node`` to an absolute path."""
+def _absolutize_refs(node: Any, base_dir: str, include_dirs: Sequence[str]) -> None:
+    """Rewrite every file reference in ``node`` to an absolute path.
+
+    A reference resolves against ``base_dir`` (its file's directory), or
+    else against the first of ``include_dirs`` that has it.
+    """
 
     def resolve(ref: str) -> str:
-        return os.path.normpath(os.path.join(base_dir, ref))
+        local = os.path.normpath(os.path.join(base_dir, ref))
+        if not os.path.exists(local):
+            for directory in include_dirs:
+                candidate = os.path.join(directory, ref)
+                if os.path.exists(candidate):
+                    return os.path.normpath(os.path.abspath(candidate))
+        return local
 
     if isinstance(node, dict):
         for key, value in node.items():
@@ -128,15 +139,15 @@ def _absolutize_refs(node: Any, base_dir: str) -> None:
                 node[key] = resolve(value)
             elif key in _REF_LIST_KEYS and isinstance(value, list):
                 node[key] = [resolve(i) if isinstance(i, str) else i for i in value]
-                _absolutize_refs(node[key], base_dir)
+                _absolutize_refs(node[key], base_dir, include_dirs)
             else:
-                _absolutize_refs(value, base_dir)
+                _absolutize_refs(value, base_dir, include_dirs)
     elif isinstance(node, list):
         for item in node:
-            _absolutize_refs(item, base_dir)
+            _absolutize_refs(item, base_dir, include_dirs)
 
 
-def _read_mapping(path: str, schema: str) -> dict[str, Any]:
+def _read_mapping(path: str, schema: str, include_dirs: Sequence[str] = ()) -> dict[str, Any]:
     """Load ``path`` as YAML, validate it against ``schema`` and return a copy
     with every file reference made absolute."""
     try:
@@ -153,7 +164,7 @@ def _read_mapping(path: str, schema: str) -> dict[str, Any]:
     except jsonschema.exceptions.ValidationError as exc:
         raise BoardResolveError("%s: schema validation failed: %s" % (path, exc.message)) from exc
     result = copy.deepcopy(dict(document))
-    _absolutize_refs(result, os.path.dirname(os.path.abspath(path)))
+    _absolutize_refs(result, os.path.dirname(os.path.abspath(path)), include_dirs)
     return result
 
 
@@ -254,7 +265,9 @@ def _normalize_luns(document: dict[str, Any]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _load_flavor(path: str, chain: tuple[str, ...] = ()) -> dict[str, Any]:
+def _load_flavor(
+    path: str, include_dirs: Sequence[str], chain: tuple[str, ...] = ()
+) -> dict[str, Any]:
     """Load a flavor and fold its single base (if any) underneath it.
 
     Storages merge by ``type``; partitions by ``(lun, name)``.
@@ -262,7 +275,7 @@ def _load_flavor(path: str, chain: tuple[str, ...] = ()) -> dict[str, Any]:
     real = os.path.realpath(path)
     if real in chain:
         raise BoardResolveError("extends cycle detected at %s" % path)
-    flavor = _read_mapping(path, "flavor.schema.json")
+    flavor = _read_mapping(path, "flavor.schema.json", include_dirs)
     _normalize_luns(flavor)
     types = [s["type"] for s in flavor["storage"]]
     if len(types) != len(set(types)):
@@ -270,7 +283,7 @@ def _load_flavor(path: str, chain: tuple[str, ...] = ()) -> dict[str, Any]:
     base_ref = flavor.pop("extends", None)
     if base_ref is None:
         return flavor
-    base = _load_flavor(base_ref, (*chain, real))
+    base = _load_flavor(base_ref, include_dirs, (*chain, real))
     index = {s["type"]: s for s in base["storage"]}
     for storage in flavor["storage"]:
         target = index.get(storage["type"])
@@ -286,20 +299,22 @@ def _load_flavor(path: str, chain: tuple[str, ...] = ()) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def _fragment_partitions(path: str, chain: tuple[str, ...]) -> list[dict[str, Any]]:
+def _fragment_partitions(
+    path: str, include_dirs: Sequence[str], chain: tuple[str, ...]
+) -> list[dict[str, Any]]:
     """Resolve a shared fragment (transitively) into a partition list."""
     real = os.path.realpath(path)
     if real in chain:
         raise BoardResolveError("includes cycle detected at %s" % path)
-    fragment = _read_mapping(path, "include.schema.json")
+    fragment = _read_mapping(path, "include.schema.json", include_dirs)
     partitions: list[dict[str, Any]] = []
     for inc in fragment.get("includes", []):
-        _merge_partitions(partitions, _fragment_partitions(inc, (*chain, real)))
+        _merge_partitions(partitions, _fragment_partitions(inc, include_dirs, (*chain, real)))
     _merge_partitions(partitions, fragment.get("partitions", []))
     return partitions
 
 
-def _expand_includes(storage: dict[str, Any]) -> None:
+def _expand_includes(storage: dict[str, Any], include_dirs: Sequence[str]) -> None:
     """Replace a storage's ``includes:`` + ``partitions:`` with one flat list.
 
     ``partitions:`` items are walked in order; an ``include:`` directive is
@@ -323,7 +338,7 @@ def _expand_includes(storage: dict[str, Any]) -> None:
         if item in seen:
             continue
         seen.append(item)
-        parts = _fragment_partitions(item["include"], ())
+        parts = _fragment_partitions(item["include"], include_dirs, ())
         placement = {k: item[k] for k in ("lun", "phys-part") if k in item}
         if placement:
             for part in parts:
@@ -362,8 +377,8 @@ def _validate_contents(meta: Any, where: str) -> dict[str, Any] | None:
     return dict(meta)
 
 
-def _load_board(path: str) -> dict[str, Any]:
-    board = _read_mapping(path, "board.schema.json")
+def _load_board(path: str, include_dirs: Sequence[str]) -> dict[str, Any]:
+    board = _read_mapping(path, "board.schema.json", include_dirs)
     ids = [s["id"] for s in board["storage"]]
     if len(ids) != len(set(ids)):
         raise BoardResolveError("%s: storage ids must be unique" % path)
@@ -410,14 +425,16 @@ def _merge_contents(
     return _validate_contents(merged, where)
 
 
-def _resolve_self_contained(board_file: str, board: dict[str, Any], name: str) -> Configuration:
+def _resolve_self_contained(
+    board_file: str, board: dict[str, Any], name: str, include_dirs: Sequence[str]
+) -> Configuration:
     """Compose a self-contained board: each storage with a layout is flashed."""
     _normalize_luns(board)
     storages: list[dict[str, Any]] = []
     for storage in board["storage"]:
         if not any(k in storage for k in _LAYOUT_KEYS):
             continue
-        _expand_includes(storage)
+        _expand_includes(storage, include_dirs)
         _validate_resolved_storage(storage)
         storages.append(storage)
     if not storages:
@@ -431,6 +448,7 @@ def resolve(
     board_file: str,
     flavor_file: str | None = None,
     name: str | None = None,
+    include_dirs: Sequence[str] = (),
 ) -> Configuration:
     """Compose one flashable configuration: ``flavor_file`` on ``board_file``.
 
@@ -438,13 +456,14 @@ def resolve(
     which must be unique on the board; board storages the flavor does not
     target are not flashed. Without ``flavor_file`` the board must be
     self-contained and is composed on its own. ``name`` defaults to the
-    board file's name.
+    board file's name. References inside the files that resolve neither
+    relative to their file nor in any of ``include_dirs`` fail.
     """
     if name is None:
         name = os.path.splitext(os.path.basename(board_file))[0]
-    board = _load_board(board_file)
+    board = _load_board(board_file, include_dirs)
     if flavor_file is None:
-        return _resolve_self_contained(board_file, board, name)
+        return _resolve_self_contained(board_file, board, name, include_dirs)
     if _is_self_contained(board):
         raise BoardResolveError(
             "%s: a self-contained board (with partitions) takes no flavor" % board_file
@@ -453,7 +472,7 @@ def resolve(
     by_type: dict[str, list[dict[str, Any]]] = {}
     for storage in board["storage"]:
         by_type.setdefault(storage["type"], []).append(storage)
-    flavor = _load_flavor(os.path.abspath(flavor_file))
+    flavor = _load_flavor(os.path.abspath(flavor_file), include_dirs)
 
     storages: list[dict[str, Any]] = []
     for layout in flavor["storage"]:
@@ -470,7 +489,7 @@ def resolve(
             )
         storage = copy.deepcopy(candidates[0])
         storage.update({k: v for k, v in layout.items() if k != "type"})
-        _expand_includes(storage)
+        _expand_includes(storage, include_dirs)
         _validate_resolved_storage(storage)
         storages.append(storage)
 
@@ -478,7 +497,7 @@ def resolve(
     return {"name": name, "storage": storages, "contents": None}
 
 
-def resolve_platform(path: str) -> list[Configuration]:
+def resolve_platform(path: str, include_dirs: Sequence[str] = ()) -> list[Configuration]:
     """Resolve every configuration of a platform file.
 
     Each flavor entry is one configuration, named by its ``name`` or the
@@ -488,14 +507,16 @@ def resolve_platform(path: str) -> list[Configuration]:
     else the platform's, laid over the board's SoC part; without either it
     has none.
     """
-    platform = _read_mapping(path, "platform.schema.json")
+    platform = _read_mapping(path, "platform.schema.json", include_dirs)
     default = os.path.splitext(os.path.basename(path))[0]
-    soc = _load_board(platform["board"]).get("contents")
+    soc = _load_board(platform["board"], include_dirs).get("contents")
     configs = []
     for entry in platform["flavors"]:
         if isinstance(entry, str):
             entry = {"flavor": entry}
-        config = resolve(platform["board"], entry["flavor"], entry.get("name", default))
+        config = resolve(
+            platform["board"], entry["flavor"], entry.get("name", default), include_dirs
+        )
         meta = entry.get("contents", platform.get("contents"))
         if meta is not None:
             where = "%s (%s)" % (path, config["name"])

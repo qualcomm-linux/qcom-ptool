@@ -610,6 +610,34 @@ def test_references_are_relative_to_the_referencing_file(tmp_path):
     assert _names(_by_id(platform, "spinor0")) == ["LEAF", "MID"]
 
 
+
+def test_include_dirs_resolve_references_missing_next_to_their_file(tmp_path):
+    """Own directory first, then each include directory in order."""
+    root = _tree(tmp_path, {"flavors/f.yaml": _NVME_FLAVOR.replace(
+        "partitions:", "includes: [_common/boot.yaml]\n        partitions:", 1)})
+    for name, guid in (("first", GUID_B), ("second", GUID_C), ("platforms/flavors", GUID_D)):
+        frag = tmp_path / name / "_common" / "boot.yaml"
+        frag.parent.mkdir(parents=True, exist_ok=True)
+        frag.write_text('partitions:\n  - {name: boot, size: "8KB", type-guid: "%s"}\n' % guid)
+
+    def boot_guid(include_dirs):
+        config = resolve(
+            os.path.join(root, "boards/b.yaml"),
+            os.path.join(root, "flavors/f.yaml"),
+            include_dirs=include_dirs,
+        )
+        return next(p for p in config["storage"][0]["partitions"] if p["name"] == "boot")[
+            "type-guid"
+        ]
+
+    # A fragment next to the referencing file wins over any include dir.
+    assert boot_guid([str(tmp_path / "first")]) == GUID_D
+    os.remove(os.path.join(root, "flavors/_common/boot.yaml"))
+    assert boot_guid([str(tmp_path / "first"), str(tmp_path / "second")]) == GUID_B
+    assert boot_guid([str(tmp_path / "missing"), str(tmp_path / "second")]) == GUID_C
+    with pytest.raises(BoardResolveError, match="cannot read"):
+        boot_guid([])
+
 def test_same_name_on_different_luns_is_not_merged(tmp_path):
     """Partition identity is (lun, name): names repeat across LUNs."""
     root = _tree(
