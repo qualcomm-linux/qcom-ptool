@@ -12,5 +12,21 @@ storage:
     write-protect-boundary: 0
     grow-last-partition: true
 
+contents:
+  product-name: Kaanapali.LE.0.0
+  hlos-type: LE
+  chip: KAANAPALI
+  additional-chipids: [SM8850]
+  common:
+    - device-programmer: {file: qsahara_device_programmer.xml, attributes: {cmm_file_var: "FIREHOSE_DDR_ELF"}}
+    - download: {file: tme_config.elf, attributes: {qsahara_image_id: "61"}}
+    - download: {file: signed_firmware_soc_view.elf, attributes: {qsahara_image_id: "60"}}
+    - download: {file: sequencer_ram.elf, attributes: {qsahara_image_id: "59"}}
+    - download: {file: xbl_sc.elf, attributes: {qsahara_image_id: "21"}}
+    - download: {file: multi_image_qti.mbn, attributes: {qsahara_image_id: "36"}}
+    - download: {file: multi_image.mbn, attributes: {qsahara_image_id: "37"}}
+    - device-programmer: {file: prog_firehose_ddr.elf, attributes: {cmm_file_var: "DEV_PRG", qsahara_image_id: "13"}}
+    - device-programmer: {file: xbl_config_devprg.elf, attributes: {cmm_file_var: "XBL_CFG", qsahara_image_id: "38"}}
+
 flavors:
   - layout: flavors/kaanapali-ufs.yaml

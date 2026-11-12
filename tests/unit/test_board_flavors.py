@@ -207,6 +207,37 @@ def test_inline_flavor_defines_storage_in_the_board_file(tmp_path):
     assert _names(_by_id(flavors[1], "emmc")) == ["boot"]
 
 
+def test_board_level_contents_is_the_flavor_default(tmp_path):
+    files = dict(_FLAVOR_TREE)
+    files["boards/withmeta.yaml"] = """
+        platform: {name: withmeta}
+        storage:
+          - id: ufs
+            size: 68719476736
+            sector-size: 4096
+            write-protect-boundary: 0
+            grow-last-partition: true
+          - id: emmc
+            size: 68719476736
+            sector-size: 512
+            write-protect-boundary: 65536
+            grow-last-partition: true
+        contents:
+          product-name: Board.LE.0.0
+          chip: BOARD
+        flavors:
+          - layout: flavors/fam-ufs.yaml
+          - layout: flavors/fam-emmc.yaml
+            contents:
+              product-name: Override.LE.0.0
+              chip: BOARD
+    """
+    root = _tree(tmp_path, files)
+    flavors = resolve_board_flavors(os.path.join(root, "boards/withmeta.yaml"))
+    assert flavors[0]["contents"]["product-name"] == "Board.LE.0.0"
+    assert flavors[1]["contents"]["product-name"] == "Override.LE.0.0"
+
+
 def test_includes_resolve_relative_to_their_file_first(tmp_path):
     files = {
         "flavors/_common/boot.yaml": """

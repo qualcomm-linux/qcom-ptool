@@ -13,6 +13,15 @@ storage:
     write-protect-boundary: 0
     grow-last-partition: true
 
+contents:
+  product-name: QCM6490.LE.0.0
+  hlos-type: LE
+  chip: QCM6490
+  additional-chipids: [SM7325, QCS6490]
+  common:
+    - device-programmer: {file: prog_firehose_ddr.elf}
+    - device-programmer: {file: prog_firehose_lite.elf, attributes: {firehose_type: "lite"}}
+
 flavors:
   - layout: flavors/kodiak-ufs.yaml
     storage:

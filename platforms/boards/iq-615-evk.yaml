@@ -19,6 +19,15 @@ storage:
     write-protect-boundary: 65536
     grow-last-partition: true
 
+contents:
+  product-name: QCS615.LE.0.0
+  hlos-type: LE
+  chip: QCS615
+  additional-chipids: [SA6155]
+  common:
+    - device-programmer: {file: prog_firehose_ddr.elf}
+    - device-programmer: {file: prog_firehose_lite.elf, attributes: {firehose_type: "lite"}}
+
 flavors:
   - layout: flavors/talos-ufs.yaml
   - layout: flavors/talos-emmc.yaml

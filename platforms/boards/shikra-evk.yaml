@@ -6,6 +6,15 @@
 platform:
   name: shikra-evk
 
+contents:
+  product-name: CQ2390.LE.0.0
+  hlos-type: LE
+  chip: SHIKRA
+  additional-chipids: [CQ2390, CQ2390M, CQ2390S, IQ2390S]
+  common:
+    - device-programmer: {file: prog_firehose_ddr.elf}
+    - device-programmer: {file: prog_firehose_lite.elf, attributes: {firehose_type: "lite"}}
+
 storage:
   - id: emmc
     type: emmc

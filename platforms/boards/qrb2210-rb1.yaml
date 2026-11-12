@@ -13,6 +13,14 @@ storage:
     write-protect-boundary: 65536
     grow-last-partition: true
 
+contents:
+  product-name: QRB2210.LE.0.0
+  hlos-type: LE
+  chip: QRB2210
+  common:
+    - device-programmer: {file: prog_firehose_ddr.elf}
+    - device-programmer: {file: prog_firehose_lite.elf, attributes: {firehose_type: "lite"}}
+
 flavors:
   - layout: flavors/qrb2210-emmc.yaml
   - layout: flavors/qrb2210-abl-emmc.yaml

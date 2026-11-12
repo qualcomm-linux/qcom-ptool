@@ -83,6 +83,7 @@ class ResolvedFlavor(TypedDict):
     layout: str | None
     platform: dict[str, Any]
     storage: list[dict[str, Any]]
+    contents: dict[str, Any] | None
 
 
 # ---------------------------------------------------------------------------
@@ -449,6 +450,7 @@ def resolve_board_flavors(
                 "layout": None,
                 "platform": single["platform"],
                 "storage": single["storage"],
+                "contents": board.get("contents"),
             }
         ]
 
@@ -488,7 +490,13 @@ def resolve_board_flavors(
                 )
             outputs.add(key)
         resolved.append(
-            {"name": name, "layout": ref, "platform": platform, "storage": storages}
+            {
+                "name": name,
+                "layout": ref,
+                "platform": platform,
+                "storage": storages,
+                "contents": flavor.get("contents", board.get("contents")),
+            }
         )
     return resolved
 
