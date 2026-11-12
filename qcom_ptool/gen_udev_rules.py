@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml  # type: ignore[import-untyped]
 
-from qcom_ptool.board import board_to_specs, resolve_board_flavors
+from qcom_ptool.board import config_to_specs, resolve_platform
 from qcom_ptool.loaders import load as load_spec
 from qcom_ptool.spec import LoadedSpec
 
@@ -23,7 +23,7 @@ TEMPLATE_FILE = DATA_DIR / "55-qcom-raw-partitions-noblkid.rules.in"
 RULES_PLACEHOLDER = "@QCOM_RAW_PARTITION_RULES@"
 NAME_RE = re.compile(r"[A-Za-z0-9_.+-]+")
 CONF_LAYOUT_GLOB = "platforms/*/*/partitions.conf"
-BOARD_LAYOUT_GLOB = "platforms/boards/*.yaml"
+PLATFORM_LAYOUT_GLOB = "platforms/*.yaml"
 
 
 def load_filesystem_names() -> set[str]:
@@ -63,17 +63,17 @@ def _read_yaml_mapping(path: Path) -> Mapping[str, object] | None:
 def layout_specs(path: Path) -> list[LoadedSpec]:
     """Load every partition spec described by one layout file.
 
-    A YAML board file resolves to one spec per storage of every flavor;
-    everything else (.conf, flat partitions YAML) is a single spec via the
-    format loaders.
+    A YAML platform file resolves to one spec per flashed storage of each
+    configuration; everything else (.conf, flat partitions YAML) is a
+    single spec via the format loaders.
     """
     if path.suffix.lower() in (".yaml", ".yml"):
         document = _read_yaml_mapping(path)
-        if document is not None and ("storage" in document or "flavors" in document):
+        if document is not None and "board" in document:
             return [
                 spec
-                for flavor in resolve_board_flavors(str(path))
-                for _storage, spec in board_to_specs(flavor)
+                for config in resolve_platform(str(path))
+                for _storage, spec in config_to_specs(config)
             ]
     return [load_spec(str(path))]
 
@@ -104,7 +104,7 @@ def discover_inputs(inputs: list[Path] | None) -> list[Path]:
         return inputs
 
     discovered = sorted(Path.cwd().glob(CONF_LAYOUT_GLOB))
-    discovered += sorted(Path.cwd().glob(BOARD_LAYOUT_GLOB))
+    discovered += sorted(Path.cwd().glob(PLATFORM_LAYOUT_GLOB))
     if not discovered:
         raise ValueError(
             "no partition layouts found; run from the qcom-ptool repository "
@@ -137,8 +137,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--input",
         action="append",
         type=Path,
-        help="partition layout (.conf or board .yaml) to scan; may be repeated "
-        "(defaults to platforms/*/*/partitions.conf and platforms/boards/*.yaml)",
+        help="partition layout (.conf or platform .yaml) to scan; may be repeated "
+        "(defaults to platforms/*/*/partitions.conf and platforms/*.yaml)",
     )
     parser.add_argument("-o", "--output", required=True, type=Path)
     return parser.parse_args(argv)

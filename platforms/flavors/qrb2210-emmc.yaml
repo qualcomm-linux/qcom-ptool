@@ -3,8 +3,8 @@
 #
 # Shared qrb2210 eMMC layout, edk2 boot firmware.
 storage:
-  - id: emmc
-    type: emmc
+  - type: emmc
+    grow-last-partition: true
     partitions:
       - {name: xbl_a, size: "3584KB", type-guid: "DEA0BA2C-CBDD-4805-B4F9-F428251C3E98", filename: xbl.elf}
       - {name: xbl_b, size: "3584KB", type-guid: "7A3DF1A3-A31A-454D-BD78-DF259ED486BE", filename: xbl.elf}

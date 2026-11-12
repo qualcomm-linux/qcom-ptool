@@ -1,0 +1,29 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/iq-8275-evk.yaml
+
+# The default (UFS) image also flashes the prebuilt SAIL firmware from
+# ./sail_nor onto SPI-NOR in a second flash phase; the eMMC flavor
+# overrides with its own plain contents.
+contents:
+  product-name: QCS8300.LE.0.0
+  hlos-type: LE
+  product-flavors:
+    - {name: sail_nor, components: [common]}
+  chipids:
+    - {flavor: sail_nor, storage: spinor, flash-phase: 2}
+  common:
+    - download: {file: sailhyp.elf, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "SAIL_HYP"}}
+    - download: {file: sailsw1.elf, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "SAIL_SW1"}}
+    - download: {file: gpt_main0.bin, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - download: {file: gpt_backup0.bin, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - partition: {file: rawprogram0.xml, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - patch: {file: patch0.xml, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+
+flavors:
+  - flavors/monaco-ufs.yaml
+  - flavor: flavors/monaco-emmc.yaml
+    name: iq-8275-evk-emmc
+    contents:
+      product-name: QCS8300.LE.0.0
+      hlos-type: LE

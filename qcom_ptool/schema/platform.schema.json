@@ -1,0 +1,43 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/qualcomm-linux/qcom-ptool/platform.schema.json",
+    "title": "qcom-ptool platform",
+    "description": "The flashable configurations of one board. Each flavor entry is one configuration, built into <name>/<storage-id>/; name defaults to this file's name.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["board", "flavors"],
+    "properties": {
+        "board": {"description": "Path, relative to this file, of the board.", "type": "string", "minLength": 1},
+        "contents": {
+            "description": "HLOS and flashing part of every configuration's contents metadata, including where contents.xml is written ('location'), laid over the board's SoC part: keys override, 'common' entries are appended. A flavor entry's own 'contents' replaces it. The result is validated against contents.schema.json.",
+            "type": "object"
+        },
+        "flavors": {
+            "description": "Flavors, each one flashable configuration of the board.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "oneOf": [
+                    {"description": "Path, relative to this file, of a flavor.", "type": "string", "minLength": 1},
+                    {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["flavor"],
+                        "properties": {
+                            "flavor": {"description": "Path, relative to this file, of a flavor.", "type": "string", "minLength": 1},
+                            "name": {
+                                "description": "Output name of this configuration; defaults to this file's name.",
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            "contents": {
+                                "description": "This configuration's contents metadata, replacing the platform's; laid over the board's likewise.",
+                                "type": "object"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

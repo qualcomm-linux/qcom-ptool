@@ -1,0 +1,24 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/nord-rrd.yaml
+
+# Flashed over sahara EDL; the sail_nor product flavor also flashes the
+# prebuilt SAIL firmware from ./sail_nor onto SPI-NOR in a second phase.
+contents:
+  product-name: Nord_IOT.LE.0.0
+  hlos-type: LE
+  location: ufs
+  product-flavors:
+    - {name: sail_nor, components: [common]}
+  chipids:
+    - {flavor: sail_nor, storage: spinor, flash-phase: 2}
+  common:
+    - download: {file: sailhyp.elf, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "SAIL_HYP"}}
+    - download: {file: sailsw1.elf, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "SAIL_SW1"}}
+    - download: {file: gpt_main0.bin, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - download: {file: gpt_backup0.bin, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - partition: {file: rawprogram0.xml, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - patch: {file: patch0.xml, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+
+flavors:
+  - flavors/nord-spinor-ufs.yaml

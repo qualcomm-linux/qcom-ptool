@@ -187,49 +187,69 @@ def _write(tmp_path, name, text):
     return path
 
 
-def test_board_pipeline_matches_template_pipeline(tmp_path):
-    """The real contract: identical contents.xml from metadata or template,
-    although the template interleaves its placeholder entries differently."""
+_SOC_KEYS = ("chip", "chipset", "additional-chipids")
+
+
+def _split_meta():
+    """_META split the way the repo splits it: SoC part / HLOS and flashing part."""
+    firmware = [e for e in _META["common"] if "path-flavor" not in next(iter(e.values()))]
+    flashing = [e for e in _META["common"] if e not in firmware]
+    soc = {k: _META[k] for k in _SOC_KEYS}
+    soc["common"] = firmware
+    platform = {k: v for k, v in _META.items() if k not in _SOC_KEYS and k != "common"}
+    platform["common"] = flashing
+    return soc, platform
+
+
+_UFS = """
+  - id: ufs
+    type: ufs
+    size: 1073741824
+    sector-size: 4096
+    write-protect-boundary: 0
+"""
+
+
+def _expected(tmp_path, storage_dir):
+    """The template pipeline's output next to ``storage_dir``'s partitions."""
     template = _write(tmp_path, "tpl/contents.xml.in", _TEMPLATE)
-    _write(tmp_path, "platforms/demo/ufs/partitions.xml", _PARTITIONS_XML)
-
-    board = _write(
-        tmp_path,
-        "platforms/boards/demo.yaml",
-        """
-        platform: {name: demo}
-        storage:
-          - id: ufs
-            size: 1073741824
-            sector-size: 4096
-            write-protect-boundary: 0
-            grow-last-partition: true
-        flavors:
-          - storage:
-              - id: ufs
-                type: ufs
-                partitions:
-                  - {name: efi, size: "1KB", type-guid: "%s", filename: efi.bin}
-            contents: %s
-        """
-        % (GUID_A, repr(_META)),
-    )
-
-    rc = gen_contents.generate_from_board(str(board), None, str(tmp_path / "platforms"), "")
-    assert rc == 0
-    # Contents land next to the default storage's partitions by default.
-    from_board = tmp_path / "platforms" / "demo" / "ufs" / "contents.xml"
-
-    # Written next to the board-mode output so RebaseFilePaths matches.
-    expected = tmp_path / "platforms" / "demo" / "ufs" / "expected.xml"
+    expected = storage_dir / "expected.xml"
     gen_contents.generate_from_template(
-        str(template),
-        str(tmp_path / "platforms" / "demo" / "ufs" / "partitions.xml"),
-        str(expected),
-        "",
+        str(template), str(storage_dir / "partitions.xml"), str(expected), ""
     )
+    return expected.read_bytes()
 
-    assert from_board.read_bytes() == expected.read_bytes()
+
+def test_platform_pipeline_matches_template_pipeline(tmp_path):
+    """The real contract: identical contents.xml from metadata or template,
+    although the template interleaves its placeholder entries differently.
+    The board's SoC part and the platform's part merge back into _META."""
+    soc, hlos = _split_meta()
+    _write(tmp_path, "boards/demo.yaml", "storage:%s\ncontents: %r\n" % (_UFS, soc))
+    _write(
+        tmp_path,
+        "flavors/demo-ufs.yaml",
+        """
+        storage:
+          - type: ufs
+            grow-last-partition: true
+            partitions:
+              - {name: efi, size: "1KB", type-guid: "%s", filename: efi.bin}
+        """
+        % GUID_A,
+    )
+    platform = _write(
+        tmp_path,
+        "demo.yaml",
+        "board: boards/demo.yaml\ncontents: %r\nflavors: [flavors/demo-ufs.yaml]\n" % hlos,
+    )
+    out = tmp_path / "out"
+    _write(tmp_path, "out/demo/ufs/partitions.xml", _PARTITIONS_XML)
+
+    assert gen_contents.generate_from_file(str(platform), None, str(out), "") == 0
+    # Contents land next to the default storage's partitions by default.
+    built = (out / "demo" / "ufs" / "contents.xml").read_bytes()
+    assert built == _expected(tmp_path, out / "demo" / "ufs")
 
 
 def test_built_tree_matches_front_placeholder_template(tmp_path):
@@ -314,25 +334,25 @@ def test_built_tree_matches_front_placeholder_template(tmp_path):
 
 
 def test_contents_paths_location():
-    flavor = {
+    config = {
         "name": "demo",
         "storage": [{"id": "emmc"}, {"id": "spinor"}],
         "contents": {"product-name": "x", "chip": "X"},
     }
-    # Default: the flavor's first storage, even with a second storage's chipid.
-    flavor["contents"]["chipids"] = [{"flavor": "sail_nor", "storage": "spinor", "flash-phase": 2}]
-    assert contents_paths(flavor) == ("demo/emmc/contents.xml", "demo/emmc/partitions.xml")
+    # Default: the first storage, even with a second storage's chipid.
+    config["contents"]["chipids"] = [{"flavor": "sail_nor", "storage": "spinor", "flash-phase": 2}]
+    assert contents_paths(config) == ("emmc/contents.xml", "emmc/partitions.xml")
 
-    flavor["contents"]["location"] = "spinor"
-    assert contents_paths(flavor) == ("demo/spinor/contents.xml", "demo/spinor/partitions.xml")
-    assert default_storage(flavor) == "spinor"
+    config["contents"]["location"] = "spinor"
+    assert contents_paths(config) == ("spinor/contents.xml", "spinor/partitions.xml")
+    assert default_storage(config) == "spinor"
 
-    flavor["contents"]["location"] = "/"
-    assert contents_paths(flavor) == ("demo/contents.xml", "demo/emmc/partitions.xml")
-    assert default_storage(flavor) == "emmc"
+    config["contents"]["location"] = "/"
+    assert contents_paths(config) == ("contents.xml", "emmc/partitions.xml")
+    assert default_storage(config) == "emmc"
 
-    flavor["contents"]["location"] = "nvme"
+    config["contents"]["location"] = "nvme"
     with pytest.raises(ContentsError):
-        contents_paths(flavor)
+        contents_paths(config)
 
     assert contents_paths({"name": "demo", "storage": [{"id": "ufs"}], "contents": None}) is None

@@ -1,17 +1,8 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
-#
-# Single-flavor board on the Monaco eMMC layout; identical to
-# iq-8275-evk's eMMC flavor on a smaller eMMC part.
-platform:
-  name: qcs8275-monza
-
 storage:
   - id: emmc
-    size: 63652757504
+    type: emmc
+    size: 63652757504            # 60704 MiB
     sector-size: 512
     write-protect-boundary: 65536
-    grow-last-partition: true
-
-flavors:
-  - layout: flavors/monaco-emmc.yaml

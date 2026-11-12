@@ -6,8 +6,8 @@
 # deviate). Differs from monaco-ufs only in the rootfs size, overridden
 # in place.
 storage:
-  - id: ufs
-    type: ufs
+  - type: ufs
+    grow-last-partition: true
     luns:
       - lun: 0              # last partition (rootfs) grows
         partitions:

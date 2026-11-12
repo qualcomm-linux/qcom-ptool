@@ -6,8 +6,8 @@
 # the UFS layout. The rootfs and cdt sizes differ from the UFS layout
 # and are overridden in place.
 storage:
-  - id: emmc
-    type: emmc
+  - type: emmc
+    grow-last-partition: true
     phys-parts:
       - phys-part: 0        # last partition (rootfs) grows
         partitions:

@@ -1,0 +1,172 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/qualcomm-linux/qcom-ptool/contents.schema.json",
+    "title": "qcom-ptool contents metadata",
+    "description": "Everything needed to generate a configuration's contents.xml: the product identity, the product flavors, and the ordered entries of the 'common' build. The placeholder entries gen_contents replaces with the partition layout's artifacts are implied.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "product-name",
+        "chip"
+    ],
+    "properties": {
+        "product-name": {
+            "type": "string",
+            "minLength": 1
+        },
+        "hlos-type": {
+            "type": "string"
+        },
+        "chip": {
+            "description": "The chipid text; also the builds' chipset unless 'chipset' overrides it.",
+            "type": "string",
+            "minLength": 1
+        },
+        "chipset": {
+            "type": "string",
+            "minLength": 1
+        },
+        "location": {
+            "description": "Where contents.xml is written: a storage id (that storage's directory; it is also the default chipid's storage and the partitions source) or '/' (the configuration directory, with its first storage as the default). Defaults to the configuration's first storage.",
+            "type": "string",
+            "minLength": 1
+        },
+        "additional-chipids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "string"
+            }
+        },
+        "meta-type": {
+            "type": "string",
+            "default": "FULL_STACK"
+        },
+        "build-type": {
+            "type": "string",
+            "default": "K2L"
+        },
+        "apps-image-dir": {
+            "type": "string",
+            "default": "apps_proc"
+        },
+        "default-components": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "string"
+            }
+        },
+        "product-flavors": {
+            "description": "Product flavors beyond the derived default one.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "name",
+                    "components"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "components": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "chipids": {
+            "description": "Chipids beyond the derived default (flash phase 1) one.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "flavor",
+                    "storage",
+                    "flash-phase"
+                ],
+                "properties": {
+                    "flavor": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "storage": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "flash-phase": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "chip": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            }
+        },
+        "common": {
+            "description": "Ordered entries of the 'common' build: device programmers and literal files.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "minProperties": 1,
+                "maxProperties": 1,
+                "properties": {
+                    "device-programmer": {
+                        "$ref": "#/definitions/contents-file"
+                    },
+                    "download": {
+                        "$ref": "#/definitions/contents-file"
+                    },
+                    "partition": {
+                        "$ref": "#/definitions/contents-file"
+                    },
+                    "patch": {
+                        "$ref": "#/definitions/contents-file"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "contents-file": {
+            "description": "One literal file entry of the 'common' build.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "file"
+            ],
+            "properties": {
+                "file": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "path": {
+                    "type": "string",
+                    "minLength": 1,
+                    "default": "."
+                },
+                "path-flavor": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "attributes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -6,8 +6,8 @@
 # _common/ (which alias the Monaco sets until the families deviate).
 # Matches monaco-emmc with the Lemans partition sets.
 storage:
-  - id: emmc
-    type: emmc
+  - type: emmc
+    grow-last-partition: true
     phys-parts:
       - phys-part: 0        # last partition (rootfs) grows
         partitions:

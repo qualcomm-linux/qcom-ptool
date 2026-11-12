@@ -1,0 +1,12 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/qrb2210-rb1.yaml
+
+contents:
+  product-name: QRB2210.LE.0.0
+  hlos-type: LE
+
+flavors:
+  - flavors/qrb2210-emmc.yaml
+  - flavor: flavors/qrb2210-abl-emmc.yaml
+    name: qrb2210-rb1-abl

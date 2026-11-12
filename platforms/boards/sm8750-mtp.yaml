@@ -1,24 +1,15 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
-#
-# Single-flavor board on the sm8750-mtp per-LUN UFS layout.
-platform:
-  name: sm8750-mtp
-
 storage:
   - id: ufs
-    size: 137438953472
+    type: ufs
+    size: 137438953472           # 128 GiB
     sector-size: 4096
     write-protect-boundary: 0
-    grow-last-partition: true
 
+# SoC part of contents.xml: chip identity and boot-chain firmware.
 contents:
-  product-name: Pakala.LE.0.0
-  hlos-type: LE
   chip: PAKALA
   additional-chipids: [SM8750]
   common:
     - device-programmer: {file: xbl_s_devprg_ns.melf, attributes: {cmm_file_var: "FIREHOSE_DDR_ELF"}}
-
-flavors:
-  - layout: flavors/sm8750-ufs.yaml

@@ -1,12 +1,12 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 """
-Build a contents template tree from a flavor's YAML metadata.
+Build a contents template tree from a configuration's YAML metadata.
 
-A flavor's ``contents:`` block carries everything a contents.xml.in
-template used to: the product identity (product name, chip, chipids,
-additional chipids, hlos/meta/build type), the product flavors, and the
-ordered entries of the ``common`` build - device programmers and literal
+A configuration's ``contents:`` metadata carries everything a
+contents.xml.in template used to: the product identity (product name, chip, chipids, additional
+chipids, hlos/meta/build type), the product flavors, and the ordered
+entries of the ``common`` build - device programmers and literal
 download/partition/patch files.
 
 The placeholder entries that
@@ -158,36 +158,37 @@ def build_contents_root(meta: Mapping[str, Any], storage: str) -> ET.Element:
     return root
 
 
-def default_storage(flavor: Mapping[str, Any]) -> str:
-    """The storage a flavor's contents is built from.
+def default_storage(config: Mapping[str, Any]) -> str:
+    """The storage a configuration's contents is built from.
 
     'location' names it when it is a storage id; otherwise ('/' or unset)
-    it is the flavor's first storage.
+    it is the configuration's first storage.
     """
-    ids = [str(s["id"]) for s in flavor["storage"]]
-    location = (flavor.get("contents") or {}).get("location")
+    ids = [str(s["id"]) for s in config["storage"]]
+    location = (config.get("contents") or {}).get("location")
     if location is None or location == "/":
         return ids[0]
     if location not in ids:
         raise ContentsError(
-            "%s: contents location %r is neither '/' nor one of its storages %s" % (flavor["name"], location, ids)
+            "%s: contents location %r is neither '/' nor one of its storages %s"
+            % (config["name"], location, ids)
         )
     return str(location)
 
 
-def contents_paths(flavor: Mapping[str, Any]) -> tuple[str, str] | None:
-    """One flavor's (contents.xml, partitions.xml) paths under the output tree.
+def contents_paths(config: Mapping[str, Any]) -> tuple[str, str] | None:
+    """A configuration's (contents.xml, partitions.xml) paths.
 
-    contents.xml lands in the default storage's directory, or at the
-    flavor directory with 'location: /'. Returns ``None`` when the flavor
-    defines no contents.
+    Both are relative to the configuration's directory (``<name>/`` for a
+    platform, the output directory itself for a board): contents.xml lands
+    in the default storage's directory, or at the configuration directory
+    with 'location: /'. Returns ``None`` without contents metadata.
     """
-    meta = flavor.get("contents")
+    meta = config.get("contents")
     if not meta:
         return None
-    name = flavor["name"]
-    storage = default_storage(flavor)
-    partitions = "%s/%s/partitions.xml" % (name, storage)
+    storage = default_storage(config)
+    partitions = "%s/partitions.xml" % storage
     if meta.get("location") == "/":
-        return "%s/contents.xml" % name, partitions
-    return "%s/%s/contents.xml" % (name, storage), partitions
+        return "contents.xml", partitions
+    return "%s/contents.xml" % storage, partitions

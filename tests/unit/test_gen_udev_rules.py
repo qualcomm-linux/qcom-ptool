@@ -11,7 +11,7 @@ from qcom_ptool import gen_udev_rules
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-LAYOUT = REPO_ROOT / "platforms" / "boards" / "qcs6490-rb3gen2.yaml"
+LAYOUT = REPO_ROOT / "platforms" / "qcs6490-rb3gen2.yaml"
 
 
 def test_generate_rules_uses_layout_names() -> None:
@@ -23,13 +23,29 @@ def test_generate_rules_uses_layout_names() -> None:
     assert 'ENV{PARTNAME}=="not-in-layout"' not in rules
 
 
-def test_generate_rules_resolves_yaml_boards(tmp_path: Path) -> None:
-    board = tmp_path / "board.yaml"
-    board.write_text(
+def _write_platform(root: Path, name: str, board: str, flavor: str) -> Path:
+    """Write a board, a flavor and the platform pairing them under root."""
+    (root / "boards").mkdir(parents=True, exist_ok=True)
+    (root / "flavors").mkdir(parents=True, exist_ok=True)
+    (root / "boards" / f"{name}.yaml").write_text(board, encoding="utf-8")
+    (root / "flavors" / f"{name}.yaml").write_text(flavor, encoding="utf-8")
+    platform = root / f"{name}.yaml"
+    platform.write_text(
+        f"board: boards/{name}.yaml\nflavors: [flavors/{name}.yaml]\n",
+        encoding="utf-8",
+    )
+    return platform
+
+
+def test_generate_rules_resolves_yaml_platforms(tmp_path: Path) -> None:
+    platform = _write_platform(
+        tmp_path,
+        "demo",
         "storage:\n"
-        "  - id: ufs\n"
-        "    type: ufs\n"
-        "    size: 1024\n"
+        "  - {id: ufs, type: ufs, size: 1024}\n"
+        "  - {id: emmc, type: emmc, size: 1024}\n",
+        "storage:\n"
+        "  - type: ufs\n"
         "    luns:\n"
         "      - lun: 0\n"
         "        partitions:\n"
@@ -42,15 +58,12 @@ def test_generate_rules_resolves_yaml_boards(tmp_path: Path) -> None:
         "        partitions:\n"
         '          - {name: cdt, size: "1KB",\n'
         '             type-guid: "00000000-0000-0000-0000-000000000003"}\n'
-        "  - id: emmc\n"
-        "    type: emmc\n"
-        "    size: 1024\n"
+        "  - type: emmc\n"
         "    partitions:\n"
         '      - {name: raw_second_storage, size: "1KB",\n'
         '         type-guid: "00000000-0000-0000-0000-000000000004"}\n',
-        encoding="utf-8",
     )
-    rules = gen_udev_rules.generate_rules([board])
+    rules = gen_udev_rules.generate_rules([platform])
 
     assert 'ENV{PARTNAME}=="fw"' in rules
     assert 'ENV{PARTNAME}=="cdt"' in rules
@@ -59,11 +72,9 @@ def test_generate_rules_resolves_yaml_boards(tmp_path: Path) -> None:
     assert "last_parti" not in rules
 
 
-def test_discovery_includes_conf_and_yaml_boards(
+def test_discovery_includes_conf_and_yaml_platforms(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    boards = tmp_path / "platforms" / "boards"
-    boards.mkdir(parents=True)
     conf_dir = tmp_path / "platforms" / "legacy" / "ufs"
     conf_dir.mkdir(parents=True)
     (conf_dir / "partitions.conf").write_text(
@@ -71,15 +82,15 @@ def test_discovery_includes_conf_and_yaml_boards(
         "--partition --name=raw_conf --size=1KB --type-guid=1\n",
         encoding="utf-8",
     )
-    (boards / "board.yaml").write_text(
+    _write_platform(
+        tmp_path / "platforms",
+        "demo",
+        "storage:\n  - {id: ufs, type: ufs, size: 1024}\n",
         "storage:\n"
-        "  - id: ufs\n"
-        "    type: ufs\n"
-        "    size: 1024\n"
+        "  - type: ufs\n"
         "    partitions:\n"
         '      - {name: raw_board, size: "1KB",\n'
         '         type-guid: "00000000-0000-0000-0000-000000000001"}\n',
-        encoding="utf-8",
     )
     monkeypatch.chdir(tmp_path)
 
@@ -172,7 +183,7 @@ def test_main_discovers_repo_layouts(tmp_path: Path, monkeypatch: pytest.MonkeyP
     assert gen_udev_rules.main(["-o", str(output)]) == 0
     rules = output.read_text(encoding="utf-8")
     assert 'ENV{PARTNAME}=="xbl_a"' in rules
-    # Defined only in a YAML board file, so discovery must resolve those too.
+    # Defined only in a derived flavor, so discovery must resolve platforms.
     assert 'ENV{PARTNAME}=="rubikpi_con"' in rules
 
 
