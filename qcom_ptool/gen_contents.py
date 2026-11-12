@@ -14,14 +14,16 @@ def usage():
         (
             "\n\tUsage:\n"
             "\t  %s [--name <name>] [-o <outdir>] [-b <build_id>] "
-            "<platform.yaml>\n"
+            "<platform.yaml | board.yaml>\n"
             "\t  %s -t <template> -p <partitions_xml_path> -o <output> "
             "[-b <build_id>]\n"
             "\n\tA platform generates every configuration with contents "
             "metadata to\n"
             "\t<outdir>/<name>/<storage>/contents.xml, or to "
             "<outdir>/<name>/contents.xml\n"
-            "\twith 'location: /'; --name builds one configuration.\n"
+            "\twith 'location: /'; --name builds one configuration. A "
+            "self-contained board\n"
+            "\tgenerates <outdir>/<storage>/contents.xml.\n"
             "\tVersion 0.1\n" % (sys.argv[0], sys.argv[0])
         )
     )
@@ -199,11 +201,12 @@ def generate_from_file(path, name, outdir, build_id):
     """The YAML path: one contents.xml per configuration with contents metadata.
 
     ``path`` is a platform file, whose configurations live in
-    ``<outdir>/<name>/``.
+    ``<outdir>/<name>/``, or a self-contained board, built in ``<outdir>``.
     """
-    from qcom_ptool.board import resolve_platform
+    from qcom_ptool.board import is_platform_file, resolve_file
 
-    configs = resolve_platform(path)
+    configs = resolve_file(path)
+    platform = is_platform_file(path)
     if name is not None:
         configs = [c for c in configs if c["name"] == name]
         if not configs:
@@ -213,7 +216,7 @@ def generate_from_file(path, name, outdir, build_id):
     base = outdir if outdir is not None else "."
     generated = 0
     for config in configs:
-        config_dir = os.path.join(base, config["name"])
+        config_dir = os.path.join(base, config["name"]) if platform else base
         if generate_configuration(config, config_dir, build_id) is not None:
             generated += 1
     if not generated:
@@ -258,7 +261,7 @@ def main(argv=None):
 
         if template is None:
             if len(rem) != 1:
-                print("Error: pass exactly one platform file")
+                print("Error: pass exactly one platform or board file")
                 usage()
             return generate_from_file(rem[0], name, output_xml, build_id)
 

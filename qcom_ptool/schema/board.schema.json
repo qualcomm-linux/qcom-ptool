@@ -2,13 +2,13 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://github.com/qualcomm-linux/qcom-ptool/board.schema.json",
     "title": "qcom-ptool board",
-    "description": "The hardware of one board: its storage devices and their geometry, and the SoC part of the contents metadata. A platform pairs it with the flavors flashed onto it.",
+    "description": "The hardware of one board: its storage devices and their geometry, and the SoC part of the contents metadata. A platform pairs it with the flavors flashed onto it. A board may instead be self-contained: its storages then also carry their partition layout (as a flavor storage does) and its 'contents' is complete, so one file describes a whole configuration, e.g. out of tree.",
     "type": "object",
     "additionalProperties": false,
     "required": ["storage"],
     "properties": {
         "contents": {
-            "description": "The SoC part of the contents metadata (chip, chipset, additional-chipids and the boot-chain firmware 'common' entries), which a platform's contents is laid over.",
+            "description": "The SoC part of the contents metadata (chip, chipset, additional-chipids and the boot-chain firmware 'common' entries), which a platform's contents is laid over; in a self-contained board, complete contents validated against contents.schema.json.",
             "type": "object"
         },
         "storage": {
@@ -31,7 +31,27 @@
                     "size": {"type": "integer", "minimum": 1},
                     "sector-size": {"type": "integer", "minimum": 1},
                     "write-protect-boundary": {"type": "integer", "minimum": 0},
-                    "align-partitions": {"type": "integer", "minimum": 0}
+                    "align-partitions": {"type": "integer", "minimum": 0},
+                    "grow-last-partition": {
+                        "description": "Self-contained boards only; validated as a flavor storage.",
+                        "type": "boolean"
+                    },
+                    "includes": {
+                        "description": "Self-contained boards only; validated as a flavor storage.",
+                        "type": "array"
+                    },
+                    "partitions": {
+                        "description": "Self-contained boards only; validated as a flavor storage.",
+                        "type": "array"
+                    },
+                    "luns": {
+                        "description": "Self-contained boards only; validated as a flavor storage.",
+                        "type": "array"
+                    },
+                    "phys-parts": {
+                        "description": "Self-contained boards only; validated as a flavor storage.",
+                        "type": "array"
+                    }
                 }
             }
         }

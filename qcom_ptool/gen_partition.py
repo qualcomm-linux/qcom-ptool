@@ -45,12 +45,13 @@ def usage() -> NoReturn:
         "[-m name1=image1,name2=image2,...]\n"
         "\t  %s --platform <platform.yaml> "
         "[-C <outdir> | -o <out1> -o <out2> ...]\n"
-        "\t  %s --board <board.yaml> --flavor <flavor.yaml> "
+        "\t  %s --board <board.yaml> [--flavor <flavor.yaml>] "
         "[-C <outdir> | -o <out1> -o <out2> ...]\n"
         "\n\tA platform writes each configuration's storages to "
         "<outdir>/<name>/<storage-id>/;\n"
-        "\ta board with a flavor writes <outdir>/<storage-id>/ "
-        "(default outdir: .).\n"
+        "\ta board with a flavor, or a self-contained board without one, "
+        "writes\n"
+        "\t<outdir>/<storage-id>/ (default outdir: .).\n"
         "\tExplicit -o outputs are taken in the same order.\n"
         "\tVersion 1.0\n" % (sys.argv[0], sys.argv[0], sys.argv[0])
     )
@@ -155,8 +156,8 @@ def main(argv: list[str] | None = None) -> int:
             "or --board <board.yaml>"
         )
         usage()
-    if len(flavor_files) != (1 if board_file is not None else 0):
-        print("Error: --board takes exactly one --flavor, and only it does")
+    if len(flavor_files) > (1 if board_file is not None else 0):
+        print("Error: --board takes at most one --flavor, and only it does")
         usage()
     if outputs and outdir is not None:
         print("Error: pass either -C <outdir> or explicit -o outputs, not both")
@@ -202,7 +203,7 @@ def _run_platform(
             prefix = [c["name"] for c in configs]
         else:
             assert board_file is not None
-            configs = [resolve(board_file, flavor_files[0])]
+            configs = [resolve(board_file, flavor_files[0] if flavor_files else None)]
             prefix = [""]
         specs = [
             (os.path.join(p, sid), sid, spec)

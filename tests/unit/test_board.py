@@ -4,7 +4,7 @@
 Unit tests for the board / flavor / platform resolver (qcom_ptool/board.py).
 
 These pin the composition contract: boards carry hardware (plus the SoC
-part of the contents metadata), flavors
+part of the contents metadata) unless self-contained, flavors
 land on the board storage of their type, a platform lists a board's
 configurations, flavor ``extends``, ``includes`` (with transitivity), LUN groups,
 deep-merge by stable identifier, file-relative references, cycle
@@ -226,7 +226,56 @@ def test_ambiguous_storage_type_is_rejected(tmp_path):
         _resolve(root, "flavors/f.yaml")
 
 
-def test_board_rejects_partitions(tmp_path):
+_SELF_CONTAINED = """
+    storage:
+      - id: nvme0
+        type: nvme
+        size: 68719476736
+        grow-last-partition: true
+        includes: [../_common/boot.yaml]
+        partitions:
+          - {name: efi, size: "4KB", type-guid: "%s"}
+      - id: spinor0
+        type: spinor
+        size: 67108864
+    contents:
+      product-name: Out.LE.0.0
+      chip: OUT
+""" % GUID_A
+
+
+def test_self_contained_board_resolves_without_a_flavor(tmp_path):
+    root = _tree(
+        tmp_path,
+        {
+            "boards/out.yaml": _SELF_CONTAINED,
+            "_common/boot.yaml": """
+                partitions:
+                  - {name: boot, size: "8KB", type-guid: "%s"}
+            """ % GUID_B,
+        },
+    )
+    config = resolve(os.path.join(root, "boards/out.yaml"))
+    assert config["name"] == "out"
+    # Only storages carrying a layout are flashed.
+    assert [s["id"] for s in config["storage"]] == ["nvme0"]
+    assert _names(config["storage"][0]) == ["boot", "efi"]
+    assert config["contents"] == {"product-name": "Out.LE.0.0", "chip": "OUT"}
+
+
+def test_self_contained_board_takes_no_flavor(tmp_path):
+    root = _tree(tmp_path, {"boards/b.yaml": _SELF_CONTAINED, "flavors/f.yaml": _NVME_FLAVOR})
+    with pytest.raises(BoardResolveError, match="takes no flavor"):
+        _resolve(root, "flavors/f.yaml")
+
+
+def test_hardware_board_needs_a_flavor(tmp_path):
+    root = _tree(tmp_path, {})
+    with pytest.raises(BoardResolveError, match="no storage carries partitions"):
+        resolve(os.path.join(root, "boards/b.yaml"))
+
+
+def test_self_contained_board_layout_is_validated(tmp_path):
     root = _tree(
         tmp_path,
         {
@@ -236,13 +285,12 @@ def test_board_rejects_partitions(tmp_path):
                     type: nvme
                     size: 68719476736
                     partitions:
-                      - {name: efi, size: "4KB", type-guid: "%s"}
+                      - {name: efi, size: "4 KB", type-guid: "%s"}
             """ % GUID_A,
-            "flavors/f.yaml": _NVME_FLAVOR,
         },
     )
-    with pytest.raises(BoardResolveError, match="schema validation failed"):
-        _resolve(root, "flavors/f.yaml")
+    with pytest.raises(BoardResolveError, match="invalid layout"):
+        resolve(os.path.join(root, "boards/b.yaml"))
 
 
 def _contents_tree(tmp_path, board_contents: str, platform_contents: str) -> str:

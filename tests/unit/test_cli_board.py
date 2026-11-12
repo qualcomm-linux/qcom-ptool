@@ -121,14 +121,32 @@ def test_requires_exactly_one_source(tmp_path):
         )
 
 
-@pytest.mark.parametrize(
-    "flavors", [[], ["flavors/demo.yaml", "flavors/demo-nor.yaml"]]
-)
-def test_board_takes_exactly_one_flavor(tmp_path, flavors):
+def test_board_takes_at_most_one_flavor(tmp_path):
     root = _tree(tmp_path)
-    args = [a for f in flavors for a in ("--flavor", root + "/" + f)]
+    args = ["--flavor", root + "/flavors/demo.yaml", "--flavor", root + "/flavors/demo-nor.yaml"]
     with pytest.raises(SystemExit):
         gen_partition.main(["gen_partition", "--board", root + "/boards/demo.yaml", *args])
+
+
+def test_self_contained_board_matches_the_platform(tmp_path):
+    """One file holding the board and its layout emits what the platform does."""
+    root = _tree(tmp_path)
+    board = tmp_path / "out-of-tree.yaml"
+    board.write_text(
+        textwrap.dedent(_FILES["boards/demo.yaml"]).replace(
+            "write-protect-boundary: 65536\n",
+            "write-protect-boundary: 65536\n"
+            "    grow-last-partition: true\n"
+            "    partitions:\n"
+            '      - {name: efi, size: "524288KB", type-guid: "%s", filename: efi.bin}\n'
+            % GUID_A,
+        )
+    )
+    assert gen_partition.main(["gen_partition", "--platform", root + "/demo.yaml", "-C", str(tmp_path / "p")]) == 0
+    assert gen_partition.main(["gen_partition", "--board", str(board), "-C", str(tmp_path / "b")]) == 0
+    assert sorted(p.name for p in (tmp_path / "b").iterdir()) == ["nvme0"]
+    expected = (tmp_path / "p" / "demo" / "nvme0" / "partitions.xml").read_bytes()
+    assert (tmp_path / "b" / "nvme0" / "partitions.xml").read_bytes() == expected
 
 
 def test_legacy_single_storage_still_works(tmp_path):
@@ -203,6 +221,27 @@ def test_show_contents_lists_contents_outputs(tmp_path, capsys):
         "demo:demo/spinor0/contents.xml^demo/spinor0/partitions.xml"
         ":demo-nor/contents.xml^demo-nor/spinor0/partitions.xml\n"
     )
+
+
+def test_show_self_contained_board(tmp_path, capsys):
+    board = tmp_path / "board.yaml"
+    board.write_text(
+        textwrap.dedent(
+            """
+            storage:
+              - id: emmc
+                type: emmc
+                size: 1073741824
+                partitions:
+                  - {name: efi, size: "4KB", type-guid: "%s"}
+            contents: {product-name: Out.LE.0.0, chip: OUT}
+            """
+            % GUID_A
+        )
+    )
+    assert show.main(["show", "--board", str(board)]) == 0
+    out = capsys.readouterr().out
+    assert "name: board" in out and "name: efi" in out and "chip: OUT" in out
 
 
 def test_show_requires_a_source():

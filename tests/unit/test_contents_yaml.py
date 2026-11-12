@@ -252,6 +252,24 @@ def test_platform_pipeline_matches_template_pipeline(tmp_path):
     assert built == _expected(tmp_path, out / "demo" / "ufs")
 
 
+def test_self_contained_board_pipeline_matches_template_pipeline(tmp_path):
+    """An out-of-tree board: layout and complete contents in one file."""
+    board = _write(
+        tmp_path,
+        "board.yaml",
+        "storage:%s    grow-last-partition: true\n"
+        "    partitions:\n"
+        '      - {name: efi, size: "1KB", type-guid: "%s", filename: efi.bin}\n'
+        "contents: %r\n" % (_UFS, GUID_A, _META),
+    )
+    out = tmp_path / "out"
+    _write(tmp_path, "out/ufs/partitions.xml", _PARTITIONS_XML)
+
+    assert gen_contents.generate_from_file(str(board), None, str(out), "") == 0
+    built = (out / "ufs" / "contents.xml").read_bytes()
+    assert built == _expected(tmp_path, out / "ufs")
+
+
 def test_built_tree_matches_front_placeholder_template(tmp_path):
     """Tree-level equivalence for the canonical placeholder position."""
     meta = {
