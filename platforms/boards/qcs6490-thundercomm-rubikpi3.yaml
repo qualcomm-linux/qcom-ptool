@@ -1,0 +1,35 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Single-flavor board on the Kodiak per-LUN UFS layout, plus the
+# board-only LUN 6 partitions as an in-place override.
+platform:
+  name: qcs6490-thundercomm-rubikpi3
+
+storage:
+  - id: ufs
+    size: 137438953472
+    sector-size: 4096
+    write-protect-boundary: 0
+    grow-last-partition: true
+
+contents:
+  product-name: QCM6490.LE.0.0
+  hlos-type: LE
+  chip: QCM6490
+  additional-chipids: [SM7325, QCS6490]
+  common:
+    - device-programmer: {file: prog_firehose_ddr.elf}
+    - device-programmer: {file: prog_firehose_lite.elf, attributes: {firehose_type: "lite"}}
+
+flavors:
+  - layout: flavors/kodiak-ufs.yaml
+    storage:
+      - id: ufs
+        luns:
+          - lun: 6
+            grow: false
+            partitions:
+              - {name: rubikpi_con, size: "8192KB", type-guid: "BC5955E1-B79F-426A-B20F-6F735CF43411", filename: rubikpi_config.img}
+              - {name: devcfg_full, size: "204800KB", type-guid: "29EF4121-8B11-4B2C-ABE5-0557F11B9D57", filename: devcfg_full.img}
+              - {name: dtb_con, size: "69632KB", type-guid: "2E59C2B6-288C-4C4C-9491-9265FD929D94", filename: rubikpi_dtso.img}

@@ -6,6 +6,29 @@
 platform:
   name: glymur-crd
 
+# The qcom_server product flavor flashes the prebuilt server image from
+# the parent directory onto NVMe in a second flash phase.
+contents:
+  product-name: Glymur.LE.0.0
+  hlos-type: LE
+  chip: GLYMUR
+  location: spinor
+  additional-chipids: [SC8480XP]
+  default-components: [common]
+  product-flavors:
+    - {name: qcom_server, components: [apps, common]}
+  chipids:
+    - {flavor: qcom_server, storage: NVME, flash-phase: 2}
+  apps-image-dir: build
+  common:
+    - device-programmer: {file: xbl_s_devprg_ns.melf}
+    - download: {file: efi.bin, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", fastboot_complete: "efi"}}
+    - download: {file: rootfs.img, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", fastboot_complete: "rootfs"}}
+    - download: {file: gpt_main0.bin, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
+    - download: {file: gpt_backup0.bin, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
+    - partition: {file: rawprogram0.xml, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
+    - patch: {file: patch0.xml, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
+
 storage:
   - id: nvme
     type: nvme

@@ -1,0 +1,12 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Talos-family eMMC layout: the shared user area (phys-part 0). A board
+# carrying a cdt boot area (phys-part 1) adds it as an in-place override.
+storage:
+  - id: emmc
+    type: emmc
+    phys-parts:
+      - phys-part: 0        # last partition (rootfs) grows
+        partitions:
+          - include: _common/talos-emmc.yaml

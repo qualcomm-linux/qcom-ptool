@@ -1,0 +1,54 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# One physical board, two alternative boot-storage flavors on the
+# Monaco layouts. The board contributes the storage geometry.
+platform:
+  name: iq-8275-evk
+
+storage:
+  - id: ufs
+    size: 76841669632
+    sector-size: 4096
+    write-protect-boundary: 0
+    grow-last-partition: true
+  - id: emmc
+    size: 76841669632
+    sector-size: 512
+    write-protect-boundary: 65536
+    grow-last-partition: true
+
+# The default (UFS) image also flashes the prebuilt SAIL firmware from
+# ./sail_nor onto SPI-NOR in a second flash phase; the eMMC flavor
+# overrides with its own plain contents.
+contents:
+  product-name: QCS8300.LE.0.0
+  hlos-type: LE
+  chip: QCS8300
+  additional-chipids: [QCS8275]
+  product-flavors:
+    - {name: sail_nor, components: [common]}
+  chipids:
+    - {flavor: sail_nor, storage: spinor, flash-phase: 2}
+  common:
+    - device-programmer: {file: prog_firehose_ddr.elf}
+    - device-programmer: {file: prog_firehose_lite.elf, attributes: {firehose_type: "lite"}}
+    - download: {file: sailhyp.elf, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "SAIL_HYP"}}
+    - download: {file: sailsw1.elf, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "SAIL_SW1"}}
+    - download: {file: gpt_main0.bin, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - download: {file: gpt_backup0.bin, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - partition: {file: rawprogram0.xml, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - patch: {file: patch0.xml, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+
+flavors:
+  - layout: flavors/monaco-ufs.yaml
+  - layout: flavors/monaco-emmc.yaml
+    name: iq-8275-evk-emmc
+    contents:
+      product-name: QCS8300.LE.0.0
+      hlos-type: LE
+      chip: QCS8300
+      additional-chipids: [QCS8275]
+      common:
+        - device-programmer: {file: prog_firehose_ddr.elf}
+        - device-programmer: {file: prog_firehose_lite.elf, attributes: {firehose_type: "lite"}}

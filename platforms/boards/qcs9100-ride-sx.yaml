@@ -1,0 +1,38 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Single-flavor board on the Lemans per-LUN UFS layout; identical to
+# iq-9075-evk's UFS flavor.
+platform:
+  name: qcs9100-ride-sx
+
+storage:
+  - id: ufs
+    size: 76841669632
+    sector-size: 4096
+    write-protect-boundary: 0
+    grow-last-partition: true
+
+# The image also flashes the prebuilt SAIL firmware from ./sail_nor
+# onto SPI-NOR in a second flash phase.
+contents:
+  product-name: QCS9100.LE.0.0
+  hlos-type: LE
+  chip: QCS9100
+  additional-chipids: [SA8775P, QCS9075]
+  product-flavors:
+    - {name: sail_nor, components: [common]}
+  chipids:
+    - {flavor: sail_nor, storage: spinor, flash-phase: 2}
+  common:
+    - device-programmer: {file: prog_firehose_ddr.elf}
+    - device-programmer: {file: prog_firehose_lite.elf, attributes: {firehose_type: "lite"}}
+    - download: {file: sailhyp.elf, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "SAIL_HYP"}}
+    - download: {file: sailsw1.elf, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "SAIL_SW1"}}
+    - download: {file: gpt_main0.bin, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - download: {file: gpt_backup0.bin, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - partition: {file: rawprogram0.xml, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - patch: {file: patch0.xml, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+
+flavors:
+  - layout: flavors/lemans-ufs.yaml

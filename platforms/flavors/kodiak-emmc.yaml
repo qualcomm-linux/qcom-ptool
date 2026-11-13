@@ -1,0 +1,25 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Kodiak-family eMMC layout: user area (phys-part 0) plus the cdt boot
+# area (phys-part 1), composed from the same shared partition sets as
+# the UFS layout. The rootfs and cdt sizes differ from the UFS layout
+# and are overridden in place.
+storage:
+  - id: emmc
+    type: emmc
+    phys-parts:
+      - phys-part: 0        # last partition (rootfs) grows
+        partitions:
+          - include: _common/kodiak-xbl.yaml
+          - include: _common/kodiak-ddr.yaml
+          - include: _common/kodiak-firmware.yaml
+          - include: _common/kodiak-modem.yaml
+          - include: _common/kodiak-persist.yaml
+          - include: _common/kodiak-hlos.yaml
+          - {name: rootfs, size: "10485760KB"}
+      - phys-part: 1
+        grow: false
+        partitions:
+          - include: _common/kodiak-cdt.yaml
+          - {name: cdt, size: "4KB"}

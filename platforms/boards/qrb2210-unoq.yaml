@@ -1,15 +1,39 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# Uses the shared qrb2210 eMMC layout from _common/qrb2210-emmc.yaml.
+# One physical board, four flavors on the shared qrb2210 eMMC layouts:
+# edk2 (default) and pre-edk2 ABL boot firmware, each also as an
+# Arduino SKU that appends a userdata partition in place.
 platform:
   name: qrb2210-unoq
 
 storage:
   - id: emmc
-    type: emmc
     size: 76841669632
     sector-size: 512
     write-protect-boundary: 65536
     grow-last-partition: true
-    includes: [_common/qrb2210-emmc.yaml]
+
+contents:
+  product-name: QRB2210.LE.0.0
+  chip: QRB2210
+  common:
+    - device-programmer: {file: prog_firehose_ddr.elf}
+    - device-programmer: {file: prog_firehose_lite.elf, attributes: {firehose_type: "lite"}}
+
+flavors:
+  - layout: flavors/qrb2210-emmc.yaml
+  - layout: flavors/qrb2210-abl-emmc.yaml
+    name: qrb2210-unoq-abl
+  - layout: flavors/qrb2210-emmc.yaml
+    name: qrb2210-unoq-arduino
+    storage:
+      - id: emmc
+        partitions:
+          - {name: userdata, size: "2145728KB", type-guid: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE", filename: userdata.img}
+  - layout: flavors/qrb2210-abl-emmc.yaml
+    name: qrb2210-unoq-abl-arduino
+    storage:
+      - id: emmc
+        partitions:
+          - {name: userdata, size: "2145728KB", type-guid: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE", filename: userdata.img}

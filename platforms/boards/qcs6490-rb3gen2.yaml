@@ -1,0 +1,26 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Single-flavor board on the Kodiak per-LUN UFS layout; identical to
+# qcm6490-idp's UFS flavor.
+platform:
+  name: qcs6490-rb3gen2
+
+storage:
+  - id: ufs
+    size: 137438953472
+    sector-size: 4096
+    write-protect-boundary: 0
+    grow-last-partition: true
+
+contents:
+  product-name: QCM6490.LE.0.0
+  hlos-type: LE
+  chip: QCM6490
+  additional-chipids: [SM7325, QCS6490]
+  common:
+    - device-programmer: {file: prog_firehose_ddr.elf}
+    - device-programmer: {file: prog_firehose_lite.elf, attributes: {firehose_type: "lite"}}
+
+flavors:
+  - layout: flavors/kodiak-ufs.yaml

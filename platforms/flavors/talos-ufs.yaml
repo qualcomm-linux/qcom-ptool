@@ -1,0 +1,32 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Talos-family (qcs615) per-LUN UFS layout, composed from the shared
+# partition sets under _common/. The XBL set populates both boot LUNs.
+storage:
+  - id: ufs
+    type: ufs
+    luns:
+      - lun: 0              # last partition (rootfs) grows
+        partitions:
+          - include: _common/talos-hlos.yaml
+      - lun: 1
+        grow: false
+        partitions:
+          - include: _common/talos-xbl.yaml
+      - lun: 2
+        grow: false
+        partitions:
+          - include: _common/talos-xbl.yaml
+      - lun: 3
+        grow: false
+        partitions:
+          - include: _common/talos-cdt.yaml
+      - lun: 4
+        grow: false
+        partitions:
+          - include: _common/talos-firmware.yaml
+      - lun: 5
+        grow: false
+        partitions:
+          - include: _common/talos-persist.yaml
