@@ -1,38 +1,50 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 """
-Multi-storage board model and composition resolver.
+Board / flavor / platform model and its composition resolver.
 
-A board file declares a ``platform`` and a list of ``storage`` devices, each
-with its own partitions. Three composition mechanisms layer on top:
+Three kinds of file describe flashable configurations:
 
-* board-level ``extends:`` - inherit a single base board and override by
-  stable identifier (storage ``id``, partition ``name``);
-* ``luns:`` / ``phys-parts:`` groups - group a storage's partitions by LUN
-  (UFS) or physical partition (eMMC) instead of placing each entry
-  individually; ``grow: false`` appends the zero-GUID ``last_parti``
-  absorber so the group's partitions keep their declared sizes when the
-  storage grows its last partition;
-* ``include:`` directives - splice shared partition fragments from
-  ``_common/`` into a partition list, in place between inline partitions
-  or via the storage-level ``includes:`` prefix list;
-* variant overlays (``--hlos`` / ``--boot-fw``) - applied last, merged by the
-  same identifiers.
+* a **board** describes hardware: its storage devices (``id``, ``type``
+  and geometry), no partitions, and the SoC part of the contents
+  metadata (chip identity and boot-chain firmware);
+* a **flavor** is a board-agnostic partition layout, keyed by storage
+  ``type`` (e.g. a UFS layout with its LUNs). A flavor may ``extends:`` a
+  single base flavor and add or override partitions;
+* a **platform** lists the configurations of one board: each flavor
+  entry is one, built into ``<name>/<storage-id>/``. It also carries the
+  HLOS and flashing part of the contents metadata, including where
+  contents.xml is written (``location``); an entry may replace it. The
+  configuration's contents is the board's with the platform's laid over
+  it: keys override, ``common`` entries are appended.
 
-Groups are flattened into the plain ``partitions:`` list as each document
-is read, so every merge below operates on flat lists keyed by
-``(lun, name)`` regardless of which form a file uses.
+Each flavor storage lands on the board storage of the same type, which
+contributes the geometry and the ``id``. A platform is only a shortcut:
+``resolve(board, flavor)`` composes the same configuration from explicit
+paths.
 
-Resolution order is: base board -> derived board -> storage includes ->
-variant overlays. Merges are deep and field-by-field; entries are matched by
-``id`` (storage) or ``name`` (partition), and anything unmatched is appended
-in file order. There is no partition deletion in v1.
+A board may instead be **self-contained**: its storages carry their own
+partition layout (the keys a flavor storage has) and its ``contents:``
+may be complete, so a single file describes one whole configuration,
+e.g. an out-of-tree board. ``resolve(board)`` composes it without a
+flavor.
 
-The resolver operates on raw YAML dicts. Each fully-resolved storage is then
-validated against the strict single-storage ``partitions.schema.json`` and
-reduced to a :class:`qcom_ptool.spec.LoadedSpec` through the very same
-normalisation helpers the YAML loader uses, so a resolved board emits XML
-byte-identical to an equivalent hand-written single-storage file.
+Inside a flavor, partitions may be grouped by LUN (``luns:``, UFS) or by
+physical partition (``phys-parts:``, eMMC); ``grow: false`` on a group
+appends the zero-GUID ``last_parti`` absorber so the group keeps its
+declared sizes when the storage grows its last partition. Shared
+fragments are spliced in through ``includes:`` / in-place ``include:``
+directives. Groups are flattened into the plain ``partitions:`` list as
+each document is read, so every merge operates on flat lists keyed by
+``(lun, name)``; merges are deep and field-by-field, unmatched entries
+are appended in file order and nothing is ever deleted.
+
+Every reference (``board``, ``flavor(s)``, ``extends``, ``include(s)``)
+is relative to the file that makes it, or else to the first include
+directory that has it; ``contents:`` holds none. Each
+fully-resolved storage is validated against the strict single-storage ``partitions.schema.json``
+and reduced to a :class:`qcom_ptool.spec.LoadedSpec` through the same
+helpers the YAML loader uses, so it emits byte-identical XML.
 """
 
 from __future__ import annotations
@@ -52,8 +64,8 @@ from qcom_ptool.spec import LoadedSpec, PartitionsByLun
 
 _SCHEMA_PACKAGE = "qcom_ptool.schema"
 
-# Storage keys that describe the disk geometry (everything except id / includes
-# / partitions). Used to reduce a resolved storage into the single-storage
+# Storage keys that describe the disk (everything except id / includes /
+# partitions). Used to reduce a resolved storage into the single-storage
 # document shape that partitions.schema.json validates.
 _DISK_KEYS = (
     "type",
@@ -64,24 +76,28 @@ _DISK_KEYS = (
     "align-partitions",
 )
 
+# Keys holding references to other files, resolved relative to the file
+# that makes them.
+_REF_KEYS = ("board", "flavor", "extends", "include")
+_REF_LIST_KEYS = ("flavors", "includes")
+
+# Storage keys that describe a partition layout: a flavor storage's keys,
+# which a self-contained board storage may carry as well.
+_LAYOUT_KEYS = ("grow-last-partition", "includes", "partitions", "luns", "phys-parts")
+
+# Contents keys a board (that is not self-contained) may carry: the SoC
+# identity and the boot-chain firmware entries.
+_SOC_CONTENTS_KEYS = ("chip", "chipset", "additional-chipids", "common")
+
 
 class BoardResolveError(ValueError):
-    """Raised when a board file cannot be loaded, composed or validated."""
+    """Raised when a board, flavor or platform cannot be loaded or composed."""
 
 
-class ResolvedBoard(TypedDict):
-    """A board with every extends/includes/variant applied."""
-
-    platform: dict[str, Any]
-    storage: list[dict[str, Any]]
-
-
-class ResolvedFlavor(TypedDict):
-    """One flashable configuration of a board, fully resolved."""
+class Configuration(TypedDict):
+    """One flashable configuration: one entry per flashed storage."""
 
     name: str
-    layout: str | None
-    platform: dict[str, Any]
     storage: list[dict[str, Any]]
     contents: dict[str, Any] | None
 
@@ -97,40 +113,43 @@ def _load_schema(name: str) -> dict[str, Any]:
     return schema
 
 
-def _canonicalize_refs(node: Any, base_dir: str, root: str) -> None:
-    """Rewrite include / layout / extends references to root-relative form.
+def _absolutize_refs(node: Any, base_dir: str, include_dirs: Sequence[str]) -> None:
+    """Rewrite every file reference in ``node`` to an absolute path.
 
-    A reference that resolves relative to its own file's directory wins over
-    the platforms root, so a layout under ``platforms/flavors/`` can say
-    ``_common/x.yaml`` and a fragment can name a sibling directly. Everything
-    downstream keeps operating on root-relative paths.
+    A reference resolves against ``base_dir`` (its file's directory), or
+    else against the first of ``include_dirs`` that has it.
     """
 
-    def canon(ref: str) -> str:
-        local = os.path.join(base_dir, ref)
-        if os.path.isfile(local):
-            return os.path.relpath(local, root)
-        return ref
+    def resolve(ref: str) -> str:
+        local = os.path.normpath(os.path.join(base_dir, ref))
+        if not os.path.exists(local):
+            for directory in include_dirs:
+                candidate = os.path.join(directory, ref)
+                if os.path.exists(candidate):
+                    return os.path.normpath(os.path.abspath(candidate))
+        return local
 
     if isinstance(node, dict):
         for key, value in node.items():
-            if key in ("include", "layout", "extends") and isinstance(value, str):
-                node[key] = canon(value)
-            elif key == "includes" and isinstance(value, list):
-                node[key] = [canon(i) if isinstance(i, str) else i for i in value]
+            if key == "contents":
+                # Metadata, not references: e.g. a chipid's 'flavor' names
+                # a product flavor, not a file.
+                continue
+            if key in _REF_KEYS and isinstance(value, str):
+                node[key] = resolve(value)
+            elif key in _REF_LIST_KEYS and isinstance(value, list):
+                node[key] = [resolve(i) if isinstance(i, str) else i for i in value]
+                _absolutize_refs(node[key], base_dir, include_dirs)
             else:
-                _canonicalize_refs(value, base_dir, root)
+                _absolutize_refs(value, base_dir, include_dirs)
     elif isinstance(node, list):
         for item in node:
-            _canonicalize_refs(item, base_dir, root)
+            _absolutize_refs(item, base_dir, include_dirs)
 
 
-def _read_mapping(path: str, schema: str, root: str | None = None) -> dict[str, Any]:
-    """Load ``path`` as YAML, validate against ``schema`` and return a copy.
-
-    With ``root``, references in the document are canonicalized to
-    root-relative form, resolving against the document's own directory first.
-    """
+def _read_mapping(path: str, schema: str, include_dirs: Sequence[str] = ()) -> dict[str, Any]:
+    """Load ``path`` as YAML, validate it against ``schema`` and return a copy
+    with every file reference made absolute."""
     try:
         with open(path) as f:
             document = yaml.safe_load(f)
@@ -145,8 +164,7 @@ def _read_mapping(path: str, schema: str, root: str | None = None) -> dict[str, 
     except jsonschema.exceptions.ValidationError as exc:
         raise BoardResolveError("%s: schema validation failed: %s" % (path, exc.message)) from exc
     result = copy.deepcopy(dict(document))
-    if root is not None:
-        _canonicalize_refs(result, os.path.dirname(os.path.abspath(path)), root)
+    _absolutize_refs(result, os.path.dirname(os.path.abspath(path)), include_dirs)
     return result
 
 
@@ -180,10 +198,8 @@ def _merge_partitions(base: list[dict[str, Any]], overlay: Sequence[Mapping[str,
 
 
 def _merge_storage(base: dict[str, Any], overlay: Mapping[str, Any]) -> None:
-    """Merge one storage ``overlay`` into ``base`` (matched by id upstream)."""
+    """Merge one flavor storage ``overlay`` into ``base`` (matched upstream)."""
     for key, value in overlay.items():
-        if key == "id":
-            continue
         if key == "partitions":
             base.setdefault("partitions", [])
             _merge_partitions(base["partitions"], value)
@@ -194,21 +210,6 @@ def _merge_storage(base: dict[str, Any], overlay: Mapping[str, Any]) -> None:
                     merged.append(inc)
         else:
             base[key] = copy.deepcopy(value)
-
-
-def _merge_storage_list(base: list[dict[str, Any]], overlay: Sequence[Mapping[str, Any]]) -> None:
-    """Merge ``overlay`` storage entries into ``base`` by ``id``."""
-    index = {s["id"]: s for s in base if "id" in s}
-    for entry in overlay:
-        sid = entry.get("id")
-        target = index.get(sid)
-        if target is not None:
-            _merge_storage(target, entry)
-        else:
-            new_entry = copy.deepcopy(dict(entry))
-            base.append(new_entry)
-            if sid is not None:
-                index[sid] = new_entry
 
 
 # ---------------------------------------------------------------------------
@@ -241,7 +242,7 @@ def _normalize_luns(document: dict[str, Any]) -> None:
         if len(present) > 1:
             raise BoardResolveError(
                 "storage %r: %s are mutually exclusive"
-                % (storage.get("id", "?"), " and ".join("'%s'" % k for k in present))
+                % (storage.get("type", "?"), " and ".join("'%s'" % k for k in present))
             )
         groups = storage.pop("luns", None) or storage.pop("phys-parts", None)
         if groups is None:
@@ -260,54 +261,66 @@ def _normalize_luns(document: dict[str, Any]) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Board-level extends
+# Flavors
 # ---------------------------------------------------------------------------
 
 
-def _load_board_with_extends(path: str, root: str, chain: tuple[str, ...]) -> dict[str, Any]:
-    """Load a board file and fold its single base (if any) underneath it."""
+def _load_flavor(
+    path: str, include_dirs: Sequence[str], chain: tuple[str, ...] = ()
+) -> dict[str, Any]:
+    """Load a flavor and fold its single base (if any) underneath it.
+
+    Storages merge by ``type``; partitions by ``(lun, name)``.
+    """
     real = os.path.realpath(path)
     if real in chain:
         raise BoardResolveError("extends cycle detected at %s" % path)
-    board = _read_mapping(path, "board.schema.json", root=root)
-    _normalize_luns(board)
-    base_ref = board.pop("extends", None)
+    flavor = _read_mapping(path, "flavor.schema.json", include_dirs)
+    _normalize_luns(flavor)
+    types = [s["type"] for s in flavor["storage"]]
+    if len(types) != len(set(types)):
+        raise BoardResolveError("%s: a storage type appears more than once" % path)
+    base_ref = flavor.pop("extends", None)
     if base_ref is None:
-        return board
-    base_path = os.path.join(root, base_ref)
-    base = _load_board_with_extends(base_path, root, (*chain, real))
-    _merge_storage_list(base.setdefault("storage", []), board.get("storage", []))
-    if "platform" in board:
-        base["platform"] = board["platform"]
+        return flavor
+    base = _load_flavor(base_ref, include_dirs, (*chain, real))
+    index = {s["type"]: s for s in base["storage"]}
+    for storage in flavor["storage"]:
+        target = index.get(storage["type"])
+        if target is None:
+            base["storage"].append(storage)
+        else:
+            _merge_storage(target, storage)
     return base
 
 
 # ---------------------------------------------------------------------------
-# Storage-level includes
+# Includes
 # ---------------------------------------------------------------------------
 
 
-def _fragment_partitions(path: str, root: str, chain: tuple[str, ...]) -> list[dict[str, Any]]:
-    """Resolve a ``_common/`` fragment (transitively) into a partition list."""
+def _fragment_partitions(
+    path: str, include_dirs: Sequence[str], chain: tuple[str, ...]
+) -> list[dict[str, Any]]:
+    """Resolve a shared fragment (transitively) into a partition list."""
     real = os.path.realpath(path)
     if real in chain:
         raise BoardResolveError("includes cycle detected at %s" % path)
-    fragment = _read_mapping(path, "include.schema.json", root=root)
+    fragment = _read_mapping(path, "include.schema.json", include_dirs)
     partitions: list[dict[str, Any]] = []
     for inc in fragment.get("includes", []):
-        inc_parts = _fragment_partitions(os.path.join(root, inc), root, (*chain, real))
-        _merge_partitions(partitions, inc_parts)
+        _merge_partitions(partitions, _fragment_partitions(inc, include_dirs, (*chain, real)))
     _merge_partitions(partitions, fragment.get("partitions", []))
     return partitions
 
 
-def _expand_includes(storage: dict[str, Any], root: str) -> None:
+def _expand_includes(storage: dict[str, Any], include_dirs: Sequence[str]) -> None:
     """Replace a storage's ``includes:`` + ``partitions:`` with one flat list.
 
     ``partitions:`` items are walked in order; an ``include:`` directive is
     expanded in place, so fragments and inline partitions interleave freely
     and the list order is the layout order. A ``lun`` / ``phys-part``
-    stamped on a directive by LUN-group flattening is forwarded to every
+    stamped on a directive by group flattening is forwarded to every
     fragment entry that does not place itself, so one lun-less fragment can
     serve several storages (or several LUNs of one storage). The
     storage-level ``includes:`` list is sugar for directives ahead of
@@ -325,7 +338,7 @@ def _expand_includes(storage: dict[str, Any], root: str) -> None:
         if item in seen:
             continue
         seen.append(item)
-        parts = _fragment_partitions(os.path.join(root, item["include"]), root, ())
+        parts = _fragment_partitions(item["include"], include_dirs, ())
         placement = {k: item[k] for k in ("lun", "phys-part") if k in item}
         if placement:
             for part in parts:
@@ -338,10 +351,6 @@ def _expand_includes(storage: dict[str, Any], root: str) -> None:
 # ---------------------------------------------------------------------------
 # Public resolution
 # ---------------------------------------------------------------------------
-
-
-def _variant_path(root: str, axis: str, name: str) -> str:
-    return os.path.join(root, "variants", axis, name + ".yaml")
 
 
 def _validate_resolved_storage(storage: Mapping[str, Any]) -> None:
@@ -357,148 +366,189 @@ def _validate_resolved_storage(storage: Mapping[str, Any]) -> None:
         ) from exc
 
 
-def _default_root(path: str) -> str:
-    parent = os.path.dirname(os.path.abspath(path))
-    return os.path.dirname(parent) if os.path.basename(parent) == "boards" else parent
+def _validate_contents(meta: Any, where: str) -> dict[str, Any] | None:
+    """Validate one complete ``contents:`` block against contents.schema.json."""
+    if meta is None:
+        return None
+    try:
+        jsonschema.validate(meta, _load_schema("contents.schema.json"))
+    except jsonschema.exceptions.ValidationError as exc:
+        raise BoardResolveError("%s: invalid contents: %s" % (where, exc.message)) from exc
+    return dict(meta)
 
 
-def _apply_variants_and_validate(
-    storages: list[dict[str, Any]],
-    root: str,
-    hlos: str | None,
-    boot_fw: str | None,
-) -> None:
-    """Apply variant overlays, then strictly validate every storage."""
-    for axis, name in (("hlos", hlos), ("boot-fw", boot_fw)):
-        if name is None:
-            continue
-        overlay = _read_mapping(_variant_path(root, axis, name), "board.schema.json", root=root)
-        _normalize_luns(overlay)
-        _merge_storage_list(storages, overlay.get("storage", []))
-
-    for storage in storages:
-        _validate_resolved_storage(storage)
-
-
-def resolve_board(
-    path: str,
-    root: str | None = None,
-    hlos: str | None = None,
-    boot_fw: str | None = None,
-) -> ResolvedBoard:
-    """Resolve ``path`` into a fully-composed :class:`ResolvedBoard`.
-
-    ``root`` is the platforms directory that ``extends:`` / ``includes:`` paths
-    and variant names resolve against; it defaults to the parent of the board
-    file's directory when that directory is ``boards/``, else the board file's
-    own directory.
-    """
-    if root is None:
-        root = _default_root(path)
-
-    board = _load_board_with_extends(path, root, ())
-    if board.get("flavors"):
-        raise BoardResolveError(
-            "%s: board defines flavors; resolve with resolve_board_flavors" % path
-        )
-    storages = board.get("storage", [])
-    if not storages:
-        raise BoardResolveError("%s: board declares no storage" % path)
-
-    for storage in storages:
-        _expand_includes(storage, root)
-
-    _apply_variants_and_validate(storages, root, hlos, boot_fw)
-
-    return {"platform": board.get("platform", {}), "storage": storages}
-
-
-def resolve_board_flavors(
-    path: str,
-    root: str | None = None,
-    hlos: str | None = None,
-    boot_fw: str | None = None,
-) -> list[ResolvedFlavor]:
-    """Resolve ``path`` into its flashable flavors.
-
-    A board without ``flavors:`` is a single flavor: its own storage list,
-    named after the board file. A board with ``flavors:`` resolves each entry
-    by loading the referenced layout (a complete flashable configuration under
-    ``platforms/flavors/``), merging the board-level storage geometry into the
-    layout's storages (matched by ``id``, only for storages the flavor
-    declares), then merging the flavor's own in-place overrides on top -
-    the same deep-merge the other composition mechanisms use. A flavor may
-    instead define its storage entirely inline (no ``layout``), so a layout
-    only one board uses never has to leave the board file. A flavor's
-    ``name`` is the output directory under platforms/ and defaults to the
-    board file's name, so a board's flavors may share it only when their
-    storage ids do not collide.
-    """
-    if root is None:
-        root = _default_root(path)
-    default_name = os.path.splitext(os.path.basename(path))[0]
-
-    board = _load_board_with_extends(path, root, ())
-    platform = board.get("platform", {})
-    flavors = board.get("flavors")
-
-    if not flavors:
-        single = resolve_board(path, root=root, hlos=hlos, boot_fw=boot_fw)
-        return [
-            {
-                "name": default_name,
-                "layout": None,
-                "platform": single["platform"],
-                "storage": single["storage"],
-                "contents": board.get("contents"),
-            }
-        ]
-
-    geometry = board.get("storage", [])
-    resolved: list[ResolvedFlavor] = []
-    outputs: set[tuple[str, Any]] = set()
-    for flavor in flavors:
-        ref = flavor.get("layout")
-        storages: list[dict[str, Any]] = []
-        if ref is not None:
-            layout = _read_mapping(os.path.join(root, ref), "board.schema.json", root=root)
-            _normalize_luns(layout)
-            storages = copy.deepcopy(layout.get("storage", []))
-            if not storages:
-                raise BoardResolveError("%s: layout declares no storage" % ref)
-        overlay = {"storage": copy.deepcopy(list(flavor.get("storage", [])))}
-        _normalize_luns(overlay)
-        if not storages and not overlay["storage"]:
+def _load_board(path: str, include_dirs: Sequence[str]) -> dict[str, Any]:
+    board = _read_mapping(path, "board.schema.json", include_dirs)
+    ids = [s["id"] for s in board["storage"]]
+    if len(ids) != len(set(ids)):
+        raise BoardResolveError("%s: storage ids must be unique" % path)
+    for storage in board["storage"]:
+        layout = {k: storage[k] for k in ("type", *_LAYOUT_KEYS) if k in storage}
+        if len(layout) > 1:
+            try:
+                jsonschema.validate({"storage": [layout]}, _load_schema("flavor.schema.json"))
+            except jsonschema.exceptions.ValidationError as exc:
+                raise BoardResolveError(
+                    "%s: storage %r: invalid layout: %s" % (path, storage["id"], exc.message)
+                ) from exc
+    meta = board.get("contents")
+    if _is_self_contained(board):
+        board["contents"] = _validate_contents(meta, path)
+    elif meta is not None:
+        extra = sorted(set(meta) - set(_SOC_CONTENTS_KEYS))
+        if extra:
             raise BoardResolveError(
-                "%s: flavor defines neither a layout nor storage" % path
+                "%s: board contents carries only %s; %s belong in the platform"
+                % (path, ", ".join(_SOC_CONTENTS_KEYS), ", ".join(extra))
             )
-        ids = {s.get("id") for s in storages}
-        ids |= {s.get("id") for s in overlay["storage"]}
-        _merge_storage_list(storages, [s for s in geometry if s.get("id") in ids])
-        _merge_storage_list(storages, overlay["storage"])
+    return board
 
-        for storage in storages:
-            _expand_includes(storage, root)
-        _apply_variants_and_validate(storages, root, hlos, boot_fw)
 
-        name = flavor.get("name", default_name)
-        for storage in storages:
-            key = (name, storage.get("id"))
+def _is_self_contained(board: Mapping[str, Any]) -> bool:
+    return any(k in s for s in board["storage"] for k in _LAYOUT_KEYS)
+
+
+def _merge_contents(
+    board: Mapping[str, Any] | None, platform: Mapping[str, Any], where: str
+) -> dict[str, Any] | None:
+    """Lay a platform's contents over the board's SoC part and validate it.
+
+    Platform keys override the board's; ``common`` entries are appended
+    after the board's (firmware first, then the flashing entries).
+    """
+    merged = copy.deepcopy(dict(board or {}))
+    for key, value in platform.items():
+        if key == "common":
+            merged["common"] = merged.get("common", []) + copy.deepcopy(value)
+        else:
+            merged[key] = copy.deepcopy(value)
+    return _validate_contents(merged, where)
+
+
+def _resolve_self_contained(
+    board_file: str, board: dict[str, Any], name: str, include_dirs: Sequence[str]
+) -> Configuration:
+    """Compose a self-contained board: each storage with a layout is flashed."""
+    _normalize_luns(board)
+    storages: list[dict[str, Any]] = []
+    for storage in board["storage"]:
+        if not any(k in storage for k in _LAYOUT_KEYS):
+            continue
+        _expand_includes(storage, include_dirs)
+        _validate_resolved_storage(storage)
+        storages.append(storage)
+    if not storages:
+        raise BoardResolveError(
+            "%s: no storage carries partitions; pass a flavor to flash onto it" % board_file
+        )
+    return {"name": name, "storage": storages, "contents": board["contents"]}
+
+
+def resolve(
+    board_file: str,
+    flavor_file: str | None = None,
+    name: str | None = None,
+    include_dirs: Sequence[str] = (),
+) -> Configuration:
+    """Compose one flashable configuration: ``flavor_file`` on ``board_file``.
+
+    Every flavor storage lands on the board storage of the same type,
+    which must be unique on the board; board storages the flavor does not
+    target are not flashed. Without ``flavor_file`` the board must be
+    self-contained and is composed on its own. ``name`` defaults to the
+    board file's name. References inside the files that resolve neither
+    relative to their file nor in any of ``include_dirs`` fail.
+    """
+    if name is None:
+        name = os.path.splitext(os.path.basename(board_file))[0]
+    board = _load_board(board_file, include_dirs)
+    if flavor_file is None:
+        return _resolve_self_contained(board_file, board, name, include_dirs)
+    if _is_self_contained(board):
+        raise BoardResolveError(
+            "%s: a self-contained board (with partitions) takes no flavor" % board_file
+        )
+
+    by_type: dict[str, list[dict[str, Any]]] = {}
+    for storage in board["storage"]:
+        by_type.setdefault(storage["type"], []).append(storage)
+    flavor = _load_flavor(os.path.abspath(flavor_file), include_dirs)
+
+    storages: list[dict[str, Any]] = []
+    for layout in flavor["storage"]:
+        candidates = by_type.get(layout["type"], [])
+        if len(candidates) != 1:
+            raise BoardResolveError(
+                "%s: %s %s storage for flavor %s"
+                % (
+                    board_file,
+                    "no" if not candidates else "more than one",
+                    layout["type"],
+                    flavor_file,
+                )
+            )
+        storage = copy.deepcopy(candidates[0])
+        storage.update({k: v for k, v in layout.items() if k != "type"})
+        _expand_includes(storage, include_dirs)
+        _validate_resolved_storage(storage)
+        storages.append(storage)
+
+    # A board's contents is only its SoC part: complete only with a platform's.
+    return {"name": name, "storage": storages, "contents": None}
+
+
+def resolve_platform(path: str, include_dirs: Sequence[str] = ()) -> list[Configuration]:
+    """Resolve every configuration of a platform file.
+
+    Each flavor entry is one configuration, named by its ``name`` or the
+    platform file's name. Two configurations may share a name only when
+    their storage ids differ, as both build into ``<name>/<storage-id>/``.
+    A configuration's contents metadata is the entry's own ``contents``, or
+    else the platform's, laid over the board's SoC part; without either it
+    has none.
+    """
+    platform = _read_mapping(path, "platform.schema.json", include_dirs)
+    default = os.path.splitext(os.path.basename(path))[0]
+    soc = _load_board(platform["board"], include_dirs).get("contents")
+    configs = []
+    for entry in platform["flavors"]:
+        if isinstance(entry, str):
+            entry = {"flavor": entry}
+        config = resolve(
+            platform["board"], entry["flavor"], entry.get("name", default), include_dirs
+        )
+        meta = entry.get("contents", platform.get("contents"))
+        if meta is not None:
+            where = "%s (%s)" % (path, config["name"])
+            config["contents"] = _merge_contents(soc, meta, where)
+        configs.append(config)
+    outputs: set[tuple[str, str]] = set()
+    for config in configs:
+        for storage in config["storage"]:
+            key = (config["name"], storage["id"])
             if key in outputs:
                 raise BoardResolveError(
-                    "%s: flavors collide on output %s/%s" % (path, key[0], key[1])
+                    "%s: configurations collide on output %s/%s" % (path, *key)
                 )
             outputs.add(key)
-        resolved.append(
-            {
-                "name": name,
-                "layout": ref,
-                "platform": platform,
-                "storage": storages,
-                "contents": flavor.get("contents", board.get("contents")),
-            }
-        )
-    return resolved
+    return configs
+
+
+def is_platform_file(path: str) -> bool:
+    """Whether ``path`` is a platform file (as opposed to a board)."""
+    try:
+        with open(path) as f:
+            document = yaml.safe_load(f)
+    except OSError as exc:
+        raise BoardResolveError("cannot read %s: %s" % (path, exc)) from exc
+    return isinstance(document, Mapping) and "board" in document
+
+
+def resolve_file(path: str) -> list[Configuration]:
+    """Resolve a platform file, or a self-contained board, into its configurations."""
+    if is_platform_file(path):
+        return resolve_platform(path)
+    return [resolve(path)]
 
 
 # ---------------------------------------------------------------------------
@@ -521,12 +571,12 @@ def storage_to_loaded_spec(
     return {"disk": disk, "partitions": partitions}
 
 
-def board_to_specs(
-    board: ResolvedBoard | ResolvedFlavor,
+def config_to_specs(
+    config: Configuration,
     image_map: Mapping[str, str] | None = None,
 ) -> list[tuple[str, LoadedSpec]]:
-    """Reduce a resolved board or flavor to ``[(storage_id, LoadedSpec), ...]``."""
+    """Reduce a configuration to ``[(storage_id, LoadedSpec), ...]``."""
     return [
-        (storage.get("id", ""), storage_to_loaded_spec(storage, image_map))
-        for storage in board["storage"]
+        (storage["id"], storage_to_loaded_spec(storage, image_map))
+        for storage in config["storage"]
     ]

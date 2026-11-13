@@ -13,19 +13,17 @@ def usage():
     print(
         (
             "\n\tUsage:\n"
-            "\t  %s [--flavor <name>] [-i <include-dir>] [-o <outdir>] "
-            "[-b <build_id>] <board.yaml>\n"
+            "\t  %s [--name <name>] [-o <outdir>] [-b <build_id>] "
+            "<platform.yaml | board.yaml>\n"
             "\t  %s -t <template> -p <partitions_xml_path> -o <output> "
             "[-b <build_id>]\n"
-            "\n\tIn board mode every flavor with contents metadata is "
-            "generated to\n"
-            "\t<outdir>/<flavor>/<storage>/contents.xml, or to "
-            "<outdir>/<flavor>/contents.xml\n"
-            "\twith 'location: /'. --flavor builds one flavor; "
-            "the default builds\n"
-            "\tthem all. -i is the include directory that layout / include "
-            "references resolve\n"
-            "\tagainst (default: the board file's own platforms tree).\n"
+            "\n\tA platform generates every configuration with contents "
+            "metadata to\n"
+            "\t<outdir>/<name>/<storage>/contents.xml, or to "
+            "<outdir>/<name>/contents.xml\n"
+            "\twith 'location: /'; --name builds one configuration. A "
+            "self-contained board\n"
+            "\tgenerates <outdir>/<storage>/contents.xml.\n"
             "\tVersion 0.1\n" % (sys.argv[0], sys.argv[0])
         )
     )
@@ -172,45 +170,57 @@ def generate_from_template(template, partition_xml, output_xml, build_id):
     WriteContents(xml_root, output_xml)
 
 
-def generate_from_board(board_file, flavor_name, outdir, build_id, root=None):
-    """The YAML path: one contents.xml per flavor with contents metadata.
+def generate_configuration(config, config_dir, build_id):
+    """Write one configuration's contents.xml under ``config_dir``.
 
-    The flavor's metadata builds the very tree parsing the equivalent
-    template produced, then runs through the same UpdateMetaData /
-    RebaseFilePaths / WriteContents pipeline.
+    The configuration's metadata builds the very tree parsing the
+    equivalent template produced, then runs through the same
+    UpdateMetaData / RebaseFilePaths / WriteContents pipeline. Returns the
+    written path, or ``None`` without contents metadata.
     """
-    # Late imports so the template path never pulls in PyYAML / jsonschema.
-    from qcom_ptool.board import resolve_board_flavors
+    # Late import so the template path never pulls in PyYAML / jsonschema.
     from qcom_ptool.contents_yaml import build_contents_root, contents_paths, default_storage
 
-    flavors = resolve_board_flavors(board_file, root=root)
-    if flavor_name is not None:
-        flavors = [f for f in flavors if f["name"] == flavor_name]
-        if not flavors:
-            print("Error: %s has no flavor %r" % (board_file, flavor_name))
+    paths = contents_paths(config)
+    if paths is None:
+        return None
+    output_xml = os.path.join(config_dir, paths[0])
+    partition_xml = os.path.join(config_dir, paths[1])
+    print("Contents %s -> %s" % (config["name"], output_xml))
+    xml_root = build_contents_root(config["contents"], default_storage(config))
+    partition_root = ParseXML(partition_xml)
+    if partition_root is None:
+        raise ValueError("cannot read %s" % partition_xml)
+    UpdateMetaData(xml_root, partition_root, build_id)
+    RebaseFilePaths(xml_root, partition_xml, output_xml)
+    WriteContents(xml_root, output_xml)
+    return output_xml
+
+
+def generate_from_file(path, name, outdir, build_id):
+    """The YAML path: one contents.xml per configuration with contents metadata.
+
+    ``path`` is a platform file, whose configurations live in
+    ``<outdir>/<name>/``, or a self-contained board, built in ``<outdir>``.
+    """
+    from qcom_ptool.board import is_platform_file, resolve_file
+
+    configs = resolve_file(path)
+    platform = is_platform_file(path)
+    if name is not None:
+        configs = [c for c in configs if c["name"] == name]
+        if not configs:
+            print("Error: %s has no configuration %r" % (path, name))
             return 1
 
     base = outdir if outdir is not None else "."
     generated = 0
-    for flavor in flavors:
-        paths = contents_paths(flavor)
-        if paths is None:
-            continue
-        meta = flavor["contents"]
-        assert meta is not None  # contents_paths() returned a pair
-        output_xml = os.path.join(base, paths[0])
-        partition_xml = os.path.join(base, paths[1])
-        print("Contents %s -> %s" % (flavor["name"], output_xml))
-        xml_root = build_contents_root(meta, default_storage(flavor))
-        partition_root = ParseXML(partition_xml)
-        if partition_root is None:
-            return 1
-        UpdateMetaData(xml_root, partition_root, build_id)
-        RebaseFilePaths(xml_root, partition_xml, output_xml)
-        WriteContents(xml_root, output_xml)
-        generated += 1
+    for config in configs:
+        config_dir = os.path.join(base, config["name"]) if platform else base
+        if generate_configuration(config, config_dir, build_id) is not None:
+            generated += 1
     if not generated:
-        print("Error: %s defines no contents metadata" % board_file)
+        print("Error: %s defines no contents metadata" % path)
         return 1
     return 0
 
@@ -230,9 +240,8 @@ def main(argv=None):
             template = None
             partition_xml = None
             output_xml = None
-            flavor_name = None
-            root = None
-            opts, rem = getopt.getopt(argv[1:], "t:p:o:b:i:", ["flavor="])
+            name = None
+            opts, rem = getopt.getopt(argv[1:], "t:p:o:b:", ["name="])
             for opt, arg in opts:
                 if opt in ["-t"]:
                     template = arg
@@ -242,10 +251,8 @@ def main(argv=None):
                     output_xml = arg
                 elif opt in ["-b"]:
                     build_id = arg
-                elif opt in ["-i"]:
-                    root = arg
-                elif opt == "--flavor":
-                    flavor_name = arg
+                elif opt == "--name":
+                    name = arg
                 else:
                     usage()
         except Exception as argerr:
@@ -254,9 +261,9 @@ def main(argv=None):
 
         if template is None:
             if len(rem) != 1:
-                print("Error: pass exactly one board file")
+                print("Error: pass exactly one platform or board file")
                 usage()
-            return generate_from_board(rem[0], flavor_name, output_xml, build_id, root=root)
+            return generate_from_file(rem[0], name, output_xml, build_id)
 
         generate_from_template(template, partition_xml, output_xml, build_id)
     except Exception as e:

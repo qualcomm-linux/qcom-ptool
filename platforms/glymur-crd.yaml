@@ -1,0 +1,26 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/glymur-crd.yaml
+
+# The qcom_server product flavor flashes the prebuilt server image from
+# the parent directory onto NVMe in a second flash phase.
+contents:
+  product-name: Glymur.LE.0.0
+  hlos-type: LE
+  location: spinor
+  default-components: [common]
+  product-flavors:
+    - {name: qcom_server, components: [apps, common]}
+  chipids:
+    - {flavor: qcom_server, storage: NVME, flash-phase: 2}
+  apps-image-dir: build
+  common:
+    - download: {file: efi.bin, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", fastboot_complete: "efi"}}
+    - download: {file: rootfs.img, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", fastboot_complete: "rootfs"}}
+    - download: {file: gpt_main0.bin, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
+    - download: {file: gpt_backup0.bin, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
+    - partition: {file: rawprogram0.xml, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
+    - patch: {file: patch0.xml, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
+
+flavors:
+  - flavors/glymur-nvme-spinor.yaml

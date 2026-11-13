@@ -1,13 +1,18 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 """
-``qcom-ptool show`` - print a board's fully-resolved spec.
+``qcom-ptool show`` - print fully-resolved configurations.
 
-Derived boards and heavy ``includes:`` use make the effective partition
-layout impossible to read from a single file. This subcommand resolves all
-``extends`` / ``includes`` / variant overlays and prints the result as YAML,
-so reviewers and integrators can see exactly what will be emitted without
-chasing the composition chain by hand.
+A configuration composes a board with a flavor that may extend other
+flavors and include shared fragments, so the effective partition layout
+cannot be read from a single file. This subcommand resolves the
+composition and prints the result as YAML, so reviewers and integrators
+can see exactly what will be emitted without chasing it by hand.
+
+``--outputs`` prints instead one ``<platform>:<name>/<storage-id>...``
+line per platform file, and ``--contents`` one
+``<platform>:<contents.xml>^<partitions.xml>...`` line per platform file
+with contents metadata - the build indexes the Makefile reads.
 """
 
 from __future__ import annotations
@@ -19,89 +24,80 @@ from typing import NoReturn
 
 import yaml  # type: ignore[import-untyped]
 
-from qcom_ptool.board import resolve_board_flavors
+from qcom_ptool.board import Configuration, resolve, resolve_platform
 
 
 def usage() -> NoReturn:
     print(
-        "\n\tUsage:\n"
-        "\t  %s --board <board.yaml> [--hlos <name>] "
-        "[--boot-fw <name>] [--root <dir>]\n"
-        "\t  %s --outputs | --contents <board.yaml> [<board.yaml> ...]\n"
-        "\n\t--outputs prints one '<board>:<flavor-dir>/<storage>...' line per\n"
-        "\tboard; --contents prints '<board>:<output>^<dependency>...' for\n"
-        "\tboards with contents metadata.\n" % (sys.argv[0], sys.argv[0])
+        "\n\tUsage: %s --platform <platform.yaml>\n"
+        "\t       %s --board <board.yaml> [--flavor <flavor.yaml>]\n"
+        "\t       %s --outputs | --contents <platform.yaml>...\n"
+        "\n\tA board takes no flavor when it is self-contained.\n"
+        % (sys.argv[0], sys.argv[0], sys.argv[0])
     )
     sys.exit(1)
 
 
-def _print_outputs(paths: list[str], root: str | None) -> int:
-    """One line per board: '<board>:<flavor-dir>/<storage>...'."""
-    status = 0
+def _print_outputs(paths: list[str]) -> int:
     for path in paths:
         try:
-            flavors = resolve_board_flavors(path, root=root)
+            configs = resolve_platform(path)
         except Exception as e:
-            print("Error: %s" % e, file=sys.stderr)
-            status = 1
-            continue
-        base = os.path.splitext(os.path.basename(path))[0]
-        cells = [base] + [
-            "%s/%s" % (flavor["name"], storage.get("id", ""))
-            for flavor in flavors
-            for storage in flavor["storage"]
+            print("Error: ", e, file=sys.stderr)
+            return 1
+        outputs = [
+            "%s/%s" % (c["name"], s["id"]) for c in configs for s in c["storage"]
         ]
-        print(":".join(cells))
-    return status
+        print(":".join([os.path.splitext(os.path.basename(path))[0], *outputs]))
+    return 0
 
 
-def _print_contents(paths: list[str], root: str | None) -> int:
-    """One line per board with contents metadata: '<board>:<out>^<dep>...'."""
+def _print_contents(paths: list[str]) -> int:
     from qcom_ptool.contents_yaml import contents_paths
 
-    status = 0
     for path in paths:
         try:
-            flavors = resolve_board_flavors(path, root=root)
+            cells = []
+            for config in resolve_platform(path):
+                pair = contents_paths(config)
+                if pair is not None:
+                    cells.append("%s/%s^%s/%s" % (config["name"], pair[0], config["name"], pair[1]))
         except Exception as e:
-            print("Error: %s" % e, file=sys.stderr)
-            status = 1
-            continue
-        cells = []
-        for flavor in flavors:
-            pair = contents_paths(flavor)
-            if pair is not None:
-                cells.append("%s^%s" % pair)
+            print("Error: ", e, file=sys.stderr)
+            return 1
         if cells:
-            base = os.path.splitext(os.path.basename(path))[0]
-            print(":".join([base, *cells]))
-    return status
+            print(":".join([os.path.splitext(os.path.basename(path))[0], *cells]))
+    return 0
+
+
+def _document(config: Configuration) -> dict[str, object]:
+    document = dict(config)
+    if document.get("contents") is None:
+        del document["contents"]
+    return document
 
 
 def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv
 
+    platform_file: str | None = None
     board_file: str | None = None
-    root: str | None = None
-    hlos: str | None = None
-    boot_fw: str | None = None
+    flavor_file: str | None = None
     outputs = False
     contents = False
 
     try:
         opts, rem = getopt.getopt(
-            argv[1:], "", ["board=", "hlos=", "boot-fw=", "root=", "outputs", "contents"]
+            argv[1:], "", ["platform=", "board=", "flavor=", "outputs", "contents"]
         )
         for opt, arg in opts:
-            if opt == "--board":
+            if opt == "--platform":
+                platform_file = arg
+            elif opt == "--board":
                 board_file = arg
-            elif opt == "--hlos":
-                hlos = arg
-            elif opt == "--boot-fw":
-                boot_fw = arg
-            elif opt == "--root":
-                root = arg
+            elif opt == "--flavor":
+                flavor_file = arg
             elif opt == "--outputs":
                 outputs = True
             elif opt == "--contents":
@@ -111,29 +107,31 @@ def main(argv: list[str] | None = None) -> int:
         usage()
 
     if outputs or contents:
-        paths = ([board_file] if board_file else []) + rem
-        if not paths:
+        if outputs and contents:
             usage()
-        return _print_contents(paths, root) if contents else _print_outputs(paths, root)
+        if platform_file is not None or board_file is not None or not rem:
+            usage()
+        return _print_contents(rem) if contents else _print_outputs(rem)
 
-    if board_file is None:
+    if rem or (platform_file is None) == (board_file is None):
+        usage()
+    if flavor_file is not None and board_file is None:
         usage()
 
     try:
-        flavors = resolve_board_flavors(board_file, root=root, hlos=hlos, boot_fw=boot_fw)
+        configs: list[Configuration]
+        if platform_file is not None:
+            configs = resolve_platform(platform_file)
+        else:
+            assert board_file is not None
+            configs = [resolve(board_file, flavor_file)]
     except Exception as e:
         print("Error: ", e)
         return 1
 
-    if len(flavors) == 1 and flavors[0]["layout"] is None:
-        board = {"platform": flavors[0]["platform"], "storage": flavors[0]["storage"]}
-        yaml.safe_dump(board, sys.stdout, sort_keys=False, default_flow_style=False)
-    else:
-        document = {
-            "platform": flavors[0]["platform"],
-            "flavors": [dict(flavor) for flavor in flavors],
-        }
-        yaml.safe_dump(document, sys.stdout, sort_keys=False, default_flow_style=False)
+    yaml.safe_dump_all(
+        [_document(c) for c in configs], sys.stdout, sort_keys=False, default_flow_style=False
+    )
     return 0
 
 

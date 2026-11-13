@@ -1,0 +1,11 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/qcm6490-idp.yaml
+
+contents:
+  product-name: QCM6490.LE.0.0
+  hlos-type: LE
+
+flavors:
+  - flavors/kodiak-ufs.yaml
+  - flavors/kodiak-emmc.yaml

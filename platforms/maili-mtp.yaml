@@ -1,0 +1,10 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/maili-mtp.yaml
+
+contents:
+  product-name: Maili.LE.0.0
+  hlos-type: LE
+
+flavors:
+  - flavors/maili-ufs.yaml

@@ -1,0 +1,10 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/kaanapali-mtp.yaml
+
+contents:
+  product-name: Kaanapali.LE.0.0
+  hlos-type: LE
+
+flavors:
+  - flavors/kaanapali-ufs.yaml

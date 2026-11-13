@@ -1,0 +1,116 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/qualcomm-linux/qcom-ptool/flavor.schema.json",
+    "title": "qcom-ptool flavor",
+    "description": "A board-agnostic partition layout: per storage type, the partitions flashed onto it. A flavor may extend another one; entries are partial there (e.g. only a partition size), and the fully-resolved storage is validated strictly against partitions.schema.json.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["storage"],
+    "properties": {
+        "extends": {
+            "description": "Path, relative to this file, of a single base flavor to inherit.",
+            "type": "string",
+            "minLength": 1
+        },
+        "storage": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type"],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": ["emmc", "nand", "nvme", "spinor", "ufs"],
+                        "description": "Storage type this layout targets; matched against the board's storage of that type."
+                    },
+                    "grow-last-partition": {"type": "boolean"},
+                    "includes": {
+                        "description": "Shared partition fragments, relative to this file, concatenated ahead of this storage's partition list.",
+                        "type": "array",
+                        "items": {"type": "string"}
+                    },
+                    "partitions": {"$ref": "#/definitions/partition-list"},
+                    "luns": {
+                        "description": "LUN groups (UFS), flattened in listed order; mutually exclusive with 'partitions' and 'phys-parts'. The group places its items; 'grow: false' appends the zero-GUID last_parti absorber.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["lun"],
+                            "properties": {
+                                "lun": {"type": "integer", "minimum": 0},
+                                "grow": {"type": "boolean"},
+                                "partitions": {"$ref": "#/definitions/partition-list"}
+                            }
+                        }
+                    },
+                    "phys-parts": {
+                        "description": "Physical-partition groups (eMMC), flattened in listed order; mutually exclusive with 'partitions' and 'luns'. The group places its items; 'grow: false' appends the zero-GUID last_parti absorber.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["phys-part"],
+                            "properties": {
+                                "phys-part": {"type": "integer", "minimum": 0},
+                                "grow": {"type": "boolean"},
+                                "partitions": {"$ref": "#/definitions/partition-list"}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "partition-list": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    {"$ref": "#/definitions/partition"},
+                    {"$ref": "#/definitions/include"}
+                ]
+            }
+        },
+        "include": {
+            "description": "Expands a shared fragment in place of this list item.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["include"],
+            "properties": {
+                "include": {"type": "string", "minLength": 1}
+            }
+        },
+        "partition": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "size": {"type": "string", "pattern": "^[0-9]+([KkMmGg][Bb]?)?$"},
+                "type-guid": {
+                    "type": "string",
+                    "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"
+                },
+                "filename": {"type": "string"},
+                "attributes": {"type": "string", "pattern": "^[0-9A-Fa-f]+$"},
+                "bootable": {"type": "boolean"},
+                "readonly": {"type": "boolean"},
+                "priority": {"type": "integer", "minimum": 0, "maximum": 3},
+                "tries-remaining": {"type": "integer", "minimum": 0, "maximum": 7},
+                "active": {"type": "boolean"},
+                "successful": {"type": "boolean"},
+                "unbootable": {"type": "boolean"},
+                "unique-guid": {
+                    "type": "string",
+                    "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"
+                },
+                "sparse": {"type": "boolean"},
+                "lun": {"type": "integer", "minimum": 0},
+                "phys-part": {"type": "integer", "minimum": 0}
+            }
+        }
+    }
+}
