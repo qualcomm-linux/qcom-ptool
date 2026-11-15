@@ -28,12 +28,15 @@ contents:
     - download: {file: oem_misc.mbn, attributes: {qsahara_image_id: "37"}}
     - device-programmer: {file: device_programmer_ddr.elf, attributes: {cmm_file_var: "DEV_PRG", qsahara_image_id: "13"}}
     - device-programmer: {file: xbl_config_devprg.elf, attributes: {cmm_file_var: "XBL_CFG", qsahara_image_id: "38"}}
-    - download: {file: sailhyp.elf, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "SAIL_HYP"}}
-    - download: {file: sailsw1.elf, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "SAIL_SW1"}}
-    - download: {file: gpt_main0.bin, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
-    - download: {file: gpt_backup0.bin, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
-    - partition: {file: rawprogram0.xml, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
-    - patch: {file: patch0.xml, path: './sail_nor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - download: {file: rtsshyp.elf, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_HYP"}}
+    - download: {file: sail_nor_dlp.bin, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_DLP"}}
+    - download: {file: rtsssw1.elf, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_SW1"}}
+    - download: {file: rtsssw2.elf, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_SW2"}}
+    - download: {file: rtsssw3.elf, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_SW3"}}
+    - download: {file: gpt_main0.bin, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - download: {file: gpt_backup0.bin, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - partition: {file: rawprogram0.xml, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
+    - patch: {file: patch0.xml, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
 
 storage:
   - id: spinor
