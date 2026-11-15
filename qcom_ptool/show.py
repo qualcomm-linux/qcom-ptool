@@ -22,7 +22,7 @@ import yaml  # type: ignore[import-untyped]
 from qcom_ptool.board import resolve_board_flavors
 
 
-def usage() -> NoReturn:
+def usage(exit_code: int = 1) -> NoReturn:
     print(
         "\n\tUsage:\n"
         "\t  %s --board <board.yaml> [--hlos <name>] "
@@ -32,7 +32,7 @@ def usage() -> NoReturn:
         "\tboard; --contents prints '<board>:<output>^<dependency>...' for\n"
         "\tboards with contents metadata.\n" % (sys.argv[0], sys.argv[0])
     )
-    sys.exit(1)
+    sys.exit(exit_code)
 
 
 def _print_outputs(paths: list[str], root: str | None) -> int:
@@ -90,11 +90,15 @@ def main(argv: list[str] | None = None) -> int:
     contents = False
 
     try:
+        opts, _rem = getopt.getopt(
+            argv[1:], "h", ["help", "board=", "hlos=", "boot-fw=", "root="]
         opts, rem = getopt.getopt(
             argv[1:], "", ["board=", "hlos=", "boot-fw=", "root=", "outputs", "contents"]
         )
         for opt, arg in opts:
-            if opt == "--board":
+            if opt in ("-h", "--help"):
+                usage(0)
+            elif opt == "--board":
                 board_file = arg
             elif opt == "--hlos":
                 hlos = arg

@@ -69,3 +69,34 @@ def test_subcommand_dispatch(name, tmp_path):
     assert result.returncode != 0
     if name != "ptool":
         assert "usage" in (result.stdout + result.stderr).lower()
+
+
+@pytest.mark.parametrize("name", sorted(SUBCOMMANDS))
+def test_subcommand_help_flag_passed_to_subcommand(name, tmp_path):
+    result = subprocess.run(
+        [sys.executable, "-m", "qcom_ptool.cli", name, "-h"],
+        capture_output=True,
+        text=True,
+        cwd=tmp_path,
+        env=subprocess_env(),
+        timeout=10,
+    )
+    output = result.stdout + result.stderr
+    # Help flag must reach the subcommand rather than being intercepted by the
+    # top-level dispatcher, so the top-level epilog should not be present.
+    assert "Run 'qcom-ptool <subcommand> -h'" not in output
+    assert "usage" in output.lower()
+
+
+def test_show_help_returns_zero(tmp_path):
+    for flag in ("-h", "--help"):
+        result = subprocess.run(
+            [sys.executable, "-m", "qcom_ptool.cli", "show", flag],
+            capture_output=True,
+            text=True,
+            cwd=tmp_path,
+            env=subprocess_env(),
+            timeout=10,
+        )
+        assert result.returncode == 0
+        assert "--board <board.yaml>" in result.stdout
