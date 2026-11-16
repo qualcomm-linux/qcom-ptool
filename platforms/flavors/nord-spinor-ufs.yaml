@@ -19,9 +19,9 @@ storage:
           - {name: RTSS_SW1, size: "2048KB", type-guid: "48F990B1-4E61-4B16-9F76-2244EE819EB3", filename: rtsssw1.elf}
           - {name: RTSS_SW2, size: "2048KB", type-guid: "E96D074B-6921-49F2-BD7C-C6A0A4BB72E1", filename: rtsssw2.elf}
           - {name: RTSS_SW3, size: "2048KB", type-guid: "DBBA35E0-BC57-453F-9B0C-E8C0193A3E9D", filename: rtsssw3.elf}
-          - {name: RTSS_SW4, size: "2048KB", type-guid: "77458FFE-3BC4-41CC-999E-8A4F4BCB56F8"}
-          - {name: RTSS_SW5, size: "2048KB", type-guid: "1034DDE8-B837-4186-90DB-B51136E5DFEA"}
-          - {name: RTSS_SW6, size: "2048KB", type-guid: "F17C208A-5EE6-4CDE-A4E1-8820E1CB2C80"}
+          - {name: RTSS_SW4, size: "2048KB", type-guid: "77458FFE-3BC4-41CC-999E-8A4F4BCB56F8", filename: rtsssw4.elf}
+          - {name: RTSS_SW5, size: "2048KB", type-guid: "1034DDE8-B837-4186-90DB-B51136E5DFEA", filename: rtsssw5.elf}
+          - {name: RTSS_SW6, size: "2048KB", type-guid: "F17C208A-5EE6-4CDE-A4E1-8820E1CB2C80", filename: rtsssw6.elf}
           - {name: RTSS_CALIBRATION, size: "512KB", type-guid: "E616F266-D0F3-4D83-A926-0C714ADB2B28"}
           - {name: RTSS_PARTITION_A_RES, size: "1024KB", type-guid: "D3A1BD79-01DB-43C6-96AE-441048FA4441"}
           - {name: RTSS_HYP_BKUP, size: "960KB", type-guid: "CCD55B90-28B7-4D96-993F-AC93A512F1EB", filename: rtsshyp.elf}
@@ -30,9 +30,9 @@ storage:
           - {name: RTSS_SW1_BKUP, size: "2048KB", type-guid: "025416FF-75CA-475A-9C62-E4C90E4ACC2D", filename: rtsssw1.elf}
           - {name: RTSS_SW2_BKUP, size: "2048KB", type-guid: "A866CB7E-3E25-4C2E-95CD-2DFAE9290FBA", filename: rtsssw2.elf}
           - {name: RTSS_SW3_BKUP, size: "2048KB", type-guid: "58AF8CC0-33E0-4216-A59A-0356488DB42E", filename: rtsssw3.elf}
-          - {name: RTSS_SW4_BKUP, size: "2048KB", type-guid: "4A2F5EB6-D0CA-4525-A0F8-04D5DD55B846"}
-          - {name: RTSS_SW5_BKUP, size: "2048KB", type-guid: "E1AC9085-4CEB-4E7E-B008-E12932026706"}
-          - {name: RTSS_SW6_BKUP, size: "2048KB", type-guid: "88300C89-19DE-4B0B-9592-FDA539CF5161"}
+          - {name: RTSS_SW4_BKUP, size: "2048KB", type-guid: "4A2F5EB6-D0CA-4525-A0F8-04D5DD55B846", filename: rtsssw4.elf}
+          - {name: RTSS_SW5_BKUP, size: "2048KB", type-guid: "E1AC9085-4CEB-4E7E-B008-E12932026706", filename: rtsssw5.elf}
+          - {name: RTSS_SW6_BKUP, size: "2048KB", type-guid: "88300C89-19DE-4B0B-9592-FDA539CF5161", filename: rtsssw6.elf}
           - {name: RTSS_CALIBRATION_BKUP, size: "512KB", type-guid: "A222073A-F734-4B61-8D2C-2D1ABA7733BF"}
           - {name: RTSS_PARTITION_B_RES, size: "1024KB", type-guid: "5A985FA8-FB0E-4EFD-8B9B-CD055F86ACCB"}
           - {name: RTSS_SEC_STORAGE, size: "1024KB", type-guid: "DC9E9EDE-BBD3-46FB-8838-2AA033F562A1"}

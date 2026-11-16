@@ -112,6 +112,9 @@ for xml in "$@"; do
           rtsssw1.elf) ;;
           rtsssw2.elf) ;;
           rtsssw3.elf) ;;
+          rtsssw4.elf) ;;
+          rtsssw5.elf) ;;
+          rtsssw6.elf) ;;
           rubikpi_config.img) ;;
           rubikpi_dtso.img) ;;
           sailcal.elf) ;;
