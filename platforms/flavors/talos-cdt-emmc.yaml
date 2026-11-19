@@ -1,0 +1,12 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Talos eMMC layout plus a cdt boot area (phys-part 1).
+extends: talos-emmc.yaml
+storage:
+  - type: emmc
+    phys-parts:
+      - phys-part: 1
+        grow: false
+        partitions:
+          - {name: cdt, size: "4KB", type-guid: "A19F205F-CCD8-4B6D-8F1E-2D9BC24CFFB1", filename: cdt.bin}

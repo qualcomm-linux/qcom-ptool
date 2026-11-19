@@ -43,14 +43,17 @@ def usage() -> NoReturn:
         "\n\tUsage:\n"
         "\t  %s -i <input> -o <output> "
         "[-m name1=image1,name2=image2,...]\n"
-        "\t  %s --board <board.yaml> [--hlos <name>] [--boot-fw <name>] "
-        "[--root <dir>] [-C <outdir> | -o <out1> -o <out2> ...]\n"
-        "\n\tIn --board mode each flavor's storages are written to "
-        "<outdir>/<flavor-name>/<storage-id>/partitions.xml\n"
-        "\t(default outdir: .; a board without flavors is one flavor named "
-        "after the board file),\n"
-        "\tor to one explicit -o per storage in declared order.\n"
-        "\tVersion 1.0\n" % (sys.argv[0], sys.argv[0])
+        "\t  %s --platform <platform.yaml> "
+        "[-C <outdir> | -o <out1> -o <out2> ...]\n"
+        "\t  %s --board <board.yaml> [--flavor <flavor.yaml>] "
+        "[-C <outdir> | -o <out1> -o <out2> ...]\n"
+        "\n\tA platform writes each configuration's storages to "
+        "<outdir>/<name>/<storage-id>/;\n"
+        "\ta board with a flavor, or a self-contained board without one, "
+        "writes\n"
+        "\t<outdir>/<storage-id>/ (default outdir: .).\n"
+        "\tExplicit -o outputs are taken in the same order.\n"
+        "\tVersion 1.0\n" % (sys.argv[0], sys.argv[0], sys.argv[0])
     )
     sys.exit(1)
 
@@ -109,10 +112,9 @@ def main(argv: list[str] | None = None) -> int:
         usage()
 
     input_file: str | None = None
+    platform_file: str | None = None
     board_file: str | None = None
-    root: str | None = None
-    hlos: str | None = None
-    boot_fw: str | None = None
+    flavor_files: list[str] = []
     outputs: list[str] = []
     outdir: str | None = None
     image_map: dict[str, str] = {}
@@ -121,21 +123,19 @@ def main(argv: list[str] | None = None) -> int:
         usage()
     try:
         opts, _rem = getopt.getopt(
-            argv[1:], "i:o:m:C:", ["board=", "hlos=", "boot-fw=", "root="]
+            argv[1:], "i:o:m:C:", ["platform=", "board=", "flavor="]
         )
         for opt, arg in opts:
             if opt == "-i":
                 input_file = arg
             elif opt == "-o":
                 outputs.append(arg)
+            elif opt == "--platform":
+                platform_file = arg
             elif opt == "--board":
                 board_file = arg
-            elif opt == "--hlos":
-                hlos = arg
-            elif opt == "--boot-fw":
-                boot_fw = arg
-            elif opt == "--root":
-                root = arg
+            elif opt == "--flavor":
+                flavor_files.append(arg)
             elif opt == "-C":
                 outdir = arg
             elif opt == "-m":
@@ -149,15 +149,29 @@ def main(argv: list[str] | None = None) -> int:
         print(str(argerr))
         usage()
 
-    if (board_file is None) == (input_file is None):
-        print("Error: pass exactly one of -i <input> or --board <board.yaml>")
+    sources = [x is not None for x in (input_file, platform_file, board_file)]
+    if sum(sources) != 1:
+        print(
+            "Error: pass exactly one of -i <input>, --platform <platform.yaml> "
+            "or --board <board.yaml>"
+        )
+        usage()
+    if len(flavor_files) > (1 if board_file is not None else 0):
+        print("Error: --board takes at most one --flavor, and only it does")
         usage()
     if outputs and outdir is not None:
         print("Error: pass either -C <outdir> or explicit -o outputs, not both")
         usage()
 
-    if board_file is not None:
-        return _run_board(board_file, root, hlos, boot_fw, outputs, outdir, image_map)
+    if platform_file is not None or board_file is not None:
+        return _run_platform(
+            platform_file,
+            board_file,
+            flavor_files,
+            outputs,
+            outdir,
+            image_map,
+        )
 
     if input_file is None or len(outputs) != 1:
         print("Error: -i single-storage mode takes exactly one -o")
@@ -172,50 +186,50 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def _run_board(
-    board_file: str,
-    root: str | None,
-    hlos: str | None,
-    boot_fw: str | None,
+def _run_platform(
+    platform_file: str | None,
+    board_file: str | None,
+    flavor_files: list[str],
     outputs: list[str],
     outdir: str | None,
     image_map: dict[str, str],
 ) -> int:
     # Late import so the -i path never pulls in PyYAML / jsonschema.
-    from qcom_ptool.board import board_to_specs, resolve_board_flavors
+    from qcom_ptool.board import config_to_specs, resolve, resolve_platform
 
     try:
-        flavors = resolve_board_flavors(board_file, root=root, hlos=hlos, boot_fw=boot_fw)
+        if platform_file is not None:
+            configs = resolve_platform(platform_file)
+            prefix = [c["name"] for c in configs]
+        else:
+            assert board_file is not None
+            configs = [resolve(board_file, flavor_files[0] if flavor_files else None)]
+            prefix = [""]
         specs = [
-            (flavor, sid, spec)
-            for flavor in flavors
-            for sid, spec in board_to_specs(flavor, image_map=image_map)
+            (os.path.join(p, sid), sid, spec)
+            for p, c in zip(prefix, configs)
+            for sid, spec in config_to_specs(c, image_map=image_map)
         ]
     except Exception as e:
         print("Error: ", e)
         return 1
 
-    # Every flavor emits to <outdir>/<flavor-name>/<storage-id>/; a board
-    # without flavors is its single default flavor, named after the board
-    # file, so its outputs land in <outdir>/<board>/<storage-id>/.
     if not outputs:
+        # Default layout: <outdir>/[<name>/]<storage-id>/partitions.xml.
         base = outdir if outdir is not None else "."
-        outputs = [
-            os.path.join(base, flavor["name"], sid, "partitions.xml")
-            for flavor, sid, _ in specs
-        ]
+        outputs = [os.path.join(base, rel, "partitions.xml") for rel, _, _ in specs]
         for path in outputs:
             os.makedirs(os.path.dirname(path), exist_ok=True)
 
     if len(outputs) != len(specs):
-        ids = ", ".join("%s/%s" % (flavor["name"], sid) for flavor, sid, _ in specs)
+        rels = ", ".join(rel for rel, _, _ in specs)
         print(
-            "Error: board declares %d storage(s) [%s] but %d -o output(s) given"
-            % (len(specs), ids, len(outputs))
+            "Error: %d storage(s) flashed [%s] but %d -o output(s) given"
+            % (len(specs), rels, len(outputs))
         )
         return 1
 
-    for (_flavor, sid, spec), output in zip(specs, outputs):
+    for (_rel, sid, spec), output in zip(specs, outputs):
         print("Storage %s -> %s" % (sid, output))
         generate_partition_xml(spec["disk"], spec["partitions"], output)
     return 0

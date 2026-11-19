@@ -4,8 +4,8 @@
 # sm8750-mtp per-LUN UFS layout: the shared sm8750 sets from _common/
 # composed with the board's own boot, firmware and persist LUNs.
 storage:
-  - id: ufs
-    type: ufs
+  - type: ufs
+    grow-last-partition: true
     luns:
       - lun: 0
         partitions:          # last partition (rootfs) grows

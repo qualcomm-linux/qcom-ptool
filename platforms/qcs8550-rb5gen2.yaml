@@ -1,0 +1,9 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/qcs8550-rb5gen2.yaml
+
+contents:
+  product-name: QCS8550.LE.0.0
+
+flavors:
+  - flavors/qcs8550-ufs.yaml

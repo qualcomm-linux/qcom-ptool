@@ -4,8 +4,8 @@
 # Talos-family (qcs615) per-LUN UFS layout, composed from the shared
 # partition sets under _common/. The XBL set populates both boot LUNs.
 storage:
-  - id: ufs
-    type: ufs
+  - type: ufs
+    grow-last-partition: true
     luns:
       - lun: 0              # last partition (rootfs) grows
         partitions:

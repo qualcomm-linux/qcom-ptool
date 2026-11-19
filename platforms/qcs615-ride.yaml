@@ -1,0 +1,12 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+board: boards/qcs615-ride.yaml
+
+contents:
+  product-name: QCS615.LE.0.0
+  hlos-type: LE
+
+flavors:
+  - flavors/talos-ufs.yaml
+  - flavor: flavors/talos-emmc.yaml
+    name: qcs615-ride-emmc

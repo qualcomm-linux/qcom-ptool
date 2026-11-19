@@ -1,215 +1,58 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://github.com/qualcomm-linux/qcom-ptool/board.schema.json",
-    "title": "qcom-ptool board / variant source",
-    "description": "Structural schema for a board file, a derived (extends) board, or a variant overlay. Storage entries and partitions are permissive here because overrides are partial (e.g. a derived board may set only a partition size); the fully-resolved storage is validated strictly against partitions.schema.json.",
+    "title": "qcom-ptool board",
+    "description": "The hardware of one board: its storage devices and their geometry, and the SoC part of the contents metadata. A platform pairs it with the flavors flashed onto it. A board may instead be self-contained: its storages then also carry their partition layout (as a flavor storage does) and its 'contents' is complete, so one file describes a whole configuration, e.g. out of tree.",
     "type": "object",
     "additionalProperties": false,
     "required": ["storage"],
     "properties": {
-        "platform": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "name": {"type": "string"}
-            }
+        "contents": {
+            "description": "The SoC part of the contents metadata (chip, chipset, additional-chipids and the boot-chain firmware 'common' entries), which a platform's contents is laid over; in a self-contained board, complete contents validated against contents.schema.json.",
+            "type": "object"
         },
-        "extends": {
-            "description": "Path (relative to the platforms root) of a single base board to inherit.",
-            "type": "string"
-        },
-        "flavors": {
-            "description": "Flashable configurations of this board. Each references a complete layout under platforms/flavors/ and may override partitions in place; 'name' is the output directory under platforms/ and defaults to the board file's name. With 'flavors', the board-level 'storage' list carries the storage geometry, merged by id into the storages each flavor's layout declares.",
+        "storage": {
             "type": "array",
             "minItems": 1,
             "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "anyOf": [
-                    {"required": ["layout"]},
-                    {"required": ["storage"]}
-                ],
+                "required": ["id", "type", "size"],
                 "properties": {
-                    "layout": {"type": "string", "minLength": 1},
-                    "name": {"type": "string", "minLength": 1},
-                    "storage": {"$ref": "#/properties/storage"},
-                    "contents": {"$ref": "#/definitions/contents"}
-                }
-            }
-        },
-        "contents": {
-            "description": "The board's contents metadata: the default for every flavor (contents identity is board-specific; the storage type derives from each flavor). A flavor's own 'contents' overrides it.",
-            "$ref": "#/definitions/contents"
-        },
-        "storage": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["id"],
-                "properties": {
-                    "id": {"type": "string", "minLength": 1},
-                    "type": {"type": "string", "enum": ["emmc", "nand", "nvme", "spinor", "ufs"]},
+                    "id": {
+                        "description": "Storage identifier, unique within the board; names the output directory.",
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["emmc", "nand", "nvme", "spinor", "ufs"]
+                    },
                     "size": {"type": "integer", "minimum": 1},
                     "sector-size": {"type": "integer", "minimum": 1},
                     "write-protect-boundary": {"type": "integer", "minimum": 0},
-                    "grow-last-partition": {"type": "boolean"},
                     "align-partitions": {"type": "integer", "minimum": 0},
-                    "includes": {
-                        "description": "Shared partition fragments (relative to the platforms root) concatenated into this storage's partition list.",
-                        "type": "array",
-                        "items": {"type": "string"}
+                    "grow-last-partition": {
+                        "description": "Self-contained boards only; validated as a flavor storage.",
+                        "type": "boolean"
                     },
-                    "partitions": {"$ref": "#/definitions/partition-list"},
+                    "includes": {
+                        "description": "Self-contained boards only; validated as a flavor storage.",
+                        "type": "array"
+                    },
+                    "partitions": {
+                        "description": "Self-contained boards only; validated as a flavor storage.",
+                        "type": "array"
+                    },
                     "luns": {
-                        "description": "LUN groups (UFS), flattened in listed order; mutually exclusive with 'partitions' and 'phys-parts'. The group places its items; 'grow: false' appends the zero-GUID last_parti absorber.",
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": false,
-                            "required": ["lun"],
-                            "properties": {
-                                "lun": {"type": "integer", "minimum": 0},
-                                "grow": {"type": "boolean"},
-                                "partitions": {"$ref": "#/definitions/partition-list"}
-                            }
-                        }
+                        "description": "Self-contained boards only; validated as a flavor storage.",
+                        "type": "array"
                     },
                     "phys-parts": {
-                        "description": "Physical-partition groups (eMMC), flattened in listed order; mutually exclusive with 'partitions' and 'luns'. The group places its items; 'grow: false' appends the zero-GUID last_parti absorber.",
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": false,
-                            "required": ["phys-part"],
-                            "properties": {
-                                "phys-part": {"type": "integer", "minimum": 0},
-                                "grow": {"type": "boolean"},
-                                "partitions": {"$ref": "#/definitions/partition-list"}
-                            }
-                        }
+                        "description": "Self-contained boards only; validated as a flavor storage.",
+                        "type": "array"
                     }
                 }
-            }
-        }
-    },
-    "definitions": {
-        "contents": {
-            "description": "Everything needed to generate a flavor's contents.xml: the product identity, the product flavors, and the ordered entries of the 'common' build. The placeholder entries gen_contents replaces with the partition layout's artifacts are implied.",
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["product-name", "chip"],
-            "properties": {
-                "product-name": {"type": "string", "minLength": 1},
-                "hlos-type": {"type": "string"},
-                "chip": {"description": "The chipid text; also the builds' chipset unless 'chipset' overrides it.", "type": "string", "minLength": 1},
-                "chipset": {"type": "string", "minLength": 1},
-                "location": {"description": "Where contents.xml is written: a storage id (that storage's directory; it is also the default chipid's storage and the partitions source) or '/' (the flavor directory, with the flavor's first storage as the default). Defaults to the flavor's first storage.", "type": "string", "minLength": 1},
-                "additional-chipids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
-                "meta-type": {"type": "string", "default": "FULL_STACK"},
-                "build-type": {"type": "string", "default": "K2L"},
-                "apps-image-dir": {"type": "string", "default": "apps_proc"},
-                "default-components": {"type": "array", "minItems": 1, "items": {"type": "string"}},
-                "product-flavors": {
-                    "description": "Product flavors beyond the derived default one.",
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": ["name", "components"],
-                        "properties": {
-                            "name": {"type": "string", "minLength": 1},
-                            "components": {"type": "array", "minItems": 1, "items": {"type": "string"}}
-                        }
-                    }
-                },
-                "chipids": {
-                    "description": "Chipids beyond the derived default (flash phase 1) one.",
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": ["flavor", "storage", "flash-phase"],
-                        "properties": {
-                            "flavor": {"type": "string", "minLength": 1},
-                            "storage": {"type": "string", "minLength": 1},
-                            "flash-phase": {"type": "integer", "minimum": 1},
-                            "chip": {"type": "string", "minLength": 1}
-                        }
-                    }
-                },
-                "common": {
-                    "description": "Ordered entries of the 'common' build: device programmers and literal files.",
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "minProperties": 1,
-                        "maxProperties": 1,
-                        "properties": {
-                            "device-programmer": {"$ref": "#/definitions/contents-file"},
-                            "download": {"$ref": "#/definitions/contents-file"},
-                            "partition": {"$ref": "#/definitions/contents-file"},
-                            "patch": {"$ref": "#/definitions/contents-file"}
-                        }
-                    }
-                }
-            }
-        },
-        "contents-file": {
-            "description": "One literal file entry of the 'common' build.",
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["file"],
-            "properties": {
-                "file": {"type": "string", "minLength": 1},
-                "path": {"type": "string", "minLength": 1, "default": "."},
-                "path-flavor": {"type": "string", "minLength": 1},
-                "attributes": {
-                    "type": "object",
-                    "additionalProperties": {"type": "string"}
-                }
-            }
-        },
-        "partition-list": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {"$ref": "#/definitions/partition"},
-                    {"$ref": "#/definitions/include"}
-                ]
-            }
-        },
-        "include": {
-            "description": "Expands a shared fragment in place of this list item.",
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["include"],
-            "properties": {
-                "include": {"type": "string", "minLength": 1}
-            }
-        },
-        "partition": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["name"],
-            "properties": {
-                "name": {"type": "string", "minLength": 1},
-                "size": {"type": "string", "pattern": "^[0-9]+([KkMmGg][Bb]?)?$"},
-                "type-guid": {"type": "string", "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"},
-                "filename": {"type": "string"},
-                "attributes": {"type": "string", "pattern": "^[0-9A-Fa-f]+$"},
-                "bootable": {"type": "boolean"},
-                "readonly": {"type": "boolean"},
-                "priority": {"type": "integer", "minimum": 0, "maximum": 3},
-                "tries-remaining": {"type": "integer", "minimum": 0, "maximum": 7},
-                "active": {"type": "boolean"},
-                "successful": {"type": "boolean"},
-                "unbootable": {"type": "boolean"},
-                "unique-guid": {"type": "string", "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"},
-                "sparse": {"type": "boolean"},
-                "lun": {"type": "integer", "minimum": 0},
-                "phys-part": {"type": "integer", "minimum": 0}
             }
         }
     }
