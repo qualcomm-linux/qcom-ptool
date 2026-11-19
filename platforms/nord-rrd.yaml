@@ -18,6 +18,9 @@ contents:
     - download: {file: rtsssw1.elf, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_SW1"}}
     - download: {file: rtsssw2.elf, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_SW2"}}
     - download: {file: rtsssw3.elf, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_SW3"}}
+    - download: {file: rtsssw4.elf, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_SW4"}}
+    - download: {file: rtsssw5.elf, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_SW5"}}
+    - download: {file: rtsssw6.elf, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", fastboot_complete: "RTSS_SW6"}}
     - download: {file: gpt_main0.bin, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
     - download: {file: gpt_backup0.bin, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
     - partition: {file: rawprogram0.xml, path: './spinor', path-flavor: sail_nor, attributes: {storage_type: "spinor", flavor: "sail_nor"}}
