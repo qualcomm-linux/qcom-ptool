@@ -40,8 +40,8 @@ storage:
           - {name: hyp_b, size: "65536KB", type-guid: "3D3E3AD2-8FF3-4975-A7E7-0E8A10B69F0D", filename: hypvm.mbn}
           - {name: devcfg_a, size: "128KB", type-guid: "F65D4B16-343D-4E25-AAFC-BE99B6556A6D", filename: devcfg_rfcomm.mbn}
           - {name: devcfg_b, size: "128KB", type-guid: "4E820A31-17E3-447D-B32D-FB339F7EA1A2", filename: devcfg_rfcomm.mbn}
-          - {name: qupfw_a, size: "128KB", type-guid: "21D1219F-2ED1-4AB4-930A-41A16AE75F7F"}
-          - {name: qupfw_b, size: "128KB", type-guid: "04BA8D53-5091-4958-9CA1-0FE0941D2CBC"}
+          - {name: qupfw_a, size: "128KB", type-guid: "21D1219F-2ED1-4AB4-930A-41A16AE75F7F", filename: qupv3fw.elf}
+          - {name: qupfw_b, size: "128KB", type-guid: "04BA8D53-5091-4958-9CA1-0FE0941D2CBC", filename: qupv3fw.elf}
           - {name: cpucp_a, size: "1024KB", type-guid: "1E8615BD-6D8C-41AD-B3EA-50E8BF40E43F", filename: cpucp.elf}
           - {name: cpucp_b, size: "1024KB", type-guid: "6C1111FB-5354-41DE-AC17-5B6E542BE836", filename: cpucp.elf}
           - {name: cpucp_dtb_a, size: "64KB", type-guid: "6C6018BC-4FBE-40C5-B148-4BCB1DB23748", filename: cpucp_dtbs.elf}
