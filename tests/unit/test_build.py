@@ -67,7 +67,7 @@ def test_platform_build_matches_the_manifest(tmp_path, monkeypatch, platform):
     assert build.main(["build", "-o", str(tmp_path), str(PLATFORMS / (platform + ".yaml"))]) == 0
     manifest = _manifest()
     built = {
-        "platforms/" + path: hashlib.sha256(data).hexdigest()
+        "platforms/out/" + path: hashlib.sha256(data).hexdigest()
         for path, data in _artifacts(tmp_path).items()
     }
     assert any(path.endswith("/contents.xml") for path in built)
