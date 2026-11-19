@@ -14,14 +14,8 @@ $(foreach t,$(PLATFORM_INDEX),$(eval \
 
 YAML_SHARED := $(wildcard platforms/boards/*.yaml platforms/flavors/*.yaml \
     platforms/flavors/_common/*.yaml)
-YAML_PARTITIONS_XML := $(foreach p,$(YAML_PLATFORMS),$(foreach o,$($(p)_OUTPUTS),platforms/$(o)/partitions.xml))
-YAML_CONF_EXCLUDE := $(patsubst %.xml,%.conf, $(YAML_PARTITIONS_XML))
-
-PARTITIONS := $(filter-out $(YAML_CONF_EXCLUDE), $(wildcard platforms/*/*/partitions.conf))
-PARTITIONS_XML := $(patsubst %.conf,%.xml, $(PARTITIONS)) $(YAML_PARTITIONS_XML)
+PARTITIONS_XML := $(foreach p,$(YAML_PLATFORMS),$(foreach o,$($(p)_OUTPUTS),platforms/$(o)/partitions.xml))
 PLATFORMS := $(patsubst %/partitions.xml,%/gpt, $(PARTITIONS_XML))
-
-CONTENTS_XML_IN := $(wildcard platforms/*/*/contents.xml.in)
 
 # Platforms carrying contents metadata, enumerated by the resolver as one
 # "<platform>:<output>^<partitions dependency>..." line per platform.
@@ -30,9 +24,7 @@ $(foreach t,$(PLATFORM_CONTENTS_INDEX),$(eval \
     $(firstword $(subst :, ,$(t)))_CONTENTS := $(wordlist 2,999,$(subst :, ,$(t)))))
 yaml-contents-outs = $(foreach p,$($(1)_CONTENTS),platforms/$(firstword $(subst ^, ,$(p))))
 yaml-contents-deps = $(foreach p,$($(1)_CONTENTS),platforms/$(word 2,$(subst ^, ,$(p))))
-YAML_CONTENTS_XML := $(foreach p,$(YAML_PLATFORMS),$(call yaml-contents-outs,$(p)))
-
-CONTENTS_XML := $(patsubst %.xml.in,%.xml, $(CONTENTS_XML_IN)) $(YAML_CONTENTS_XML)
+CONTENTS_XML := $(foreach p,$(YAML_PLATFORMS),$(call yaml-contents-outs,$(p)))
 
 UDEV_RULES := platforms/55-qcom-raw-partitions-noblkid.rules
 
@@ -46,9 +38,6 @@ all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML) $(UDEV_RULES)
 %/gpt: %/partitions.xml
 	cd $(shell dirname $^) && $(QCOM_PTOOL) ptool -x partitions.xml
 
-%/partitions.xml: %/partitions.conf
-	$(QCOM_PTOOL) gen_partition -i $^ -o $@
-
 # One grouped rule per platform: resolve once, emit all storage XMLs.
 define yaml-platform-rule
 $(foreach o,$($(1)_OUTPUTS),platforms/$(o)/partitions.xml) &: \
@@ -56,9 +45,6 @@ $(foreach o,$($(1)_OUTPUTS),platforms/$(o)/partitions.xml) &: \
 	$$(QCOM_PTOOL) gen_partition --platform platforms/$(1).yaml -C platforms
 endef
 $(foreach p,$(YAML_PLATFORMS),$(eval $(call yaml-platform-rule,$(p))))
-
-%/contents.xml: %/partitions.xml %/contents.xml.in
-	$(QCOM_PTOOL) gen_contents -p $< -t $@.in -o $@ $${BUILD_ID:+ -b $(BUILD_ID)}
 
 # One grouped rule per platform with contents metadata: resolve once,
 # emit every configuration's contents.xml.
@@ -68,8 +54,8 @@ $(call yaml-contents-outs,$(1)) &: platforms/$(1).yaml $(call yaml-contents-deps
 endef
 $(foreach p,$(YAML_PLATFORMS),$(if $($(p)_CONTENTS),$(eval $(call yaml-contents-rule,$(p)))))
 
-# Raw-partition udev rules from every .conf layout and every platform.
-$(UDEV_RULES): $(PARTITIONS) $(wildcard platforms/*.yaml) $(YAML_SHARED) \
+# Raw-partition udev rules from every platform.
+$(UDEV_RULES): $(wildcard platforms/*.yaml) $(YAML_SHARED) \
     qcom_ptool/data/filesystem-partition-names.list \
     qcom_ptool/data/55-qcom-raw-partitions-noblkid.rules.in
 	$(QCOM_PTOOL) gen_udev_rules -o $@
