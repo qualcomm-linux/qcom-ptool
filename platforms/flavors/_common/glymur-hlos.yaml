@@ -1,0 +1,9 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Shared Glymur-family HLOS set: the EFI + rootfs pair carried by every
+# storage that boots Glymur directly (Glymur-CRD's NVMe, Glymur-QCB's
+# NVMe and UFS).
+partitions:
+  - {name: efi, size: "524288KB", type-guid: "C12A7328-F81F-11D2-BA4B-00A0C93EC93B", filename: efi.bin}
+  - {name: rootfs, size: "33554432KB", type-guid: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE", filename: rootfs.img}
