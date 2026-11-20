@@ -1025,6 +1025,9 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber, UserProvided=False):
             Attributes |= 1 << 54
         if PhyPartition[k][j]["unbootable"] == "true":
             Attributes |= 1 << 55
+        # Raw attribute bits from --attributes (e.g. ChromeOS/CoreOS gptprio
+        # priority/tries/successful bits 48-56)
+        Attributes |= PhyPartition[k][j].get("attributes", 0)
 
         print("Attributes\t\t0x%X" % Attributes)
 
@@ -2010,6 +2013,7 @@ def ParseXML(XMLFile):
                 Partition["active"] = "false"
                 Partition["successful"] = "false"
                 Partition["unbootable"] = "false"
+                Partition["attributes"] = 0  ## raw GPT attribute bits
 
                 ##import pdb; pdb.set_trace()
 
@@ -2069,6 +2073,8 @@ def ParseXML(XMLFile):
                         Partition["tries_remaining"] = int(value)
                     elif name == "priority":
                         Partition["priority"] = int(value)
+                    elif name == "attributes":
+                        Partition["attributes"] = int(value, 16)
                     elif name == "size":
                         if len(value) == 0:
                             PrintBigError("\nERROR: Invalid partition size")

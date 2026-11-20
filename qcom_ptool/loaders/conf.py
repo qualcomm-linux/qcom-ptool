@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import getopt
 import re
+import shlex
 from collections.abc import Mapping
 
 from qcom_ptool.spec import (
@@ -104,6 +105,11 @@ def partition_options(
             attribute_bits = int(arg, 16)
             entry["bootable"] = "true" if attribute_bits & (1 << 2) else "false"
             entry["readonly"] = "true" if attribute_bits & (1 << 60) else "false"
+            # Keep every other bit so it reaches the GPT entry unchanged
+            # (e.g. type-specific bits 48-63 used by other A/B schemes).
+            extra_bits = attribute_bits & ~((1 << 2) | (1 << 60))
+            if extra_bits:
+                entry["attributes"] = "0x%016X" % extra_bits
     for opt, arg in argv:
         if opt in ("--lun", "--phys-part"):
             phys_part = arg
@@ -174,7 +180,7 @@ _PARTITION_LONG_OPTS = [
 
 def parse_disk_line(line: str) -> DiskParams | None:
     """Parse a single ``--disk ...`` line; return None if the line isn't one."""
-    opts_list = line.split(" ")
+    opts_list = shlex.split(line)
     if not opts_list or opts_list[0] != "--disk":
         return None
     options, _rem = getopt.gnu_getopt(opts_list[1:], "", _DISK_LONG_OPTS)
@@ -190,7 +196,8 @@ def parse_partition_lines(
         image_map = {}
     partitions: PartitionsByLun = {}
     for line in lines:
-        opts_list = line.split(" ")
+        # shlex allows quoted values with spaces, e.g. --name="EFI System"
+        opts_list = shlex.split(line)
         if not opts_list or opts_list[0] != "--partition":
             continue
         options, _rem = getopt.gnu_getopt(opts_list[1:], "", _PARTITION_LONG_OPTS)
