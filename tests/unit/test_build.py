@@ -7,6 +7,7 @@ Tests for ``qcom-ptool build``.
 from __future__ import annotations
 
 import hashlib
+import sys
 from pathlib import Path
 
 import pytest
@@ -34,6 +35,16 @@ def test_platform_builds_every_configuration(tmp_path, monkeypatch):
     for out in ("iq-615-evk/ufs", "iq-615-evk-emmc/emmc"):
         for name in ("partitions.xml", "gpt_main0.bin", "rawprogram0.xml", "patch0.xml"):
             assert (tmp_path / out / name).is_file()
+
+
+@pytest.mark.parametrize("host", ["linux", "darwin"])
+def test_platform_builds_on_posix_hosts(tmp_path, monkeypatch, host):
+    """Only Windows takes backslashes in the output folder."""
+    monkeypatch.setenv("PTOOL_SEED", "qcom-ptool-test")
+    monkeypatch.setattr(sys, "platform", host)
+    rc = build.main(["build", "-o", str(tmp_path), str(PLATFORMS / "iq-615-evk.yaml")])
+    assert rc == 0
+    assert (tmp_path / "iq-615-evk" / "ufs" / "gpt_main0.bin").is_file()
 
 
 def test_board_and_flavors_match_the_platform(tmp_path, monkeypatch):
