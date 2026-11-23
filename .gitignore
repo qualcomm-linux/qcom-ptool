@@ -1,5 +1,4 @@
-platforms/**/*.xml
-platforms/**/*.bin
+/platforms/out/
 
 # Python
 __pycache__/

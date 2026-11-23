@@ -42,7 +42,7 @@ Partition layouts are described by three kinds of YAML file under
 - **platforms** (`platforms/<platform>.yaml`) list the flashable
   configurations of a board, one flavor each, and carry the HLOS and
   flashing part of `contents:`. `make all` builds every configuration
-  into `platforms/<name>/<storage-id>/`, where the name defaults to the
+  into `platforms/out/<name>/<storage-id>/`, where the name defaults to the
   platform file's:
 
   ```yaml
@@ -148,10 +148,12 @@ sudo apt install mypy python3-pytest
 | `integration` | Build all platforms and verify generated files are present |
 | `check`       | Run `lint`, `unit-test`, and `integration`                 |
 | `install`     | Install the package (`pip install .`)                      |
-| `clean`       | Remove generated XML and binary files from platforms/      |
+| `clean`       | Remove the generated files under platforms/out/            |
 
 The Makefile invokes `qcom-ptool` from `PATH`. Install the package (or
 `pip install -e .` from the repo root) before running `make all`.
+Generated files go to `platforms/out/`; pass `OUT=<dir>` to build
+elsewhere.
 
 ### Quick start
 
