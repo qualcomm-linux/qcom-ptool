@@ -3489,10 +3489,10 @@ for o, a in opts:
 
         OutputFolder += "/"  # slashes will all be corrected below
 
-        if sys.platform.startswith("linux"):
-            OutputFolder = re.sub(r"\\", "/", OutputFolder)  # correct slashes
-        else:
+        if sys.platform.startswith("win"):
             OutputFolder = re.sub(r"/", "\\\\", OutputFolder)  # correct slashes
+        else:
+            OutputFolder = re.sub(r"\\", "/", OutputFolder)  # correct slashes
 
         print("OutputFolder=", OutputFolder)
         EnsureDirectoryExists(OutputFolder)  # only need to call once
