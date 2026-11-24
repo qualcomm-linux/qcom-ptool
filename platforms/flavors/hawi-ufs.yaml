@@ -76,8 +76,8 @@ storage:
           - {name: pdp_cdb_a, size: "128KB", type-guid: "39F567C2-CBAA-4378-A88A-F1912512CE10", filename: pdp_cdb.elf}
           - {name: qecp_a, size: "5120KB", type-guid: "F84D2B4D-E163-4E02-919E-BF8F8C783D00", filename: qecp.mbn}
           - {name: qupfw_a, size: "100KB", type-guid: "21D1219F-2ED1-4AB4-930A-41A16AE75F7F", filename: qupv3fw.elf}
-          - {name: qweslicstore_a, size: "256KB", type-guid: "7BAB3C93-5F73-4D02-B8CB-5B9F899D29A8"}
-          - {name: securestorage_a, size: "3072KB", type-guid: "889578FD-F300-494D-8A97-C84F54B38EC5"}
+          - {name: qweslicstore_a, size: "256KB", type-guid: "7BAB3C93-5F73-4D02-B8CB-5B9F899D29A8", filename: zeros_5sectors.bin}
+          - {name: securestorage_a, size: "3072KB", type-guid: "889578FD-F300-494D-8A97-C84F54B38EC5", filename: zeros_5sectors.bin}
           - {name: shrm_lp5_a, size: "256KB", type-guid: "CB74CA22-2F0D-4B82-A1D6-C4213F348D73", filename: shrm_lp5.elf}
           - {name: shrm_lp6_a, size: "256KB", type-guid: "C3ED6D94-A647-4851-A6D6-B66EAA16904C", filename: shrm_lp6.elf}
           - {name: soccp_a, size: "8192KB", type-guid: "E654E00B-F88A-452A-BB07-3E5F6FF94927", filename: soccp.bin}
@@ -121,8 +121,8 @@ storage:
           - {name: pdp_cdb_b, size: "128KB", type-guid: "C49242AA-4C04-43C5-9E81-817AF9C23AD5"}
           - {name: qecp_b, size: "5120KB", type-guid: "A4548F20-8E8B-4630-857D-B74235FD727A"}
           - {name: qupfw_b, size: "100KB", type-guid: "77036CD4-03D5-42BB-8ED1-37E5A88BAA34"}
-          - {name: qweslicstore_b, size: "256KB", type-guid: "77036CD4-03D5-42BB-8ED1-37E5A88BAA34"}
-          - {name: securestorage_b, size: "3072KB", type-guid: "8AEABD54-C224-4A0D-B966-72A3653F20A6"}
+          - {name: qweslicstore_b, size: "256KB", type-guid: "77036CD4-03D5-42BB-8ED1-37E5A88BAA34", filename: zeros_5sectors.bin}
+          - {name: securestorage_b, size: "3072KB", type-guid: "8AEABD54-C224-4A0D-B966-72A3653F20A6", filename: zeros_5sectors.bin}
           - {name: shrm_lp5_b, size: "256KB", type-guid: "F3D728AB-0E55-4DA3-8B9B-312F32DB1572"}
           - {name: shrm_lp6_b, size: "256KB", type-guid: "DA7C54C0-762D-4CCB-8084-1C65D15B67F5"}
           - {name: soccp_b, size: "8192KB", type-guid: "B842FDD7-8ED5-4DAA-A755-D0B43FFF21E6"}
