@@ -117,7 +117,7 @@ def test_requires_exactly_one_source(tmp_path):
     # both -i and --platform -> usage() exits.
     with pytest.raises(SystemExit):
         gen_partition.main(
-            ["gen_partition", "-i", "x.conf", "--platform", root + "/demo.yaml", "-o", "out.xml"]
+            ["gen_partition", "-i", "x.yaml", "--platform", root + "/demo.yaml", "-o", "out.xml"]
         )
 
 

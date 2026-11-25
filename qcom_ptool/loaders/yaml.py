@@ -5,19 +5,17 @@ Loader for the structured YAML partition source (single storage).
 
 A YAML document describes one ``disk`` mapping and a ``partitions`` list; this
 module validates it against ``qcom_ptool/schema/partitions.schema.json`` and
-normalises it into the exact same :class:`qcom_ptool.spec.LoadedSpec` the
-``.conf`` loader produces, so both formats emit byte-identical XML.
+normalises it into a :class:`qcom_ptool.spec.LoadedSpec`.
 
-Normalisation mirrors ``loaders/conf.py`` field for field: the disk dict is
-built by copying ``DISK_PARAMS_DEFAULTS`` and each partition by copying
-``PARTITION_ENTRY_DEFAULTS``, so key order (and therefore XML attribute order)
-matches the legacy loader. ``partition_size_in_kb`` and the attribute-bit
-decoding are reused / replicated identically.
+The disk dict is built by copying ``DISK_PARAMS_DEFAULTS`` and each partition
+by copying ``PARTITION_ENTRY_DEFAULTS``, so key order (and therefore XML
+attribute order) is fixed by those constants.
 """
 
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping
 from importlib import resources
 from typing import Any
@@ -25,7 +23,6 @@ from typing import Any
 import jsonschema
 import yaml  # type: ignore[import-untyped]
 
-from qcom_ptool.loaders.conf import partition_size_in_kb
 from qcom_ptool.spec import (
     DISK_PARAMS_DEFAULTS,
     PARTITION_ENTRY_DEFAULTS,
@@ -43,10 +40,28 @@ class YamlParseError(ValueError):
     """Raised when a YAML partition source is malformed or fails validation."""
 
 
+def partition_size_in_kb(size: str) -> int:
+    """Convert a size string ("1024", "1KB", "2MB", "1GB") to KB.
+
+    Bare integers are interpreted as bytes and divided by 1024. Strings with a
+    K/M/G suffix (any case, with optional 'B') return the kilobyte equivalent.
+    The accepted grammar matches the YAML schema (``^[0-9]+([KkMmGg][Bb]?)?$``);
+    anything else, including decimals such as "1.5MB", raises ``ValueError``
+    instead of being silently misread.
+    """
+    m = re.fullmatch(r"([0-9]+)(?:([KkMmGg])[Bb]?)?", size)
+    if not m:
+        raise ValueError("Unrecognized size format: '%s'" % size)
+    number, unit = int(m.group(1)), (m.group(2) or "").upper()
+    if not unit:
+        return number // 1024
+    return number * {"K": 1, "M": 1024, "G": 1024 * 1024}[unit]
+
+
 def _bool_str(value: Any) -> str:
-    """Render a YAML scalar as the lowercase "true"/"false" the .conf loader
-    stores. ``str(True)`` would yield "True", which the emitter would then
-    write verbatim and break parity, so booleans are normalised explicitly."""
+    """Render a YAML scalar as the lowercase "true"/"false" ptool expects.
+    ``str(True)`` would yield "True", which the emitter would then write
+    verbatim, so booleans are normalised explicitly."""
     if isinstance(value, bool):
         return "true" if value else "false"
     return str(value)
@@ -65,8 +80,7 @@ def _disk_from_node(node: Mapping[str, Any]) -> DiskParams:
     """Normalise the ``disk`` mapping into the canonical disk dict.
 
     Starts from ``DISK_PARAMS_DEFAULTS`` and overrides only the keys present,
-    exactly like ``conf.disk_options``, so unset fields keep their defaults and
-    the key order is identical.
+    so unset fields keep their defaults and the key order is fixed.
     """
     disk = DISK_PARAMS_DEFAULTS.copy()
     disk["type"] = str(node["type"])
@@ -89,8 +103,9 @@ def _partition_from_node(
 ) -> tuple[str, PartitionEntry]:
     """Normalise one partition mapping into ``(phys_part, entry)``.
 
-    Mirrors ``conf.partition_options``: same defaults, same attribute-bit
-    decoding, and the image-map override applied last so it always wins.
+    Starts from ``PARTITION_ENTRY_DEFAULTS``, decodes the attribute bits, lets
+    named fields override them, and applies the image map last so it always
+    wins.
     """
     entry: PartitionEntry = PARTITION_ENTRY_DEFAULTS.copy()
     phys_part = "0"
@@ -105,7 +120,7 @@ def _partition_from_node(
         attribute_bits = int(str(node["attributes"]), 16)
         entry["bootable"] = "true" if attribute_bits & (1 << 2) else "false"
         entry["readonly"] = "true" if attribute_bits & (1 << 60) else "false"
-    # Named fields mirror the .conf options; applied after attributes so they win.
+    # Named fields are applied after attributes so they win.
     if "bootable" in node:
         entry["bootable"] = _bool_str(node["bootable"])
     if "readonly" in node:

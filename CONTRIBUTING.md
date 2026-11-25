@@ -27,10 +27,9 @@ Here are a few things you can do that will increase the likelihood of your pull 
 
 - Follow the existing style where possible.
 - Write tests.
-- Keep the partition source formats in sync: when adding an option to
-  the legacy `.conf` loader, add the matching typed field to the YAML
+- When adding a partition option, add its typed field to the YAML
   schemas (`qcom_ptool/schema/`) and the YAML loader in the same pull
-  request, with a test pinning that both formats load identically.
+  request, with a test.
 - Keep your change as focused as possible.
   If you want to make multiple independent changes, please consider submitting them as separate pull requests.
 - Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).

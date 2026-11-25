@@ -3,9 +3,8 @@
 """
 Internal representation shared by all input loaders.
 
-Every loader (``loaders/conf.py`` today, ``loaders/yaml.py`` tomorrow) must
-return a ``LoadedSpec`` so the rest of ``gen_partition.py`` is independent
-of the source format.
+Every loader (``loaders/yaml.py``) returns a ``LoadedSpec`` so the rest of
+``gen_partition.py`` is independent of the source format.
 
 ``DiskParams`` and ``PartitionEntry`` are type aliases for ``dict[str, str]``
 rather than ``TypedDict``s; the XML emitter passes the dicts straight to
@@ -21,25 +20,24 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import TypedDict
 
-# Parsed ``--disk`` line normalised into the keys ``ptool`` consumes.
+# Disk parameters normalised into the keys ``ptool`` consumes.
 # Expected keys: type, size, SECTOR_SIZE_IN_BYTES, WRITE_PROTECT_BOUNDARY_IN_KB,
 # GROW_LAST_PARTITION_TO_FILL_DISK, ALIGN_PARTITIONS_TO_PERFORMANCE_BOUNDARY,
 # PERFORMANCE_BOUNDARY_IN_KB. See DISK_PARAMS_DEFAULTS for the canonical set.
 DiskParams = dict[str, str]
 
-# Parsed ``--partition`` line normalised for the XML attribute set.
+# One partition normalised for the XML attribute set.
 # Expected keys: label, size_in_kb, type, bootable, readonly, filename, sparse,
 # active, successful, unbootable.
 # See PARTITION_ENTRY_DEFAULTS for the canonical set.
 PartitionEntry = dict[str, str]
 
-# Mapping of physical partition / LUN id (kept as a string for backward
-# compatibility with the existing line parser) to its partition entries.
+# Mapping of physical partition / LUN id (kept as a string, as emitted in
+# the XML) to its partition entries.
 PartitionsByLun = dict[str, list[PartitionEntry]]
 
 
-# Defaults used by the conf loader (and any future loader that wants to
-# inherit the same baseline). Kept as module-level constants so loaders can
+# Defaults every loader starts from. Kept as module-level constants so loaders can
 # ``.copy()`` from them rather than rebuilding the structure each call.
 # ``OrderedDict`` is preserved here because the XML emitter relies on its
 # iteration order to produce stable output across Python versions.
