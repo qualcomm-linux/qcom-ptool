@@ -21,9 +21,8 @@ jobs:
         env:
           PTOOL_SEED: qcom-ptool-ci
         run: |
-          make lint
-          make unit-test
-          make all integration check-checksums
+          make check-dev
+          make check-partitions check-checksums
 
       - name: Verify checksum manifest is up to date
         env:

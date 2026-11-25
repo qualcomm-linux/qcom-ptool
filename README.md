@@ -144,14 +144,16 @@ with pip.
 
 ## Makefile targets
 
-| Target        | Description                                                |
-|---------------|------------------------------------------------------------|
-| `all`         | Generate partition XML, GPT binaries and contents.xml      |
-| `lint`        | Run ruff (linter) and mypy (type checker) on the package   |
-| `unit-test`   | Run the pytest suite under `tests/unit/`                   |
-| `integration` | Build all platforms and verify generated files are present |
-| `check`       | Run `lint`, `unit-test`, and `integration`                 |
-| `clean`       | Remove the generated files under platforms/out/            |
+| Target             | Description                                                |
+|--------------------|------------------------------------------------------------|
+| `all`              | Generate partition XML, GPT binaries and contents.xml      |
+| `lint`             | Run ruff (linter) and mypy (type checker) on the package   |
+| `unit-test`        | Run the pytest suite under `tests/unit/`                   |
+| `integration`      | Build all platforms and verify generated files are present |
+| `check-dev`        | qcom-ptool development checks: `lint` and `unit-test`      |
+| `check-partitions` | Partition table checks: `integration`                      |
+| `check`            | Run `check-dev` and `check-partitions`                     |
+| `clean`            | Remove the generated files under platforms/out/            |
 
 The Makefile runs `qcom-ptool` and the development tools through
 `uv run`, always from this checkout, so no installation step is needed.
@@ -164,12 +166,11 @@ elsewhere.
 ### Quick start
 
 ```sh
-# run linters and unit tests
-make lint
-make unit-test
+# qcom-ptool development: linters and unit tests
+make check-dev
 
-# build all platforms and run tests
-make check
+# partition tables: build all platforms and verify the generated files
+make check-partitions
 
 # without make (e.g. on Windows), call the tools through uv directly
 uv run pytest

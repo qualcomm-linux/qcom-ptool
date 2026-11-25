@@ -59,7 +59,7 @@ UDEV_RULES := $(OUT)/55-qcom-raw-partitions-noblkid.rules
 # optional build_id for Axiom contents.xml files
 BUILD_ID ?=
 
-.PHONY: all check check-checksums clean generate-checksums lint integration unit-test
+.PHONY: all check check-checksums check-dev check-partitions clean generate-checksums lint integration unit-test
 
 all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML) $(UDEV_RULES)
 
@@ -112,7 +112,13 @@ generate-checksums: all
 	  -print0 | LC_ALL=C sort -z | xargs -0 sha256sum \
 	  > tests/integration/checksums.sha256
 
-check: lint unit-test integration
+# qcom-ptool development: lint and unit tests.
+check-dev: lint unit-test
+
+# Partition tables: build every platform and verify the generated files.
+check-partitions: integration
+
+check: check-dev check-partitions
 
 # Deletes only generated file types, so an OUT pointed at a source
 # directory never loses its YAML.
