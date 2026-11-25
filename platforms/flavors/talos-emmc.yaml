@@ -10,3 +10,4 @@ storage:
       - phys-part: 0        # last partition (rootfs) grows
         partitions:
           - include: firmware/talos-emmc.yaml
+          - include: hlos/talos-emmc-hlos.yaml

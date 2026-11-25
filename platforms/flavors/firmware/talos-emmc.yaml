@@ -1,7 +1,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# Shared Talos-family eMMC user area (qcs615).
+# Shared Talos-family eMMC boot firmware set (qcs615).
 partitions:
   - {name: xbl_a, size: "3584KB", type-guid: "DEA0BA2C-CBDD-4805-B4F9-F428251C3E98", filename: xbl.elf}
   - {name: xbl_config_a, size: "512KB", type-guid: "5A325AE4-4276-B66D-0ADD-3494DF27706A", filename: xbl_config.elf}
@@ -56,6 +56,3 @@ partitions:
   - {name: core_nhlos_b, size: "174080KB", type-guid: "77036CD4-03D5-42BB-8ED1-37E5A88BAA34"}
   - {name: quantumfv, size: "512KB", type-guid: "80c23c26-c3f9-4a19-bb38-1e457daceb09"}
   - {name: SYSFW_VERSION, size: "4KB", type-guid: "3C44F88B-1878-4C29-B122-EE78766442A7"}
-  - {name: efi, size: "524288KB", type-guid: "C12A7328-F81F-11D2-BA4B-00A0C93EC93B", filename: efi.bin}
-  - {name: persist, size: "131072KB", type-guid: "0FC63DAF-8483-4772-8E79-3D69D8477DE4"}
-  - {name: rootfs, size: "16777216KB", type-guid: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE", filename: rootfs.img}
