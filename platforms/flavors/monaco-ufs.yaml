@@ -2,33 +2,33 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Monaco-family per-LUN UFS layout, composed from the shared partition
-# sets under _common/.
+# sets under firmware/ and hlos/.
 storage:
   - type: ufs
     grow-last-partition: true
     luns:
       - lun: 0              # last partition (rootfs) grows
         partitions:
-          - include: _common/monaco-hlos.yaml
+          - include: hlos/monaco-hlos.yaml
       - lun: 1
         grow: false
         partitions:
-          - include: _common/monaco-xbl.yaml
+          - include: firmware/monaco-xbl.yaml
       - lun: 2
         grow: false
         partitions:
-          - include: _common/monaco-xbl.yaml
+          - include: firmware/monaco-xbl.yaml
       - lun: 3
         grow: false
         partitions:
           - {name: ALIGN_TO_128K_1, size: "104KB", type-guid: "FDE1604B-D68B-4BD4-973D-962AE7A1ED88"}
-          - include: _common/monaco-cdt.yaml
-          - include: _common/monaco-ddr.yaml
+          - include: firmware/monaco-cdt.yaml
+          - include: firmware/monaco-ddr.yaml
       - lun: 4
         grow: false
         partitions:
-          - include: _common/monaco-firmware.yaml
+          - include: firmware/monaco-firmware.yaml
       - lun: 5
         grow: false
         partitions:
-          - include: _common/monaco-persist.yaml
+          - include: hlos/monaco-persist.yaml

@@ -38,7 +38,8 @@ Partition layouts are described by three kinds of YAML file under
   layouts, keyed by storage type (e.g. a UFS layout with its LUNs). A
   flavor may span several storages flashed together, may `extends:`
   another flavor to add or override partitions, and composes shared
-  partition sets from `platforms/flavors/_common/`.
+  partition sets: boot firmware from `platforms/flavors/firmware/`, the
+  HLOS partitions from `platforms/flavors/hlos/`.
 - **platforms** (`platforms/<platform>.yaml`) list the flashable
   configurations of a board, one flavor each, and carry the HLOS and
   flashing part of `contents:`. `make all` builds every configuration
@@ -99,7 +100,7 @@ is such a board.
 Files kept out of tree can reuse the in-tree boards, flavors and shared
 fragments: `build -I <dir>` (repeatable) looks up references that do not
 resolve relative to their own file in `<dir>`, in order. For example, a
-board whose storage says `includes: [_common/kodiak-hlos.yaml]`:
+board whose storage says `includes: [hlos/kodiak-hlos.yaml]`:
 
 ```sh
 qcom-ptool build -I <qcom-ptool>/platforms/flavors -o out/ -b my-board.yaml

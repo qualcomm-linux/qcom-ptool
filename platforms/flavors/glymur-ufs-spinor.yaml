@@ -5,11 +5,11 @@
 storage:
   - type: spinor
     partitions:
-      - include: _common/glymur-spinor.yaml
+      - include: firmware/glymur-spinor.yaml
 
   - type: ufs
     grow-last-partition: true
     luns:
       - lun: 0
         partitions:
-          - include: _common/glymur-hlos.yaml
+          - include: hlos/glymur-hlos.yaml

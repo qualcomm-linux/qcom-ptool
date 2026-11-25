@@ -17,7 +17,7 @@ $(foreach t,$(PLATFORM_INDEX),$(eval \
     $(firstword $(subst :, ,$(t)))_OUTPUTS := $(wordlist 2,999,$(subst :, ,$(t)))))
 
 YAML_SHARED := $(wildcard platforms/boards/*.yaml platforms/flavors/*.yaml \
-    platforms/flavors/_common/*.yaml)
+    platforms/flavors/firmware/*.yaml platforms/flavors/hlos/*.yaml)
 PARTITIONS_XML := $(foreach p,$(YAML_PLATFORMS),$(foreach o,$($(p)_OUTPUTS),$(OUT)/$(o)/partitions.xml))
 PLATFORMS := $(patsubst %/partitions.xml,%/gpt, $(PARTITIONS_XML))
 
