@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
 board: boards/glymur-qcb.yaml
 
-# The qcom_server product flavor flashes the prebuilt server image from
-# the parent directory onto NVMe in a second flash phase; qcom_server_ufs
-# does the same onto UFS.
+# Two flashable configurations of the same board, both booting from
+# SPI-NOR: the HLOS on NVMe (glymur-qcb) or on UFS (glymur-qcb-ufs). The
+# qcom_server / qcom_server_ufs product flavor flashes the prebuilt server
+# image from the parent directory onto the HLOS storage in a second flash
+# phase.
 contents:
   product-name: Glymur.LE.0.0
   hlos-type: LE
@@ -12,10 +14,8 @@ contents:
   default-components: [common]
   product-flavors:
     - {name: qcom_server, components: [apps, common]}
-    - {name: qcom_server_ufs, components: [apps, common]}
   chipids:
     - {flavor: qcom_server, storage: NVME, flash-phase: 2}
-    - {flavor: qcom_server_ufs, storage: UFS, flash-phase: 2}
   apps-image-dir: build
   common:
     - download: {file: efi.bin, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", fastboot_complete: "efi"}}
@@ -24,12 +24,25 @@ contents:
     - download: {file: gpt_backup0.bin, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
     - partition: {file: rawprogram0.xml, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
     - patch: {file: patch0.xml, path: '../', path-flavor: qcom_server, attributes: {storage_type: "nvme", flavor: "qcom_server"}}
-    - download: {file: efi.bin, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", fastboot_complete: "efi"}}
-    - download: {file: rootfs.img, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", fastboot_complete: "rootfs"}}
-    - download: {file: gpt_main0.bin, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", flavor: "qcom_server_ufs"}}
-    - download: {file: gpt_backup0.bin, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", flavor: "qcom_server_ufs"}}
-    - partition: {file: rawprogram0.xml, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", flavor: "qcom_server_ufs"}}
-    - patch: {file: patch0.xml, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", flavor: "qcom_server_ufs"}}
 
 flavors:
-  - flavors/glymur-nvme-spinor-ufs.yaml
+  - flavors/glymur-nvme-spinor.yaml
+  - flavor: flavors/glymur-ufs-spinor.yaml
+    name: glymur-qcb-ufs
+    contents:
+      product-name: Glymur.LE.0.0
+      hlos-type: LE
+      location: spinor
+      default-components: [common]
+      product-flavors:
+        - {name: qcom_server_ufs, components: [apps, common]}
+      chipids:
+        - {flavor: qcom_server_ufs, storage: UFS, flash-phase: 2}
+      apps-image-dir: build
+      common:
+        - download: {file: efi.bin, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", fastboot_complete: "efi"}}
+        - download: {file: rootfs.img, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", fastboot_complete: "rootfs"}}
+        - download: {file: gpt_main0.bin, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", flavor: "qcom_server_ufs"}}
+        - download: {file: gpt_backup0.bin, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", flavor: "qcom_server_ufs"}}
+        - partition: {file: rawprogram0.xml, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", flavor: "qcom_server_ufs"}}
+        - patch: {file: patch0.xml, path: '../', path-flavor: qcom_server_ufs, attributes: {storage_type: "ufs", flavor: "qcom_server_ufs"}}

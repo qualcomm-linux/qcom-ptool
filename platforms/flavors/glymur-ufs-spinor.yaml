@@ -1,0 +1,15 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Glymur: UFS (HLOS) + SPI-NOR (boot / platform-config).
+storage:
+  - type: spinor
+    partitions:
+      - include: _common/glymur-spinor.yaml
+
+  - type: ufs
+    grow-last-partition: true
+    luns:
+      - lun: 0
+        partitions:
+          - include: _common/glymur-hlos.yaml
