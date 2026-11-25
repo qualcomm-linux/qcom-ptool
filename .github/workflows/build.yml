@@ -14,15 +14,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install linters and test runner
-        run: |
-          sudo snap install ruff
-          sudo apt-get update
-          sudo apt-get install -y mypy python3-pytest
-
-      - name: Install qcom-ptool
-        run: |
-          pip install -e .
+      - name: Install uv
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
 
       - name: Build all platforms and run tests
         env:
