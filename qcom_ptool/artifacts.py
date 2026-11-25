@@ -6,8 +6,8 @@ GPT and flashing artifacts of one storage.
 Every LUN with partitions gets its GPT images (``gpt_main/backup/both/
 empty``) and firehose XML (``rawprogram``, ``patch`` and the wipe and
 blank-GPT variants), numbered by its position among those LUNs; the
-storage gets the zero-filled images the wipe files write and
-``wipe_rawprogram_PHYn.xml``.
+storage gets the zero-filled images the wipe files write and one
+``wipe_rawprogram_PHYn.xml`` per LUN.
 """
 
 from __future__ import annotations
@@ -20,11 +20,6 @@ from qcom_ptool import firehose
 from qcom_ptool.gpt import build_tables
 from qcom_ptool.layout import Placement, WriteProtect, geometry, place_lun, validate
 from qcom_ptool.spec import LoadedSpec
-
-# Physical partitions the wipe files cover. The list is ptool.py's, kept
-# so that the output does not change: it is the eMMC numbering, where 3
-# is RPMB, and is applied to every storage type.
-WIPE_PHYS = (0, 1, 2, 4, 5, 6, 7)
 
 
 def rng_for_build() -> random.Random:
@@ -70,6 +65,6 @@ def write_storage(
 
     for sectors in sorted({1, geom.backup_lbas, 33}):
         _write(outdir, firehose.zeros_name(sectors), bytes(sectors * geom.sector))
-    for phy in WIPE_PHYS:
+    for phy in range(len(luns)):
         _write(outdir, "wipe_rawprogram_PHY%d.xml" % phy, firehose.wipe_phy(geom, phy))
     return layout

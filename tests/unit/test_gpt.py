@@ -183,6 +183,14 @@ def test_write_storage_numbers_luns_by_position(tmp_path):
     assert root.find("program[@label='BackupGPT']").get("start_sector") == "NUM_DISK_SECTORS-33."
 
 
+def test_wipe_files_cover_the_declared_luns_only(tmp_path):
+    write_storage(spec([[part("a", 4)], [part("b", 4)]]), str(tmp_path))
+    assert sorted(p.name for p in tmp_path.glob("wipe_rawprogram_PHY*.xml")) == [
+        "wipe_rawprogram_PHY0.xml",
+        "wipe_rawprogram_PHY1.xml",
+    ]
+
+
 def test_grown_partition_is_patched(tmp_path):
     write_storage(spec([[part("a", 4), part("rootfs", 4)]], grow=True), str(tmp_path))
     whats = [p.get("what") for p in ET.parse(tmp_path / "patch0.xml").getroot().iter("patch")]
