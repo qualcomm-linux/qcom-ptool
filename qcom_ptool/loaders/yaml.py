@@ -120,6 +120,9 @@ def _partition_from_node(
         attribute_bits = int(str(node["attributes"]), 16)
         entry["bootable"] = "true" if attribute_bits & (1 << 2) else "false"
         entry["readonly"] = "true" if attribute_bits & (1 << 60) else "false"
+        extra_bits = attribute_bits & ~((1 << 2) | (1 << 60))
+        if extra_bits:
+            entry["attributes"] = "0x%016X" % extra_bits
     # Named fields are applied after attributes so they win.
     if "bootable" in node:
         entry["bootable"] = _bool_str(node["bootable"])
