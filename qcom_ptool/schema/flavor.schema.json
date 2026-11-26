@@ -103,6 +103,9 @@
                 "active": {"type": "boolean"},
                 "successful": {"type": "boolean"},
                 "unbootable": {"type": "boolean"},
+                "gptprio-priority": {"type": "integer", "minimum": 0, "maximum": 15},
+                "gptprio-tries-left": {"type": "integer", "minimum": 0, "maximum": 15},
+                "gptprio-successful": {"type": "boolean"},
                 "unique-guid": {
                     "type": "string",
                     "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"

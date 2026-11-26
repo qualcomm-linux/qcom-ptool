@@ -43,6 +43,14 @@ from xml.etree.ElementTree import Comment, Element, SubElement
 
 from qcom_ptool.utils import CalcCRC32, EnsureDirectoryExists, PrintBigError, PrintBigWarning
 
+# A/B attribute fields for GRUB's gptprio module (gptprio.next), using the
+# ChromeOS bit layout: (partitions.xml attribute, first bit, width in bits)
+GPTPRIO_FIELDS = (
+    ("gptprio_priority", 48, 4),
+    ("gptprio_tries_left", 52, 4),
+    ("gptprio_successful", 56, 1),
+)
+
 OutputFolder = ""
 
 LastPartitionBeginsAt = 0
@@ -1026,6 +1034,13 @@ def CreateGPTPartitionTable(PhysicalPartitionNumber, UserProvided=False):
         if PhyPartition[k][j]["unbootable"] == "true":
             Attributes |= 1 << 55
         Attributes |= PhyPartition[k][j].get("attributes", 0)
+        # A/B fields for GRUB's gptprio module; a named field replaces
+        # whatever the raw attributes put in its bits
+        for key, shift, width in GPTPRIO_FIELDS:
+            if key in PhyPartition[k][j]:
+                mask = ((1 << width) - 1) << shift
+                Attributes &= ~mask
+                Attributes |= (PhyPartition[k][j][key] << shift) & mask
 
         print("Attributes\t\t0x%X" % Attributes)
 
@@ -2073,6 +2088,10 @@ def ParseXML(XMLFile):
                         Partition["priority"] = int(value)
                     elif name == "attributes":
                         Partition["attributes"] = int(value, 16)
+                    elif name in ("gptprio_priority", "gptprio_tries_left"):
+                        Partition[name] = int(value)
+                    elif name == "gptprio_successful":
+                        Partition[name] = 1 if value == "true" else 0
                     elif name == "size":
                         if len(value) == 0:
                             PrintBigError("\nERROR: Invalid partition size")

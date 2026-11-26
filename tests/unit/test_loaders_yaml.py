@@ -12,6 +12,7 @@ import pytest
 
 from qcom_ptool.loaders import UnsupportedFormatError, load
 from qcom_ptool.loaders import yaml as yaml_loader
+from qcom_ptool.spec import GPTPRIO_KEYS
 
 
 def _write(tmp_path, name: str, text: str) -> str:
@@ -274,12 +275,64 @@ def _yaml_with(tmp_path, extra: str) -> str:
         ("unbootable: true", "unbootable", "true"),
         ('unique-guid: "%s"' % _UGUID, "uniqueguid", _UGUID),
         ("sparse: true", "sparse", "true"),
+        ("gptprio-priority: 2", "gptprio_priority", "2"),
+        ("gptprio-tries-left: 15", "gptprio_tries_left", "15"),
+        ("gptprio-successful: true", "gptprio_successful", "true"),
+        ('attributes: "0100000000000000"', "attributes", "0x0100000000000000"),
     ],
 )
 def test_named_field(tmp_path, yaml_field, entry_key, expected):
     """Each named field loads to its partition entry key."""
     spec = load(_yaml_with(tmp_path, "    %s\n" % yaml_field))
     assert spec["partitions"]["0"][0][entry_key] == expected
+
+
+@pytest.mark.parametrize(
+    "qbootctl",
+    ["priority: 1", "tries-remaining: 2", "active: true", "successful: true",
+     "unbootable: true"],
+)
+def test_gptprio_rejects_qbootctl_fields(tmp_path, qbootctl):
+    """Mixing the two A/B schemes on one partition is an error."""
+    with pytest.raises(ValueError, match="pick one scheme"):
+        load(_yaml_with(tmp_path, "    %s\n    gptprio-priority: 2\n" % qbootctl))
+
+
+def test_gptprio_allows_unset_qbootctl_fields(tmp_path):
+    """qbootctl fields that set no bits don't clash with gptprio."""
+    spec = load(
+        _yaml_with(
+            tmp_path,
+            "    successful: false\n"
+            "    priority: 0\n"
+            "    gptprio-successful: true\n",
+        )
+    )
+    assert spec["partitions"]["0"][0]["gptprio_successful"] == "true"
+
+
+def test_gptprio_unset_by_default(tmp_path):
+    spec = load(_yaml_with(tmp_path, ""))
+    assert not set(GPTPRIO_KEYS) & set(spec["partitions"]["0"][0])
+
+
+def test_attributes_keeps_other_bits(tmp_path):
+    """Bits other than bootable (2) and readonly (60) pass through unchanged."""
+    spec = load(_yaml_with(tmp_path, '    attributes: "1102000000000004"\n'))
+    entry = spec["partitions"]["0"][0]
+    assert entry["bootable"] == "true"
+    assert entry["readonly"] == "true"
+    assert entry["attributes"] == "0x0102000000000000"
+
+
+def test_attributes_without_other_bits_adds_nothing(tmp_path):
+    spec = load(_yaml_with(tmp_path, '    attributes: "1000000000000004"\n'))
+    assert "attributes" not in spec["partitions"]["0"][0]
+
+
+def test_gptprio_out_of_range_rejected_by_schema(tmp_path):
+    with pytest.raises(yaml_loader.YamlParseError, match="schema validation failed"):
+        load(_yaml_with(tmp_path, "    gptprio-priority: 16\n"))
 
 
 def test_named_fields_override_attributes(tmp_path):

@@ -30,6 +30,7 @@ from qcom_ptool.spec import (
     LoadedSpec,
     PartitionEntry,
     PartitionsByLun,
+    check_ab_scheme,
 )
 
 _SCHEMA_PACKAGE = "qcom_ptool.schema"
@@ -138,12 +139,19 @@ def _partition_from_node(
         entry["successful"] = _bool_str(node["successful"])
     if "unbootable" in node:
         entry["unbootable"] = _bool_str(node["unbootable"])
+    if "gptprio-priority" in node:
+        entry["gptprio_priority"] = str(int(node["gptprio-priority"]))
+    if "gptprio-tries-left" in node:
+        entry["gptprio_tries_left"] = str(int(node["gptprio-tries-left"]))
+    if "gptprio-successful" in node:
+        entry["gptprio_successful"] = _bool_str(node["gptprio-successful"])
     if "unique-guid" in node:
         entry["uniqueguid"] = str(node["unique-guid"])
     if "filename" in node:
         entry["filename"] = str(node["filename"])
     if "sparse" in node:
         entry["sparse"] = _bool_str(node["sparse"])
+    check_ab_scheme(entry)
     if entry["label"] in image_map:
         entry["filename"] = image_map[entry["label"]]
     return phys_part, entry
