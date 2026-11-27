@@ -1,21 +1,20 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 """
-Build a contents template tree from a configuration's YAML metadata.
+Build a contents tree from a configuration's YAML metadata.
 
-A configuration's ``contents:`` metadata carries everything a
-contents.xml.in template used to: the product identity (product name, chip, chipids, additional
-chipids, hlos/meta/build type), the product flavors, and the ordered
-entries of the ``common`` build - device programmers and literal
-download/partition/patch files.
+A configuration's ``contents:`` metadata carries the product identity
+(product name, chip, chipids, additional chipids, hlos/meta/build type),
+the product flavors, and the ordered entries of the ``common`` build -
+device programmers and literal download/partition/patch files.
 
 The placeholder entries that
 :func:`qcom_ptool.gen_contents.UpdateMetaData` replaces with the layout's
 artifacts are injected implicitly, right after the build boilerplate:
 UpdateMetaData removes them and appends the generated entries at the end
-of the build, so their position in the source template never influenced
-the output - only the relative order of the real entries does, which the
-``common`` list preserves. The result is byte-identical contents.xml.
+of the build, so their position never influences the output - only the
+relative order of the real entries does, which the ``common`` list
+preserves.
 """
 
 from __future__ import annotations
@@ -24,8 +23,8 @@ from collections.abc import Mapping
 from typing import Any
 from xml.etree import ElementTree as ET
 
-# The placeholder entries UpdateMetaData() looks for, verbatim from the
-# templates: (child tag, file_path flavor, text) triples.
+# The placeholder entries UpdateMetaData() replaces with the layout's
+# artifacts: (child tag, file_path flavor, text) triples.
 _PLACEHOLDERS: dict[str, tuple[str, list[tuple[str, str | None, str]]]] = {
     "downloads": (
         "download_file",
@@ -62,7 +61,7 @@ _ENTRY_TAGS = {
 
 
 class ContentsError(ValueError):
-    """Raised when a contents block cannot be turned into a template."""
+    """Raised when a contents block cannot be turned into a contents tree."""
 
 
 def _add_text(parent: ET.Element, tag: str, text: str) -> None:
@@ -101,7 +100,7 @@ def _add_build(parent: ET.Element, name: str, chipset: str, image_dir: str) -> E
 
 
 def build_contents_root(meta: Mapping[str, Any], storage: str) -> ET.Element:
-    """Build the template tree one contents.xml.in used to describe."""
+    """Build the contents tree that UpdateMetaData fills with the layout."""
     root = ET.Element("contents")
 
     flavors = ET.SubElement(root, "product_flavors", {"cmm_pf_var": "PRODUCT_FLAVORS"})

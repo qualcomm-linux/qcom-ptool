@@ -107,9 +107,8 @@ qcom-ptool build -I <qcom-ptool>/platforms/flavors -o out/ -b my-board.yaml
 
 ## udev rules
 
-By default, the generator scans all `platforms/*.yaml` platforms (and any
-remaining `platforms/*/*/partitions.conf` files). Repeatable `-i` options
-can select specific layouts, self-contained boards included. It skips known filesystem
+By default, the generator scans all `platforms/*.yaml` platforms. Repeatable
+`-i` options can select specific layouts, self-contained boards included. It skips known filesystem
 partition names and emits exact `PARTNAME` rules for the others. Unknown names
 retain normal blkid probing. Matched partitions are marked with
 `QCOM_RAW_PARTITION=1` so later udev rules can reuse the generated

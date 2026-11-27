@@ -72,16 +72,9 @@ def test_generate_rules_resolves_yaml_platforms(tmp_path: Path) -> None:
     assert "last_parti" not in rules
 
 
-def test_discovery_includes_conf_and_yaml_platforms(
+def test_discovery_includes_yaml_platforms(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    conf_dir = tmp_path / "platforms" / "legacy" / "ufs"
-    conf_dir.mkdir(parents=True)
-    (conf_dir / "partitions.conf").write_text(
-        "--disk --type=ufs --size=1\n"
-        "--partition --name=raw_conf --size=1KB --type-guid=1\n",
-        encoding="utf-8",
-    )
     _write_platform(
         tmp_path / "platforms",
         "demo",
@@ -96,25 +89,27 @@ def test_discovery_includes_conf_and_yaml_platforms(
 
     rules = gen_udev_rules.generate_rules()
 
-    assert 'ENV{PARTNAME}=="raw_conf"' in rules
     assert 'ENV{PARTNAME}=="raw_board"' in rules
 
 
 def test_generate_rules_merges_layouts_and_deduplicates(
     tmp_path: Path,
 ) -> None:
-    first = tmp_path / "first.conf"
-    second = tmp_path / "second.conf"
+    first = tmp_path / "first.yaml"
+    second = tmp_path / "second.yaml"
+    guid = '"00000000-0000-0000-0000-000000000001"'
     first.write_text(
-        "--disk --type=ufs --size=1\n"
-        "--partition --name=raw_a --size=1KB --type-guid=1\n"
-        "--partition --name=rootfs --size=1KB --type-guid=2\n",
+        "disk: {type: ufs, size: 1}\n"
+        "partitions:\n"
+        '  - {name: raw_a, size: "1KB", type-guid: %s}\n'
+        '  - {name: rootfs, size: "1KB", type-guid: %s}\n' % (guid, guid),
         encoding="utf-8",
     )
     second.write_text(
-        "--disk --type=ufs --size=1\n"
-        "--partition --name=raw_a --size=1KB --type-guid=1\n"
-        "--partition --name=raw_b --size=1KB --type-guid=2\n",
+        "disk: {type: ufs, size: 1}\n"
+        "partitions:\n"
+        '  - {name: raw_a, size: "1KB", type-guid: %s}\n'
+        '  - {name: raw_b, size: "1KB", type-guid: %s}\n' % (guid, guid),
         encoding="utf-8",
     )
     rules = gen_udev_rules.generate_rules([first, second])

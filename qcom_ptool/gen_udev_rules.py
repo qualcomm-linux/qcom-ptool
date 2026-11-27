@@ -22,7 +22,6 @@ FILESYSTEM_NAMES_FILE = DATA_DIR / "filesystem-partition-names.list"
 TEMPLATE_FILE = DATA_DIR / "55-qcom-raw-partitions-noblkid.rules.in"
 RULES_PLACEHOLDER = "@QCOM_RAW_PARTITION_RULES@"
 NAME_RE = re.compile(r"[A-Za-z0-9_.+-]+")
-CONF_LAYOUT_GLOB = "platforms/*/*/partitions.conf"
 PLATFORM_LAYOUT_GLOB = "platforms/*.yaml"
 
 
@@ -65,8 +64,7 @@ def layout_specs(path: Path) -> list[LoadedSpec]:
 
     A YAML platform file resolves to one spec per flashed storage of each
     configuration, a self-contained YAML board to one per flashed storage;
-    everything else (.conf, flat partitions YAML) is a single spec via the
-    format loaders.
+    a flat partitions YAML is a single spec via the format loaders.
     """
     if path.suffix.lower() in (".yaml", ".yml"):
         document = _read_yaml_mapping(path)
@@ -104,8 +102,7 @@ def discover_inputs(inputs: list[Path] | None) -> list[Path]:
     if inputs:
         return inputs
 
-    discovered = sorted(Path.cwd().glob(CONF_LAYOUT_GLOB))
-    discovered += sorted(Path.cwd().glob(PLATFORM_LAYOUT_GLOB))
+    discovered = sorted(Path.cwd().glob(PLATFORM_LAYOUT_GLOB))
     if not discovered:
         raise ValueError(
             "no partition layouts found; run from the qcom-ptool repository "
@@ -138,8 +135,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--input",
         action="append",
         type=Path,
-        help="partition layout (.conf, platform or self-contained board .yaml) to scan; may be repeated "
-        "(defaults to platforms/*/*/partitions.conf and platforms/*.yaml)",
+        help="partition layout (platform, self-contained board or partitions .yaml) to scan; "
+        "may be repeated (defaults to platforms/*.yaml)",
     )
     parser.add_argument("-o", "--output", required=True, type=Path)
     return parser.parse_args(argv)

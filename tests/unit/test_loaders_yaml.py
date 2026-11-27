@@ -1,30 +1,17 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 """
-Unit tests for the YAML partition loader.
-
-The load-bearing property is that the YAML loader produces the *same*
-LoadedSpec as the .conf loader, so both emit byte-identical XML. These tests
-pin that equivalence on a real board, on a synthetic multi-LUN spec with
-attribute bits, and at the XML-bytes level, plus the schema rejections that
-protect against the documented YAML footguns.
+Unit tests for the YAML partition loader: size grammar, LUN grouping,
+attribute decoding, named fields, and the schema rejections that protect
+against the documented YAML footguns.
 """
 
 from __future__ import annotations
 
-import os
-
 import pytest
 
-from qcom_ptool.gen_partition import generate_partition_xml
-from qcom_ptool.loaders import load
+from qcom_ptool.loaders import UnsupportedFormatError, load
 from qcom_ptool.loaders import yaml as yaml_loader
-
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
-# Self-contained fixtures: glymur-crd migrated to YAML, so the parity
-# reference lives here rather than under platforms/.
-GLYMUR_NVME_CONF = os.path.join(DATA_DIR, "glymur-crd-nvme.conf")
-GLYMUR_NVME_YAML = os.path.join(DATA_DIR, "glymur-crd-nvme.yaml")
 
 
 def _write(tmp_path, name: str, text: str) -> str:
@@ -34,28 +21,84 @@ def _write(tmp_path, name: str, text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Equivalence with the .conf loader
+# partition_size_in_kb
 # ---------------------------------------------------------------------------
 
 
-def test_yaml_matches_conf_for_glymur_nvme():
-    """The committed YAML fixture and the real board .conf load identically."""
-    assert load(GLYMUR_NVME_YAML) == load(GLYMUR_NVME_CONF)
+@pytest.mark.parametrize(
+    "size,expected",
+    [
+        # bare bytes -> divided by 1024
+        ("1024", 1),
+        ("2048", 2),
+        ("0", 0),
+        # KB / Kb / K
+        ("1KB", 1),
+        ("128KB", 128),
+        ("4Kb", 4),
+        ("4K", 4),
+        # MB / Mb / M -> *1024
+        ("1MB", 1024),
+        ("2MB", 2048),
+        ("4M", 4096),
+        # GB / Gb / G -> *1024*1024
+        ("1GB", 1024 * 1024),
+        ("64GB", 64 * 1024 * 1024),
+    ],
+)
+def test_partition_size_in_kb_recognised_forms(size: str, expected: int) -> None:
+    assert yaml_loader.partition_size_in_kb(size) == expected
 
 
-def test_yaml_matches_conf_multi_lun_and_attributes(tmp_path):
-    """LUN grouping and attribute-bit decoding match the .conf loader."""
-    conf = _write(
-        tmp_path,
-        "s.conf",
-        "--disk --type=ufs --size=137438953472 --write-protect-boundary=0 "
-        "--sector-size-in-bytes=4096 --grow-last-partition\n"
-        "--partition --lun=0 --name=rootfs --size=79691776KB "
-        "--type-guid=1B81E7E6-F50D-419B-A739-2AEEF8DA3335 --filename=rootfs.img\n"
-        "--partition --lun=1 --name=xbl_a --size=3584KB "
-        "--type-guid=DEA0BA2C-CBDD-4805-B4F9-F428251C3E98 --filename=xbl.elf "
-        "--attributes=1000000000000004\n",
-    )
+@pytest.mark.parametrize(
+    "size",
+    [
+        "abc",
+        "1TB",
+        "MB",
+        "1PB",
+        # decimals, signs, prefixes and spacing must not be silently misread
+        "1.5MB",
+        "0.5GB",
+        "2.5KB",
+        "-5KB",
+        "foo123KB",
+        "10 KB",
+        "5KBMB",
+        "",
+    ],
+)
+def test_partition_size_in_kb_unrecognised_forms_raise(size: str) -> None:
+    """Anything outside ^[0-9]+([KkMmGg][Bb]?)?$ (the YAML schema grammar)
+    raises rather than being silently misread, e.g. "1.5MB" is not 5MB."""
+    with pytest.raises(ValueError, match="Unrecognized size format"):
+        yaml_loader.partition_size_in_kb(size)
+
+
+# ---------------------------------------------------------------------------
+# Dispatcher
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("name", ["partitions.conf", "partitions"])
+def test_dispatcher_rejects_conf(tmp_path, name):
+    path = _write(tmp_path, name, "--disk --type=ufs --size=1\n")
+    with pytest.raises(UnsupportedFormatError, match="no longer supported"):
+        load(path)
+
+
+def test_dispatcher_rejects_unknown_extension(tmp_path):
+    with pytest.raises(UnsupportedFormatError, match="No loader registered"):
+        load(_write(tmp_path, "p.toml", "not actually parsed"))
+
+
+# ---------------------------------------------------------------------------
+# LUN grouping and attribute bits
+# ---------------------------------------------------------------------------
+
+
+def test_multi_lun_and_attributes(tmp_path):
+    """Partitions group by LUN; attribute bits decode to bootable/readonly."""
     yml = _write(
         tmp_path,
         "s.yaml",
@@ -79,22 +122,18 @@ def test_yaml_matches_conf_multi_lun_and_attributes(tmp_path):
         '    attributes: "1000000000000004"\n',
     )
     spec = load(yml)
-    assert spec == load(conf)
+    assert spec["disk"]["SECTOR_SIZE_IN_BYTES"] == "4096"
+    assert spec["disk"]["WRITE_PROTECT_BOUNDARY_IN_KB"] == "0"
+    assert spec["disk"]["GROW_LAST_PARTITION_TO_FILL_DISK"] == "true"
+    assert sorted(spec["partitions"]) == ["0", "1"]
+    rootfs = spec["partitions"]["0"][0]
+    assert rootfs["size_in_kb"] == "79691776"
+    assert rootfs["bootable"] == "false"
+    assert rootfs["readonly"] == "true"
     # attribute-bit decode: bit 2 -> bootable, bit 60 -> readonly.
     xbl = spec["partitions"]["1"][0]
     assert xbl["bootable"] == "true"
     assert xbl["readonly"] == "true"
-
-
-def test_yaml_and_conf_emit_byte_identical_xml(tmp_path):
-    """End-to-end: the emitter output is identical for both source formats."""
-    conf_xml = tmp_path / "from_conf.xml"
-    yaml_xml = tmp_path / "from_yaml.xml"
-    conf_spec = load(GLYMUR_NVME_CONF)
-    yaml_spec = load(GLYMUR_NVME_YAML)
-    generate_partition_xml(conf_spec["disk"], conf_spec["partitions"], str(conf_xml))
-    generate_partition_xml(yaml_spec["disk"], yaml_spec["partitions"], str(yaml_xml))
-    assert yaml_xml.read_bytes() == conf_xml.read_bytes()
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +176,7 @@ def test_sparse_boolean_normalised_to_lowercase(tmp_path):
 
 
 def test_image_map_overrides_filename(tmp_path):
-    """The -m image map overrides filename, matching the .conf loader."""
+    """The -m image map overrides filename."""
     spec = load(
         _write(
             tmp_path,
@@ -203,21 +242,11 @@ def test_top_level_must_be_mapping(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# Named GPT attribute fields (conf parity)
+# Named GPT attribute fields
 # ---------------------------------------------------------------------------
 
 _GUID = "DEA0BA2C-CBDD-4805-B4F9-F428251C3E98"
 _UGUID = "11111111-2222-3333-4444-555555555555"
-
-
-def _conf_with(tmp_path, extra: str) -> str:
-    return _write(
-        tmp_path,
-        "p.conf",
-        "--disk --type=nvme --size=68719476736\n"
-        "--partition --name=boot_a --size=3584KB --type-guid=%s %s\n"
-        % (_GUID, extra),
-    )
 
 
 def _yaml_with(tmp_path, extra: str) -> str:
@@ -229,97 +258,45 @@ def _yaml_with(tmp_path, extra: str) -> str:
         + "  - name: boot_a\n"
         + '    size: "3584KB"\n'
         + '    type-guid: "%s"\n' % _GUID
-        + "    %s\n" % extra,
+        + extra,
     )
 
 
 @pytest.mark.parametrize(
-    ("yaml_field", "conf_opt", "entry_key", "expected"),
+    ("yaml_field", "entry_key", "expected"),
     [
-        ("bootable: true", "--bootable=yes", "bootable", "true"),
-        ("readonly: false", "--readonly=no", "readonly", "false"),
-        ("priority: 2", "--priority=2", "priority", "2"),
-        ("tries-remaining: 6", "--tries-remaining=6", "triesremaining", "6"),
-        ("active: true", "--active=1", "active", "true"),
-        ("successful: false", "--successful=0", "successful", "false"),
-        ("unbootable: true", "--unbootable=true", "unbootable", "true"),
-        ('unique-guid: "%s"' % _UGUID, "--uniqueguid=%s" % _UGUID, "uniqueguid", _UGUID),
-        ("sparse: true", "--sparse=yes", "sparse", "true"),
+        ("bootable: true", "bootable", "true"),
+        ("readonly: false", "readonly", "false"),
+        ("priority: 2", "priority", "2"),
+        ("tries-remaining: 6", "triesremaining", "6"),
+        ("active: true", "active", "true"),
+        ("successful: false", "successful", "false"),
+        ("unbootable: true", "unbootable", "true"),
+        ('unique-guid: "%s"' % _UGUID, "uniqueguid", _UGUID),
+        ("sparse: true", "sparse", "true"),
     ],
 )
-def test_named_field_matches_conf(tmp_path, yaml_field, conf_opt, entry_key, expected):
-    """Each named field loads to the exact entry the .conf option produces."""
-    conf_spec = load(_conf_with(tmp_path, conf_opt))
-    yaml_spec = load(_yaml_with(tmp_path, yaml_field))
-    assert yaml_spec == conf_spec
-    assert yaml_spec["partitions"]["0"][0][entry_key] == expected
+def test_named_field(tmp_path, yaml_field, entry_key, expected):
+    """Each named field loads to its partition entry key."""
+    spec = load(_yaml_with(tmp_path, "    %s\n" % yaml_field))
+    assert spec["partitions"]["0"][0][entry_key] == expected
 
 
 def test_named_fields_override_attributes(tmp_path):
-    """A named field wins over the raw attributes hex, as in the .conf loader."""
+    """A named field wins over the raw attributes hex."""
     # attributes sets bootable (bit 2) and readonly (bit 60); named fields
     # invert both.
-    conf_spec = load(
-        _conf_with(
-            tmp_path, "--attributes=1000000000000004 --bootable=no --readonly=no"
-        )
-    )
-    yaml_spec = load(
-        _write(
+    spec = load(
+        _yaml_with(
             tmp_path,
-            "o.yaml",
-            _VALID_DISK
-            + "partitions:\n"
-            + "  - name: boot_a\n"
-            + '    size: "3584KB"\n'
-            + '    type-guid: "%s"\n' % _GUID
-            + '    attributes: "1000000000000004"\n'
-            + "    bootable: false\n"
-            + "    readonly: false\n",
+            '    attributes: "1000000000000004"\n'
+            "    bootable: false\n"
+            "    readonly: false\n",
         )
     )
-    assert yaml_spec == conf_spec
-    entry = yaml_spec["partitions"]["0"][0]
+    entry = spec["partitions"]["0"][0]
     assert entry["bootable"] == "false"
     assert entry["readonly"] == "false"
-
-
-def test_named_fields_emit_byte_identical_xml(tmp_path):
-    """All named fields together still emit byte-identical XML per format."""
-    extra_conf = (
-        "--bootable=yes --readonly=no --priority=2 --tries-remaining=6 "
-        "--active=yes --successful=no --unbootable=no "
-        "--uniqueguid=%s --sparse=true" % _UGUID
-    )
-    extra_yaml = (
-        "    bootable: true\n"
-        "    readonly: false\n"
-        "    priority: 2\n"
-        "    tries-remaining: 6\n"
-        "    active: true\n"
-        "    successful: false\n"
-        "    unbootable: false\n"
-        '    unique-guid: "%s"\n'
-        "    sparse: true\n" % _UGUID
-    )
-    conf_spec = load(_conf_with(tmp_path, extra_conf))
-    yaml_spec = load(
-        _write(
-            tmp_path,
-            "full.yaml",
-            _VALID_DISK
-            + "partitions:\n"
-            + "  - name: boot_a\n"
-            + '    size: "3584KB"\n'
-            + '    type-guid: "%s"\n' % _GUID
-            + extra_yaml,
-        )
-    )
-    conf_xml = tmp_path / "from_conf.xml"
-    yaml_xml = tmp_path / "from_yaml.xml"
-    generate_partition_xml(conf_spec["disk"], conf_spec["partitions"], str(conf_xml))
-    generate_partition_xml(yaml_spec["disk"], yaml_spec["partitions"], str(yaml_xml))
-    assert yaml_xml.read_bytes() == conf_xml.read_bytes()
 
 
 @pytest.mark.parametrize(

@@ -34,6 +34,7 @@ import xml.etree.ElementTree as ET
 from typing import NoReturn
 from xml.dom import minidom
 
+from qcom_ptool.board import config_to_specs, resolve, resolve_platform
 from qcom_ptool.loaders import load as load_spec
 from qcom_ptool.spec import DiskParams, PartitionsByLun
 
@@ -41,7 +42,7 @@ from qcom_ptool.spec import DiskParams, PartitionsByLun
 def usage() -> NoReturn:
     print(
         "\n\tUsage:\n"
-        "\t  %s -i <input> -o <output> "
+        "\t  %s -i <partitions.yaml> -o <output> "
         "[-m name1=image1,name2=image2,...]\n"
         "\t  %s --platform <platform.yaml> "
         "[-C <outdir> | -o <out1> -o <out2> ...]\n"
@@ -152,7 +153,7 @@ def main(argv: list[str] | None = None) -> int:
     sources = [x is not None for x in (input_file, platform_file, board_file)]
     if sum(sources) != 1:
         print(
-            "Error: pass exactly one of -i <input>, --platform <platform.yaml> "
+            "Error: pass exactly one of -i <partitions.yaml>, --platform <platform.yaml> "
             "or --board <board.yaml>"
         )
         usage()
@@ -194,9 +195,6 @@ def _run_platform(
     outdir: str | None,
     image_map: dict[str, str],
 ) -> int:
-    # Late import so the -i path never pulls in PyYAML / jsonschema.
-    from qcom_ptool.board import config_to_specs, resolve, resolve_platform
-
     try:
         if platform_file is not None:
             configs = resolve_platform(platform_file)
