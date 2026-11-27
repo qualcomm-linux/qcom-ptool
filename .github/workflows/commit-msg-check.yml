@@ -1,0 +1,14 @@
+name: Commit message check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  commit-msg-check:
+    uses: qualcomm/qcom-reusable-workflows/.github/workflows/reusable-commit-msg-check.yml@420e79d46d2eda17892a1fe882f22cc935d337e2 # v2.0.18
+    with:
+      extra-options: '{"sub-char-limit": 72, "body-char-limit": 75}'

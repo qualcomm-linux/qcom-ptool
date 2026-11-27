@@ -33,4 +33,9 @@ Here are a few things you can do that will increase the likelihood of your pull 
 - Keep your change as focused as possible.
   If you want to make multiple independent changes, please consider submitting them as separate pull requests.
 - Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
+  CI checks every commit of a pull request with the Qualcomm
+  [commit message check](https://github.com/qualcomm/commit-msg-check-action):
+  a `subsystem: short description` subject of at most 72 characters, a
+  blank line, and a non-empty body wrapped at 75 characters. Trailers
+  such as `Signed-off-by:` are exempt from the line length limit.
 - It's a good idea to arrange a discussion with other developers to ensure there is consensus on large features, architecture changes, and other core code changes. PR reviews will go much faster when there are no surprises.
