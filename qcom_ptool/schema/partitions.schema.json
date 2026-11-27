@@ -104,6 +104,22 @@
                         "description": "A/B slot unbootable flag (GPT attribute bit 55).",
                         "type": "boolean"
                     },
+                    "gptprio-priority": {
+                        "description": "A/B priority for GRUB's gptprio module (gptprio.next), GPT attribute bits 48-51. Bit layout from ChromeOS; can't be combined with the qbootctl A/B fields.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 15
+                    },
+                    "gptprio-tries-left": {
+                        "description": "A/B tries left for GRUB's gptprio module (gptprio.next), GPT attribute bits 52-55. Bit layout from ChromeOS; can't be combined with the qbootctl A/B fields.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 15
+                    },
+                    "gptprio-successful": {
+                        "description": "A/B boot-successful flag for GRUB's gptprio module (gptprio.next), GPT attribute bit 56. Bit layout from ChromeOS; can't be combined with the qbootctl A/B fields.",
+                        "type": "boolean"
+                    },
                     "unique-guid": {
                         "description": "Partition unique GUID; must be a quoted string to avoid integer misparsing.",
                         "type": "string",

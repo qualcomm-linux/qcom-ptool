@@ -28,7 +28,9 @@ DiskParams = dict[str, str]
 
 # One partition normalised for the XML attribute set.
 # Expected keys: label, size_in_kb, type, bootable, readonly, filename, sparse,
-# active, successful, unbootable.
+# active, successful, unbootable. Optional keys: priority, triesremaining,
+# attributes, uniqueguid, gptprio_priority, gptprio_tries_left,
+# gptprio_successful.
 # See PARTITION_ENTRY_DEFAULTS for the canonical set.
 PartitionEntry = dict[str, str]
 
@@ -66,6 +68,38 @@ PARTITION_ENTRY_DEFAULTS: PartitionEntry = {
     "successful": "false",
     "unbootable": "false",
 }
+
+
+# GPT attribute bits 48-63 are partition-type specific, and two A/B schemes
+# use them differently:
+#   - qbootctl (priority, triesremaining, active, successful, unbootable):
+#     priority 48-49, active 50, tries 51-53, successful 54, unbootable 55
+#   - GRUB's gptprio module (gptprio.next), using the ChromeOS layout:
+#     priority 48-51, tries left 52-55, successful 56
+# The gptprio fields are prefixed so they can't be mistaken for the qbootctl
+# ones, and a partition may only use one of the two schemes.
+QBOOTCTL_KEYS = ("priority", "triesremaining", "active", "successful", "unbootable")
+GPTPRIO_KEYS = ("gptprio_priority", "gptprio_tries_left", "gptprio_successful")
+
+
+class AttributeSchemeError(ValueError):
+    """A partition mixes qbootctl and gptprio A/B attribute fields."""
+
+
+def _sets_bits(value: str) -> bool:
+    return value not in ("", "0", "false")
+
+
+def check_ab_scheme(entry: PartitionEntry) -> None:
+    """Reject a partition whose qbootctl and gptprio fields both set bits."""
+    qbootctl = [k for k in QBOOTCTL_KEYS if _sets_bits(entry.get(k, ""))]
+    gptprio = [k for k in GPTPRIO_KEYS if _sets_bits(entry.get(k, ""))]
+    if qbootctl and gptprio:
+        raise AttributeSchemeError(
+            "partition '%s' mixes qbootctl fields (%s) with gptprio fields (%s); "
+            "both use GPT attribute bits 48-56, pick one scheme"
+            % (entry.get("label", ""), ", ".join(qbootctl), ", ".join(gptprio))
+        )
 
 
 class LoadedSpec(TypedDict):
