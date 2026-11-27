@@ -8,3 +8,5 @@ contents:
 
 flavors:
   - flavors/shikra-emmc.yaml
+  - flavor: flavors/shikra-sdcard.yaml
+    name: shikra-evk-sdcard

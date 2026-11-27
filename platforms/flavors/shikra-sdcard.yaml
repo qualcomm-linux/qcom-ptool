@@ -1,0 +1,11 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Shikra SD card layout: single partition list with CDT before HLOS.
+storage:
+  - type: emmc
+    grow-last-partition: true
+    partitions:
+      - include: _common/shikra-firmware.yaml
+      - include: _common/shikra-cdt.yaml
+      - include: _common/shikra-hlos.yaml
