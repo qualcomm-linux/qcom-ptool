@@ -1,7 +1,31 @@
 TOPDIR := $(PWD)
 
-# Single CLI entry point installed by `pip install .`
-QCOM_PTOOL ?= qcom-ptool
+# Tools run from this checkout through uv, at the versions pinned in
+# uv.lock. Without uv on PATH, make first installs it with pip into
+# $(UV_DIR). Generating partition tables installs only qcom-ptool's
+# runtime dependencies (--no-dev); the development tools (ruff, mypy,
+# pytest) come from the dev group, or from PATH with RUN=.
+PYTHON ?= python3
+UV_DIR ?= $(CURDIR)/.uv
+UV ?= $(or $(shell command -v uv 2>/dev/null),$(UV_DIR)/bin/uv)
+UV_RUN := $(UV) run --locked --project $(CURDIR)
+RUN ?= $(UV_RUN)
+QCOM_PTOOL ?= $(UV_RUN) --no-dev qcom-ptool
+
+# The pip-installed uv is an included makefile, so make installs it
+# before anything else and then re-reads this file with uv in place.
+# --target keeps it out of the system Python (PEP 668).
+UV_STAMP := $(if $(findstring $(UV_DIR)/bin/uv,$(RUN) $(QCOM_PTOOL)),$(UV_DIR)/.installed)
+ifneq ($(UV_STAMP),)
+ifneq ($(MAKECMDGOALS),clean)
+-include $(UV_STAMP)
+endif
+$(UV_STAMP):
+	$(PYTHON) -m pip install -q --target $(UV_DIR) uv
+	touch $@
+endif
+# Query the resolver only once uv exists.
+UV_READY := $(if $(UV_STAMP),$(wildcard $(UV_STAMP)),yes)
 
 # Every generated artifact goes under $(OUT); platforms/ outside it holds
 # only the YAML sources.
@@ -12,7 +36,7 @@ OUT ?= platforms/out
 # into $(OUT)/<name>/<storage-id>/. The resolver lists each platform's
 # outputs ("<platform>:<name>/<storage-id>..." per platform).
 YAML_PLATFORMS := $(basename $(notdir $(wildcard platforms/*.yaml)))
-PLATFORM_INDEX := $(shell $(QCOM_PTOOL) show --outputs $(wildcard platforms/*.yaml))
+PLATFORM_INDEX := $(if $(UV_READY),$(shell $(QCOM_PTOOL) show --outputs $(wildcard platforms/*.yaml)))
 $(foreach t,$(PLATFORM_INDEX),$(eval \
     $(firstword $(subst :, ,$(t)))_OUTPUTS := $(wordlist 2,999,$(subst :, ,$(t)))))
 
@@ -23,7 +47,7 @@ PLATFORMS := $(patsubst %/partitions.xml,%/gpt, $(PARTITIONS_XML))
 
 # Platforms carrying contents metadata, enumerated by the resolver as one
 # "<platform>:<output>^<partitions dependency>..." line per platform.
-PLATFORM_CONTENTS_INDEX := $(shell $(QCOM_PTOOL) show --contents $(wildcard platforms/*.yaml))
+PLATFORM_CONTENTS_INDEX := $(if $(UV_READY),$(shell $(QCOM_PTOOL) show --contents $(wildcard platforms/*.yaml)))
 $(foreach t,$(PLATFORM_CONTENTS_INDEX),$(eval \
     $(firstword $(subst :, ,$(t)))_CONTENTS := $(wordlist 2,999,$(subst :, ,$(t)))))
 yaml-contents-outs = $(foreach p,$($(1)_CONTENTS),$(OUT)/$(firstword $(subst ^, ,$(p))))
@@ -35,7 +59,7 @@ UDEV_RULES := $(OUT)/55-qcom-raw-partitions-noblkid.rules
 # optional build_id for Axiom contents.xml files
 BUILD_ID ?=
 
-.PHONY: all check check-checksums clean generate-checksums install lint integration unit-test
+.PHONY: all check check-checksums check-dev check-partitions clean generate-checksums lint integration unit-test
 
 all: $(PLATFORMS) $(PARTITIONS_XML) $(CONTENTS_XML) $(UDEV_RULES)
 
@@ -65,11 +89,11 @@ $(UDEV_RULES): $(wildcard platforms/*.yaml) $(YAML_SHARED) \
 	$(QCOM_PTOOL) gen_udev_rules -o $@
 
 lint:
-	ruff check qcom_ptool
-	mypy qcom_ptool
+	$(RUN) ruff check qcom_ptool
+	$(RUN) mypy qcom_ptool
 
 unit-test:
-	pytest
+	$(RUN) pytest
 
 integration: all
 	# make sure generated output has created expected files
@@ -88,10 +112,13 @@ generate-checksums: all
 	  -print0 | LC_ALL=C sort -z | xargs -0 sha256sum \
 	  > tests/integration/checksums.sha256
 
-check: lint unit-test integration
+# qcom-ptool development: lint and unit tests.
+check-dev: lint unit-test
 
-install:
-	pip install .
+# Partition tables: build every platform and verify the generated files.
+check-partitions: integration
+
+check: check-dev check-partitions
 
 # Deletes only generated file types, so an OUT pointed at a source
 # directory never loses its YAML.

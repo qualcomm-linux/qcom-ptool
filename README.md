@@ -127,49 +127,53 @@ libraries, `PyYAML` and `jsonschema`, used to load and validate the YAML
 partition source. Both are declared in `pyproject.toml` and pulled in
 automatically by `pip install .`.
 
-For development, `make lint` invokes `ruff` and `mypy` and `make unit-test`
-runs the `pytest` suite under `tests/unit/`. On Debian/Ubuntu, install
-them as follows (ruff is not packaged in apt on all releases/architectures,
-so we install it from snap):
+Development needs only [uv](https://docs.astral.sh/uv/), on any Linux
+distribution, macOS or Windows: install it from its standalone installer,
+with `pipx install uv`, or from your distribution's packages where
+available. The development tools (`ruff`, `mypy`, `pytest`) are declared
+in the `dev` dependency group of `pyproject.toml` and pinned in `uv.lock`;
+uv fetches them from PyPI into a project-local `.venv` on first use.
+Generating partition tables (`make all`) needs none of them: it installs
+only qcom-ptool's runtime dependencies.
 
-```sh
-sudo snap install ruff
-sudo apt install mypy python3-pytest
-```
+If uv is not installed, `make` installs it with pip first
+(`pip install --target .uv uv`, into the checkout, so the system Python
+is left untouched) and uses it from there. This needs only `python3`
+with pip.
 
 ## Makefile targets
 
-| Target        | Description                                                |
-|---------------|------------------------------------------------------------|
-| `all`         | Generate partition XML, GPT binaries and contents.xml      |
-| `lint`        | Run ruff (linter) and mypy (type checker) on the package   |
-| `unit-test`   | Run the pytest suite under `tests/unit/`                   |
-| `integration` | Build all platforms and verify generated files are present |
-| `check`       | Run `lint`, `unit-test`, and `integration`                 |
-| `install`     | Install the package (`pip install .`)                      |
-| `clean`       | Remove the generated files under platforms/out/            |
+| Target             | Description                                                |
+|--------------------|------------------------------------------------------------|
+| `all`              | Generate partition XML, GPT binaries and contents.xml      |
+| `lint`             | Run ruff (linter) and mypy (type checker) on the package   |
+| `unit-test`        | Run the pytest suite under `tests/unit/`                   |
+| `integration`      | Build all platforms and verify generated files are present |
+| `check-dev`        | qcom-ptool development checks: `lint` and `unit-test`      |
+| `check-partitions` | Partition table checks: `integration`                      |
+| `check`            | Run `check-dev` and `check-partitions`                     |
+| `clean`            | Remove the generated files under platforms/out/            |
 
-The Makefile invokes `qcom-ptool` from `PATH`. Install the package (or
-`pip install -e .` from the repo root) before running `make all`.
+The Makefile runs `qcom-ptool` and the development tools through
+`uv run`, always from this checkout, so no installation step is needed.
+To use your own `ruff`, `mypy` and `pytest` from `PATH` instead (e.g.
+distribution packages or pipx), pass `RUN=`; CI checks against the
+versions pinned in `uv.lock`.
 Generated files go to `platforms/out/`; pass `OUT=<dir>` to build
 elsewhere.
 
 ### Quick start
 
 ```sh
-# install the tool
-pip install -e .
+# qcom-ptool development: linters and unit tests
+make check-dev
 
-# install linters and test runner (Debian/Ubuntu)
-sudo snap install ruff
-sudo apt install mypy python3-pytest
+# partition tables: build all platforms and verify the generated files
+make check-partitions
 
-# run linters and unit tests
-make lint
-make unit-test
-
-# build all platforms and run tests
-make check
+# without make (e.g. on Windows), call the tools through uv directly
+uv run pytest
+uv run --no-dev qcom-ptool build platforms/<platform>.yaml
 ```
 
 ## Code contributions

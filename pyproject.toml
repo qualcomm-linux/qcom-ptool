@@ -18,6 +18,15 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest"]
 
+# Development tools (lint, tests), pinned in uv.lock.
+[dependency-groups]
+dev = [
+    "mypy<2",  # mypy 2.x flags new errors; bump separately
+    "pytest",
+    "ruff",
+    "types-PyYAML",
+]
+
 [project.scripts]
 qcom-ptool = "qcom_ptool.cli:main"
 
