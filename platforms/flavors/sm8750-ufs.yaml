@@ -1,15 +1,15 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# sm8750-mtp per-LUN UFS layout: the shared sm8750 sets from _common/
-# composed with the board's own boot, firmware and persist LUNs.
+# sm8750-mtp per-LUN UFS layout: the shared sm8750 sets from firmware/ and
+# hlos/ composed with the board's own boot, firmware and persist LUNs.
 storage:
   - type: ufs
     grow-last-partition: true
     luns:
       - lun: 0
         partitions:          # last partition (rootfs) grows
-          - include: _common/sm8750-hlos.yaml
+          - include: hlos/sm8750-hlos.yaml
       - lun: 1
         grow: false
         partitions:
@@ -23,7 +23,7 @@ storage:
       - lun: 3
         grow: false
         partitions:
-          - include: _common/sm8750-cdt.yaml
+          - include: firmware/sm8750-cdt.yaml
       - lun: 4
         grow: false
         partitions:

@@ -7,8 +7,8 @@ storage:
   - type: nvme
     grow-last-partition: true
     partitions:
-      - include: _common/glymur-hlos.yaml
+      - include: hlos/glymur-hlos.yaml
 
   - type: spinor
     partitions:
-      - include: _common/glymur-spinor.yaml
+      - include: firmware/glymur-spinor.yaml

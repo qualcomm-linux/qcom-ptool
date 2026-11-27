@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # QRB2210 eMMC layout with the smaller Arduino userdata partition.
-extends: qrb2210-emmc.yaml
 storage:
   - type: emmc
+    grow-last-partition: true
     partitions:
-      - {name: userdata, size: "2145728KB", type-guid: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE", filename: userdata.img}
+      - include: firmware/qrb2210-edk2.yaml
+      - include: hlos/qrb2210-arduino-hlos.yaml
