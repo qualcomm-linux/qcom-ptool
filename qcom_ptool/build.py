@@ -134,7 +134,9 @@ def build(
             if verbose:
                 print(partition_table(spec, layout))
         for prefix, config in targets:
-            path = generate_configuration(config, os.path.join(outdir, prefix), build_id)
+            path = generate_configuration(
+                config, os.path.join(outdir, prefix), build_id, image_map
+            )
             if path is not None:
                 print(path)
     except (OSError, ValueError) as e:

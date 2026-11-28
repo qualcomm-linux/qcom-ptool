@@ -77,18 +77,6 @@ _META = {
     ],
 }
 
-_PARTITIONS_XML = """\
-<?xml version="1.0" ?>
-<configuration>
-  <parser_instructions>WRITE_PROTECT_BOUNDARY_IN_KB=0</parser_instructions>
-  <physical_partition>
-    <partition label="efi" filename="efi.bin" size_in_kb="1.0" type="%s"/>
-    <partition label="empty" size_in_kb="1.0" type="%s"/>
-  </physical_partition>
-</configuration>
-""" % (GUID_A, GUID_B)
-
-
 def _write(tmp_path, name, text):
     path = tmp_path / name
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -141,7 +129,6 @@ def test_platform_pipeline(tmp_path):
         "board: boards/demo.yaml\ncontents: %r\nflavors: [flavors/demo-ufs.yaml]\n" % hlos,
     )
     out = tmp_path / "out"
-    _write(tmp_path, "out/demo/ufs/partitions.xml", _PARTITIONS_XML)
 
     assert gen_contents.generate_from_file(str(platform), None, str(out), "") == 0
     # Contents land next to the default storage's partitions by default.
@@ -160,7 +147,6 @@ def test_self_contained_board_pipeline(tmp_path):
         "contents: %r\n" % (_UFS, GUID_A, _META),
     )
     out = tmp_path / "out"
-    _write(tmp_path, "out/ufs/partitions.xml", _PARTITIONS_XML)
 
     assert gen_contents.generate_from_file(str(board), None, str(out), "") == 0
     built = (out / "ufs" / "contents.xml").read_bytes()
@@ -175,14 +161,14 @@ def test_contents_paths_location():
     }
     # Default: the first storage, even with a second storage's chipid.
     config["contents"]["chipids"] = [{"flavor": "sail_nor", "storage": "spinor", "flash-phase": 2}]
-    assert contents_paths(config) == ("emmc/contents.xml", "emmc/partitions.xml")
+    assert contents_paths(config) == ("emmc/contents.xml", "emmc")
 
     config["contents"]["location"] = "spinor"
-    assert contents_paths(config) == ("spinor/contents.xml", "spinor/partitions.xml")
+    assert contents_paths(config) == ("spinor/contents.xml", "spinor")
     assert default_storage(config) == "spinor"
 
     config["contents"]["location"] = "/"
-    assert contents_paths(config) == ("contents.xml", "emmc/partitions.xml")
+    assert contents_paths(config) == ("contents.xml", "emmc")
     assert default_storage(config) == "emmc"
 
     config["contents"]["location"] = "nvme"

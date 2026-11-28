@@ -6,29 +6,17 @@ from __future__ import annotations
 import os
 from xml.etree import ElementTree as ET
 
-from qcom_ptool.board import is_platform_file, resolve_file
+from qcom_ptool.board import config_to_specs, is_platform_file, resolve_file
 from qcom_ptool.contents_yaml import build_contents_root, contents_paths, default_storage
+from qcom_ptool.spec import LoadedSpec
 
 
-def ParseXML(XMLFile):
-    try:
-        tree = ET.parse(XMLFile)
-        root = tree.getroot()
-        return root
-    except FileNotFoundError:
-        print(f"Error: File '{XMLFile}' not found")
-        return None
-    except ET.ParseError as e:
-        print(f"Error: Failed parsing '{XMLFile}': {e}")
-        return None
-
-
-def RebaseFilePaths(ContentsRoot, PartitionXml, OutputXml):
-    """Re-base every file_path from the partitions directory to the output
+def RebaseFilePaths(ContentsRoot, StorageDir, OutputXml):
+    """Re-base every file_path from the storage directory to the output
     directory, so references resolve from wherever contents.xml is written.
-    A no-op when both live in the same directory."""
+    A no-op when both are the same directory."""
     rel = os.path.relpath(
-        os.path.dirname(os.path.abspath(PartitionXml)),
+        os.path.abspath(StorageDir),
         os.path.dirname(os.path.abspath(OutputXml)),
     )
     if rel == ".":
@@ -37,7 +25,19 @@ def RebaseFilePaths(ContentsRoot, PartitionXml, OutputXml):
         element.text = os.path.normpath(os.path.join(rel, element.text or "."))
 
 
-def UpdateMetaData(ContentsRoot, PartitionRoot, BuildId):
+def layout_files(spec: LoadedSpec) -> tuple[list[dict[str, str]], int]:
+    """The partitions with an image, in flashing order, and the LUN count."""
+    luns = [e for _, e in sorted(spec["partitions"].items(), key=lambda i: int(i[0])) if e]
+    files = [
+        {"label": p["label"], "filename": p["filename"]}
+        for lun in luns
+        for p in lun
+        if p.get("label") and p.get("filename")
+    ]
+    return files, len(luns)
+
+
+def UpdateMetaData(ContentsRoot, Partitions, NumLuns, BuildId):
     ChipIdList = ContentsRoot.findall("product_info/chipid")
     DefaultStorageType: str = ""
     for ChipId in ChipIdList:
@@ -45,13 +45,6 @@ def UpdateMetaData(ContentsRoot, PartitionRoot, BuildId):
         if Flavor == "default":
             DefaultStorageType = ChipId.get("storage_type", "")
 
-    PhyPartition = PartitionRoot.findall("physical_partition")
-    Partitions = []
-    for partition in PartitionRoot.findall("physical_partition/partition"):
-        label = partition.get("label")
-        filename = partition.get("filename")
-        if label and filename:
-            Partitions.append({"label": label, "filename": filename})
 
     def _add_file_elements(parent_element, pathname, file_path_flavor=None):
         """Helper function to add file_name and file_path sub-elements."""
@@ -85,7 +78,7 @@ def UpdateMetaData(ContentsRoot, PartitionRoot, BuildId):
                 new_download_file.set("fastboot_complete", Partition["label"])
                 _add_file_elements(new_download_file, Partition["filename"])
             # GPT Main & GPT Backup entries
-            for PhysicalPartitionNumber in range(0, len(PhyPartition)):
+            for PhysicalPartitionNumber in range(0, NumLuns):
                 new_download_file = ET.SubElement(build, "download_file")
                 new_download_file.set("storage_type", DefaultStorageType)
                 _add_file_elements(
@@ -101,7 +94,7 @@ def UpdateMetaData(ContentsRoot, PartitionRoot, BuildId):
         if PartitionFile is not None:
             build.remove(PartitionFile)
             # Rawprogram entries
-            for PhysicalPartitionNumber in range(0, len(PhyPartition)):
+            for PhysicalPartitionNumber in range(0, NumLuns):
                 new_partition_file = ET.SubElement(build, "partition_file")
                 new_partition_file.set("storage_type", DefaultStorageType)
                 _add_file_elements(
@@ -114,7 +107,7 @@ def UpdateMetaData(ContentsRoot, PartitionRoot, BuildId):
         if PartitionPatchFile is not None:
             build.remove(PartitionPatchFile)
             # Patch entries
-            for PhysicalPartitionNumber in range(0, len(PhyPartition)):
+            for PhysicalPartitionNumber in range(0, NumLuns):
                 new_partition_patch_file = ET.SubElement(build, "partition_patch_file")
                 new_partition_patch_file.set("storage_type", DefaultStorageType)
                 _add_file_elements(
@@ -133,24 +126,24 @@ def WriteContents(xml_root, output_xml):
     )
 
 
-def generate_configuration(config, config_dir, build_id):
+def generate_configuration(config, config_dir, build_id, image_map=None):
     """Write one configuration's contents.xml under ``config_dir``.
 
-    The configuration's metadata builds the contents tree, which runs
-    through the UpdateMetaData / RebaseFilePaths / WriteContents pipeline.
-    Returns the written path, or ``None`` without contents metadata.
+    The configuration's metadata builds the contents tree, which the
+    layout of the storage it describes fills in (UpdateMetaData) before it
+    is re-based and written. Returns the written path, or ``None`` without
+    contents metadata.
     """
     paths = contents_paths(config)
     if paths is None:
         return None
     output_xml = os.path.join(config_dir, paths[0])
-    partition_xml = os.path.join(config_dir, paths[1])
+    storage_dir = os.path.join(config_dir, paths[1])
+    spec = dict(config_to_specs(config, image_map=image_map))[paths[1]]
     xml_root = build_contents_root(config["contents"], default_storage(config))
-    partition_root = ParseXML(partition_xml)
-    if partition_root is None:
-        raise ValueError("cannot read %s" % partition_xml)
-    UpdateMetaData(xml_root, partition_root, build_id)
-    RebaseFilePaths(xml_root, partition_xml, output_xml)
+    UpdateMetaData(xml_root, *layout_files(spec), build_id)
+    RebaseFilePaths(xml_root, storage_dir, output_xml)
+    os.makedirs(os.path.dirname(output_xml) or ".", exist_ok=True)
     WriteContents(xml_root, output_xml)
     return output_xml
 
