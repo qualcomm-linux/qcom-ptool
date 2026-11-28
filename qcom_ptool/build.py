@@ -19,13 +19,15 @@ from __future__ import annotations
 
 import argparse
 import os
-import runpy
 import sys
 from collections.abc import Mapping, Sequence
 
+from qcom_ptool.artifacts import write_storage
 from qcom_ptool.board import Configuration, config_to_specs, resolve, resolve_platform
 from qcom_ptool.gen_contents import generate_configuration
 from qcom_ptool.gen_partition import generate_partition_xml
+from qcom_ptool.layout import Placement, geometry
+from qcom_ptool.spec import LoadedSpec
 
 
 def target_parser(prog: str, description: str) -> argparse.ArgumentParser:
@@ -65,18 +67,37 @@ def resolve_target(args: argparse.Namespace) -> list[tuple[str, Configuration]]:
     return [("", resolve(args.board, flavor, include_dirs=args.include_dirs))]
 
 
-def _run_ptool(partitions_xml: str, outdir: str) -> int:
-    """Run the GPT generator on one emitted partitions.xml."""
-    saved = sys.argv
-    sys.argv = ["qcom-ptool ptool", "-x", partitions_xml, "-t", outdir]
-    try:
-        runpy.run_module("qcom_ptool.ptool", run_name="__main__")
-    except SystemExit as exc:
-        if exc.code:
-            return int(exc.code)
-    finally:
-        sys.argv = saved
-    return 0
+def human_size(num_bytes: int) -> str:
+    """1536 -> '1.5 KiB'; whole numbers drop the decimal."""
+    size = float(num_bytes)
+    for unit in ("B", "KiB", "MiB", "GiB"):
+        if size < 1024 or unit == "GiB":
+            break
+        size /= 1024
+    return ("%d %s" if size == int(size) else "%.1f %s") % (size, unit)
+
+
+def summary(storage_dir: str, spec: LoadedSpec, layout: list[list[Placement]]) -> str:
+    count = sum(len(lun) for lun in layout)
+    return "%s: %s, %d partition%s on %d LUN%s" % (
+        storage_dir, spec["disk"]["type"], count, "" if count == 1 else "s",
+        len(layout), "" if len(layout) == 1 else "s",
+    )
+
+
+def partition_table(spec: LoadedSpec, layout: list[list[Placement]]) -> str:
+    """The placed partitions, one aligned row each."""
+    sector = geometry(spec["disk"]).sector
+    rows = [("LUN", "START", "SIZE", "NAME", "IMAGE")]
+    for lun, placements in enumerate(layout):
+        for p in placements:
+            size = "rest of disk" if p.grown else human_size(p.sectors * sector)
+            rows.append((str(lun), str(p.first), size, p.entry["label"], p.entry.get("filename", "")))
+    widths = [max(len(row[i]) for row in rows) for i in range(4)]
+    return "\n".join(
+        "  " + "  ".join(cell.ljust(w) for cell, w in zip(row, widths)) + "  " + row[4]
+        for row in rows
+    ).rstrip()
 
 
 def parse_image_map(text: str | None) -> dict[str, str]:
@@ -94,33 +115,31 @@ def build(
     outdir: str,
     image_map: Mapping[str, str] | None = None,
     build_id: str = "",
+    verbose: bool = False,
 ) -> int:
     """Emit the GPT artifacts and contents.xml of every configuration."""
     try:
         specs = [
-            (os.path.join(outdir, prefix, sid), sid, spec)
+            (os.path.join(outdir, prefix, sid), spec)
             for prefix, config in targets
             for sid, spec in config_to_specs(config, image_map=image_map)
         ]
-    except Exception as e:
-        print("Error: ", e)
+        for storage_dir, spec in specs:
+            os.makedirs(storage_dir, exist_ok=True)
+            generate_partition_xml(
+                spec["disk"], spec["partitions"], os.path.join(storage_dir, "partitions.xml")
+            )
+            layout = write_storage(spec, storage_dir)
+            print(summary(storage_dir, spec, layout))
+            if verbose:
+                print(partition_table(spec, layout))
+        for prefix, config in targets:
+            path = generate_configuration(config, os.path.join(outdir, prefix), build_id)
+            if path is not None:
+                print(path)
+    except (OSError, ValueError) as e:
+        print("error: %s" % e, file=sys.stderr)
         return 1
-
-    for storage_dir, sid, spec in specs:
-        os.makedirs(storage_dir, exist_ok=True)
-        partitions_xml = os.path.join(storage_dir, "partitions.xml")
-        print("Storage %s -> %s" % (sid, storage_dir))
-        generate_partition_xml(spec["disk"], spec["partitions"], partitions_xml)
-        rc = _run_ptool(partitions_xml, storage_dir)
-        if rc:
-            return rc
-
-    for prefix, config in targets:
-        try:
-            generate_configuration(config, os.path.join(outdir, prefix), build_id)
-        except Exception as e:
-            print("Error: ", e)
-            return 1
     return 0
 
 
@@ -137,15 +156,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("-m", dest="image_map", metavar="NAME=FILE,...",
                         help="override the image file of the named partitions")
     parser.add_argument("--build-id", default="", help="build_id recorded in contents.xml")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="print the partition table of every storage")
     args = parser.parse_args(argv[1:])
     check_target(parser, args)
 
     try:
         targets = resolve_target(args)
     except Exception as e:
-        print("Error: ", e)
+        print("error: %s" % e, file=sys.stderr)
         return 1
-    return build(targets, args.outdir, parse_image_map(args.image_map), args.build_id)
+    return build(targets, args.outdir, parse_image_map(args.image_map), args.build_id, args.verbose)
 
 
 if __name__ == "__main__":

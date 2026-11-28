@@ -64,12 +64,6 @@ def generate_multi_lun_xml(
 def generate_partition_xml(
     disk_params: DiskParams, partitions: PartitionsByLun, output_xml: str
 ) -> None:
-    print("Generating %s XML %s" % (disk_params["type"].upper(), output_xml))
-
-    if disk_params["type"] in ("emmc", "nvme", "spinor", "ufs"):
-        generate_multi_lun_xml(disk_params, partitions, output_xml)
-    else:
-        print(
-            "%s XML generation is curently not supported."
-            % (disk_params["type"].upper())
-        )
+    if disk_params["type"] not in ("emmc", "nvme", "spinor", "ufs"):
+        raise ValueError("storage type %r is not supported" % disk_params["type"])
+    generate_multi_lun_xml(disk_params, partitions, output_xml)

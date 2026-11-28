@@ -42,8 +42,6 @@ def UpdateMetaData(ContentsRoot, PartitionRoot, BuildId):
     DefaultStorageType: str = ""
     for ChipId in ChipIdList:
         Flavor = ChipId.get("flavor")
-        StorageType = ChipId.get("storage_type")
-        print(f"Chipid Flavor: {Flavor} Storage Type: {StorageType}")
         if Flavor == "default":
             DefaultStorageType = ChipId.get("storage_type", "")
 
@@ -54,7 +52,6 @@ def UpdateMetaData(ContentsRoot, PartitionRoot, BuildId):
         filename = partition.get("filename")
         if label and filename:
             Partitions.append({"label": label, "filename": filename})
-    print(f"Partitions: {Partitions}")
 
     def _add_file_elements(parent_element, pathname, file_path_flavor=None):
         """Helper function to add file_name and file_path sub-elements."""
@@ -75,7 +72,6 @@ def UpdateMetaData(ContentsRoot, PartitionRoot, BuildId):
         Name = build.find("name")
         if Name is None or Name.text is None:
             continue
-        print(f"Build Name: {Name.text}")
         new_build_id = ET.SubElement(build, "build_id")
         new_build_id.text = BuildId
         if Name.text != "common":
@@ -149,7 +145,6 @@ def generate_configuration(config, config_dir, build_id):
         return None
     output_xml = os.path.join(config_dir, paths[0])
     partition_xml = os.path.join(config_dir, paths[1])
-    print("Contents %s -> %s" % (config["name"], output_xml))
     xml_root = build_contents_root(config["contents"], default_storage(config))
     partition_root = ParseXML(partition_xml)
     if partition_root is None:

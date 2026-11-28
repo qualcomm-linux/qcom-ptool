@@ -16,6 +16,7 @@ import zlib
 
 import pytest
 
+from qcom_ptool import build
 from qcom_ptool.artifacts import write_storage
 from qcom_ptool.gpt import build_tables
 from qcom_ptool.layout import Geometry, WriteProtect, place_lun, validate
@@ -169,7 +170,7 @@ def test_unique_guid_given_or_reproducibly_random():
 
 
 # ---------------------------------------------------------------------------
-# storage artifacts
+# storage artifacts and console output
 # ---------------------------------------------------------------------------
 
 
@@ -186,3 +187,29 @@ def test_grown_partition_is_patched(tmp_path):
     write_storage(spec([[part("a", 4), part("rootfs", 4)]], grow=True), str(tmp_path))
     whats = [p.get("what") for p in ET.parse(tmp_path / "patch0.xml").getroot().iter("patch")]
     assert "Update last partition 2 'rootfs' with actual size in Primary Header." in whats
+
+
+def test_build_prints_a_summary_and_with_v_a_table(tmp_path, capsys):
+    board = tmp_path / "board.yaml"
+    board.write_text(
+        "storage:\n"
+        "  - id: ufs\n"
+        "    type: ufs\n"
+        "    size: 1073741824\n"
+        "    sector-size: 4096\n"
+        "    grow-last-partition: true\n"
+        "    partitions:\n"
+        '      - {name: efi, size: "512MB", type-guid: "%s", filename: efi.bin}\n'
+        '      - {name: rootfs, size: "4KB", type-guid: "%s"}\n' % (EFI, DATA)
+    )
+    assert build.main(["build", "-v", "-o", str(tmp_path / "out"), "-b", str(board)]) == 0
+    out = capsys.readouterr().out
+    assert "ufs: ufs, 2 partitions on 1 LUN" in out
+    assert "512 MiB" in out and "rest of disk" in out and "efi.bin" in out
+
+
+@pytest.mark.parametrize(
+    "num,text", [(512, "512 B"), (1536, "1.5 KiB"), (64 << 20, "64 MiB"), (3 << 30, "3 GiB")]
+)
+def test_human_size(num, text):
+    assert build.human_size(num) == text

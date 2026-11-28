@@ -33,8 +33,9 @@ qcom-ptool msp            -r rawprogram0.xml -d /dev/sdX -p patch0.xml
 
 `build` writes the GPT and flashing artifacts of every storage a
 configuration flashes, plus its `contents.xml`. `-m name=file,...`
-overrides the image file of the named partitions, and `--build-id`
-records a build id in `contents.xml`. `show` takes the same arguments
+overrides the image file of the named partitions, `--build-id`
+records a build id in `contents.xml`, and `-v` prints the partition
+table of every storage. `show` takes the same arguments
 and prints the resolved configurations as YAML, or with `-o` the
 directories and files `build -o` would write.
 
