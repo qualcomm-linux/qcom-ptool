@@ -3,7 +3,6 @@ d8aea8477bea38a5dde49ce75b9958621ea3043d677346cca659ae1d04adfeda  platforms/out/
 46a95cad6281225f8bfc0ecfb3e2f3a1324d67b9369269a647d3a8ab5ba8c0bd  platforms/out/apq8016-sbc/emmc/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/apq8016-sbc/emmc/gpt_empty0.bin
 16d49670ebf68db3f4137fe73e117d19b798d90dd03ae426621a050bed84148a  platforms/out/apq8016-sbc/emmc/gpt_main0.bin
-7ca28c9960b9c5316f8f869489259a9079268b82688794d973d2919da90a94cf  platforms/out/apq8016-sbc/emmc/partitions.xml
 2e00f433d8255a4be035610a9f4676e78a0ea783e1c14efd3e137684544ab0a3  platforms/out/apq8016-sbc/emmc/patch0.xml
 569a92ba28671ef07f8eae9d4cee3cedd9a0ffa173931210c751beac7d7dcb1c  platforms/out/apq8016-sbc/emmc/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/apq8016-sbc/emmc/rawprogram0_BLANK_GPT.xml
@@ -41,7 +40,6 @@ e7aab897c8455e073746f3791b01ecf7d657bbe888924b36dd300897f30713f2  platforms/out/
 53d198df74fd7b809fdc502c39c2b52ff2977e92ee8575cc7e4a9435a6b35912  platforms/out/apq8096-db820c/ufs/gpt_main3.bin
 838814ccaa4715ca4f7e8a91432e3c0093af6ac9a2cfd35ec5750ca96076c02f  platforms/out/apq8096-db820c/ufs/gpt_main4.bin
 c7edcebd4693b111072a140b98adcfa61647df08edd98a6faf73c0e08ff73ac7  platforms/out/apq8096-db820c/ufs/gpt_main5.bin
-24033506088ebb805e957cb5cab1c9baad9303baa8a107dfe5f25ee60f953ab6  platforms/out/apq8096-db820c/ufs/partitions.xml
 7396c0fba0a3d35b22330b342057e7b16112a9477e5a112221446b40e726394d  platforms/out/apq8096-db820c/ufs/patch0.xml
 467b2bb03a277605c36e3e3ce081945f8c819651523be8cf7ed43b7497d12e28  platforms/out/apq8096-db820c/ufs/patch1.xml
 be881fa1a2cea75e446b73ab5ed99da6f53a0e0ff8064b81936c0736b7239587  platforms/out/apq8096-db820c/ufs/patch2.xml
@@ -85,7 +83,6 @@ f1282ed8687ac532cd01df7e5331ae4d33ca17560579837bae65f3a9293ab593  platforms/out/
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/eliza-evk/emmc/gpt_empty1.bin
 c5d572608ff1f378ecedd633bf12c815e4f4a17ddbe11a0e4f6dd00b78dae0cd  platforms/out/eliza-evk/emmc/gpt_main0.bin
 d4283572efe885f0423b85b68ebb558b7463962c06970da332252a643687820a  platforms/out/eliza-evk/emmc/gpt_main1.bin
-65f66ff286ab8ad0b57727eed37180badc35b1d4bb63c3ed043aed7e4d22aacb  platforms/out/eliza-evk/emmc/partitions.xml
 a7bea79a4b737922ffbc79bd63232515ca1ff7643bd611b81a8b77b93eb6c4b3  platforms/out/eliza-evk/emmc/patch0.xml
 7b885a56c95bd1497d2153c5d637ad874747f73251ab59c53df2b1367db21234  platforms/out/eliza-evk/emmc/patch1.xml
 d5c9b8f63dc061fe84360b9d570047e81eff2f2ef834c3edd1fa5c5cfed3dc01  platforms/out/eliza-evk/emmc/rawprogram0.xml
@@ -107,7 +104,6 @@ fef21585f498a590d2bd958f8aa750bd62916116bd391c2f61e3e5b252447773  platforms/out/
 db2401014f34f7129ed8b316873b114b14e2f356fba8928f0aa0378549936217  platforms/out/glymur-crd/nvme/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/glymur-crd/nvme/gpt_empty0.bin
 7aaf46a801ab11d301e84d506c9cbec8ccff274d5cae5d25d4797b9897029af2  platforms/out/glymur-crd/nvme/gpt_main0.bin
-c9d2ac2cb327232f3ac9e07832ef293300e7b8acc506ae3821e23f0eacd2c263  platforms/out/glymur-crd/nvme/partitions.xml
 8f9c0d530d8e38720a89a12d2649620e1c8a495df61de75b91b23ee054d8836c  platforms/out/glymur-crd/nvme/patch0.xml
 572c613c341231ddc04efb66caf36b0754ce93bf355621d77a0ac835d66cd78e  platforms/out/glymur-crd/nvme/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/glymur-crd/nvme/rawprogram0_BLANK_GPT.xml
@@ -126,7 +122,6 @@ e24cbf19593025b4f82c04bbc637734804c52162ca2b6fcc302b708393fbf307  platforms/out/
 6c56076f28027e3d48331ed5a8ed5f415ed7a0f3c49b9541138cf905f54ed0ea  platforms/out/glymur-crd/spinor/gpt_both0.bin
 296ad8f9dac8ae490e27fc296e68de9183a83efd638e4f05404c3de700e4cc05  platforms/out/glymur-crd/spinor/gpt_empty0.bin
 ef824016775315281598647b54cf136313504fd21734484e995e09046dcd7b56  platforms/out/glymur-crd/spinor/gpt_main0.bin
-8e0a4345c26f611fa4785aaf83ed280da2b90fe87f26eec336afc034846f0f1e  platforms/out/glymur-crd/spinor/partitions.xml
 a78a1c37a70ff2cecb450ce16b06bacf1d983ba7108134af2a589096a0594254  platforms/out/glymur-crd/spinor/patch0.xml
 425c5d6e9cb043c97764a0b9e8395712d6142b481be5ade7ad670d6cd522a649  platforms/out/glymur-crd/spinor/rawprogram0.xml
 bfd6149fca38b0d45a636f87be864562f321e5418b917120f4f350d6f5a11a7e  platforms/out/glymur-crd/spinor/rawprogram0_BLANK_GPT.xml
@@ -146,7 +141,6 @@ e24cbf19593025b4f82c04bbc637734804c52162ca2b6fcc302b708393fbf307  platforms/out/
 6c56076f28027e3d48331ed5a8ed5f415ed7a0f3c49b9541138cf905f54ed0ea  platforms/out/glymur-qcb-ufs/spinor/gpt_both0.bin
 296ad8f9dac8ae490e27fc296e68de9183a83efd638e4f05404c3de700e4cc05  platforms/out/glymur-qcb-ufs/spinor/gpt_empty0.bin
 ef824016775315281598647b54cf136313504fd21734484e995e09046dcd7b56  platforms/out/glymur-qcb-ufs/spinor/gpt_main0.bin
-8e0a4345c26f611fa4785aaf83ed280da2b90fe87f26eec336afc034846f0f1e  platforms/out/glymur-qcb-ufs/spinor/partitions.xml
 a78a1c37a70ff2cecb450ce16b06bacf1d983ba7108134af2a589096a0594254  platforms/out/glymur-qcb-ufs/spinor/patch0.xml
 425c5d6e9cb043c97764a0b9e8395712d6142b481be5ade7ad670d6cd522a649  platforms/out/glymur-qcb-ufs/spinor/rawprogram0.xml
 bfd6149fca38b0d45a636f87be864562f321e5418b917120f4f350d6f5a11a7e  platforms/out/glymur-qcb-ufs/spinor/rawprogram0_BLANK_GPT.xml
@@ -165,7 +159,6 @@ cc61635da46b2c9974335ea37e0b5fd660a5c8a42a89b271fa7ec2ac4b8b26f6  platforms/out/
 21e9e65befcc36ecb5f373c224304386113a41f1f765e908db97802dbae5ed0f  platforms/out/glymur-qcb-ufs/ufs/gpt_both0.bin
 296ad8f9dac8ae490e27fc296e68de9183a83efd638e4f05404c3de700e4cc05  platforms/out/glymur-qcb-ufs/ufs/gpt_empty0.bin
 672eed3b3dba2d1d1d521e078897e7f6412157e91432daff498e798ed381ee4d  platforms/out/glymur-qcb-ufs/ufs/gpt_main0.bin
-607f9ec2b9833a7dbd6852d0f7d237f2ddb355515a6b4fef9582d7a3fa789e56  platforms/out/glymur-qcb-ufs/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/glymur-qcb-ufs/ufs/patch0.xml
 fedee9a39cd1b3ed39dcae48fcb8efef6c32a81ef738b95c6eba9312d1668105  platforms/out/glymur-qcb-ufs/ufs/rawprogram0.xml
 bfd6149fca38b0d45a636f87be864562f321e5418b917120f4f350d6f5a11a7e  platforms/out/glymur-qcb-ufs/ufs/rawprogram0_BLANK_GPT.xml
@@ -184,7 +177,6 @@ fef21585f498a590d2bd958f8aa750bd62916116bd391c2f61e3e5b252447773  platforms/out/
 db2401014f34f7129ed8b316873b114b14e2f356fba8928f0aa0378549936217  platforms/out/glymur-qcb/nvme/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/glymur-qcb/nvme/gpt_empty0.bin
 7aaf46a801ab11d301e84d506c9cbec8ccff274d5cae5d25d4797b9897029af2  platforms/out/glymur-qcb/nvme/gpt_main0.bin
-c9d2ac2cb327232f3ac9e07832ef293300e7b8acc506ae3821e23f0eacd2c263  platforms/out/glymur-qcb/nvme/partitions.xml
 8f9c0d530d8e38720a89a12d2649620e1c8a495df61de75b91b23ee054d8836c  platforms/out/glymur-qcb/nvme/patch0.xml
 572c613c341231ddc04efb66caf36b0754ce93bf355621d77a0ac835d66cd78e  platforms/out/glymur-qcb/nvme/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/glymur-qcb/nvme/rawprogram0_BLANK_GPT.xml
@@ -203,7 +195,6 @@ e24cbf19593025b4f82c04bbc637734804c52162ca2b6fcc302b708393fbf307  platforms/out/
 6c56076f28027e3d48331ed5a8ed5f415ed7a0f3c49b9541138cf905f54ed0ea  platforms/out/glymur-qcb/spinor/gpt_both0.bin
 296ad8f9dac8ae490e27fc296e68de9183a83efd638e4f05404c3de700e4cc05  platforms/out/glymur-qcb/spinor/gpt_empty0.bin
 ef824016775315281598647b54cf136313504fd21734484e995e09046dcd7b56  platforms/out/glymur-qcb/spinor/gpt_main0.bin
-8e0a4345c26f611fa4785aaf83ed280da2b90fe87f26eec336afc034846f0f1e  platforms/out/glymur-qcb/spinor/partitions.xml
 a78a1c37a70ff2cecb450ce16b06bacf1d983ba7108134af2a589096a0594254  platforms/out/glymur-qcb/spinor/patch0.xml
 425c5d6e9cb043c97764a0b9e8395712d6142b481be5ade7ad670d6cd522a649  platforms/out/glymur-qcb/spinor/rawprogram0.xml
 bfd6149fca38b0d45a636f87be864562f321e5418b917120f4f350d6f5a11a7e  platforms/out/glymur-qcb/spinor/rawprogram0_BLANK_GPT.xml
@@ -243,7 +234,6 @@ c340610c6aec396c817361af092918d38ff68f4ee8c150db1f5fbf970bfd703e  platforms/out/
 c54785f9afa763b686852f0623ac06782970b966e343adc2b2e3af49203030ed  platforms/out/hawi-mtp/ufs/gpt_main3.bin
 bb8cf945239d7c399a005f8a47904f5b44359c2b4a97ab49e28a92eddc507708  platforms/out/hawi-mtp/ufs/gpt_main4.bin
 c6c4ed5fde43c2eafac67f96016bdace97a089cab6e63e20fcbafb589a849f2d  platforms/out/hawi-mtp/ufs/gpt_main5.bin
-8764e4b3966a411c5606e93b719171202cf1c293163822a516e2f4584f278c41  platforms/out/hawi-mtp/ufs/partitions.xml
 3c847f33d531943f0540c68956fd7684508d8d69b3e9f3754a4ff05e6c691fc7  platforms/out/hawi-mtp/ufs/patch0.xml
 114ad560e8be557ee7b208ea5ae514f445ce02df43822474eaed8ed78ff2dc26  platforms/out/hawi-mtp/ufs/patch1.xml
 fbf97e35096cda47dc43d04a161a82b45871cee2a2d758a26b14a711c5de8bcd  platforms/out/hawi-mtp/ufs/patch2.xml
@@ -287,7 +277,6 @@ cc61635da46b2c9974335ea37e0b5fd660a5c8a42a89b271fa7ec2ac4b8b26f6  platforms/out/
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/iq-615-evk-emmc/emmc/gpt_empty1.bin
 8b686c2459635e6358acd34c4dcd5208663955a3a86cd9388d23e0056d0e2508  platforms/out/iq-615-evk-emmc/emmc/gpt_main0.bin
 fd1b067d65f52c9da790b73dc284262f0fb05d3e8bd8e3d93bc490b22d9dfe08  platforms/out/iq-615-evk-emmc/emmc/gpt_main1.bin
-0a119080408b823ee56d51b4187f76257edd39ebb89220a51c4bcf3c75d5098a  platforms/out/iq-615-evk-emmc/emmc/partitions.xml
 6b8b577c4b25179f0bd3473582e52833891bd71b3711a773d9912b7d62a6f40c  platforms/out/iq-615-evk-emmc/emmc/patch0.xml
 7b885a56c95bd1497d2153c5d637ad874747f73251ab59c53df2b1367db21234  platforms/out/iq-615-evk-emmc/emmc/patch1.xml
 0bb511c39df8edf44110586ef144dc4114d8a496627e75707f9b6b8cf4f11d09  platforms/out/iq-615-evk-emmc/emmc/rawprogram0.xml
@@ -330,7 +319,6 @@ e9059e523ac9ddc640bd6f9024dee80403e0b24cb3c4a8f94a007e739f133a7c  platforms/out/
 bf51d6a26da8e0abcf2b14b8ef65ca093d4468165a77a5415c61b07b1f2e1b01  platforms/out/iq-615-evk/ufs/gpt_main3.bin
 d54d34eb993e374f2c15f3918ec13144a5c0f818060276bf93e8eeb88ed46690  platforms/out/iq-615-evk/ufs/gpt_main4.bin
 fbc6450e013bac72860121aca4e69d219f314cbe3f33e0f0df3431019e31d32a  platforms/out/iq-615-evk/ufs/gpt_main5.bin
-33a478aaff167bd4f1c3017a223bb09fbeb52913a3a46618b2cd601adb20fe54  platforms/out/iq-615-evk/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/iq-615-evk/ufs/patch0.xml
 b6269add7ddfc0bec68e1780f5b437b7c44a0d8bb266f90e678eae042d72e21b  platforms/out/iq-615-evk/ufs/patch1.xml
 ae392f62c30cd879c8f704bee9b08918008e6a40e5c6f0882228f2f84a8a2739  platforms/out/iq-615-evk/ufs/patch2.xml
@@ -374,7 +362,6 @@ ca90455374fb7b70cdc807a7bc909a6a845c599e4aed058e6f11afc9d68fd734  platforms/out/
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/iq-8275-evk-emmc/emmc/gpt_empty1.bin
 e03065651db3087fbe4eecadae0eccd17af04762d6b160a97a545f3a2dd7431b  platforms/out/iq-8275-evk-emmc/emmc/gpt_main0.bin
 4eb3cb03b584e89bdee0ee7557c2fc745c13a651137c3389af9eb8f516215cfa  platforms/out/iq-8275-evk-emmc/emmc/gpt_main1.bin
-79cfae0a0e73a182f75ef4b2e914f74e0faddafd6c7890720e6751169658b68c  platforms/out/iq-8275-evk-emmc/emmc/partitions.xml
 49116eca8f21a9e90cd165fb1685b842e6cd26d92577675c4fa4da00434a12db  platforms/out/iq-8275-evk-emmc/emmc/patch0.xml
 7b885a56c95bd1497d2153c5d637ad874747f73251ab59c53df2b1367db21234  platforms/out/iq-8275-evk-emmc/emmc/patch1.xml
 68af34100b7e5c28bb47f9aa0bb2cf2dd20fbe7e0401d04688e065d99c79c302  platforms/out/iq-8275-evk-emmc/emmc/rawprogram0.xml
@@ -417,7 +404,6 @@ f914ea371fb3a351ceebecea2a0af2ba93a27f3b6653be7bf7dc4802b27744ec  platforms/out/
 49304982c0def01e39143407010af3da2a8434adc622439ed9b78e2c1b2522cf  platforms/out/iq-8275-evk/ufs/gpt_main3.bin
 cc94b6fda4b3d443685a1f63dedc85d834b6aa3ef826f9946264b21b73bae46f  platforms/out/iq-8275-evk/ufs/gpt_main4.bin
 cee60cecbb40ec97a2971e0aefe13969a8bc67378c5ad05712071f02f46a7022  platforms/out/iq-8275-evk/ufs/gpt_main5.bin
-db291cd2933dc723ecde30b448327112b76020dcfce53c0adf95ab7d7eb8bd0d  platforms/out/iq-8275-evk/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/iq-8275-evk/ufs/patch0.xml
 b6269add7ddfc0bec68e1780f5b437b7c44a0d8bb266f90e678eae042d72e21b  platforms/out/iq-8275-evk/ufs/patch1.xml
 ae392f62c30cd879c8f704bee9b08918008e6a40e5c6f0882228f2f84a8a2739  platforms/out/iq-8275-evk/ufs/patch2.xml
@@ -461,7 +447,6 @@ ca90455374fb7b70cdc807a7bc909a6a845c599e4aed058e6f11afc9d68fd734  platforms/out/
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/iq-9075-evk-emmc/emmc/gpt_empty1.bin
 e03065651db3087fbe4eecadae0eccd17af04762d6b160a97a545f3a2dd7431b  platforms/out/iq-9075-evk-emmc/emmc/gpt_main0.bin
 4eb3cb03b584e89bdee0ee7557c2fc745c13a651137c3389af9eb8f516215cfa  platforms/out/iq-9075-evk-emmc/emmc/gpt_main1.bin
-79cfae0a0e73a182f75ef4b2e914f74e0faddafd6c7890720e6751169658b68c  platforms/out/iq-9075-evk-emmc/emmc/partitions.xml
 49116eca8f21a9e90cd165fb1685b842e6cd26d92577675c4fa4da00434a12db  platforms/out/iq-9075-evk-emmc/emmc/patch0.xml
 7b885a56c95bd1497d2153c5d637ad874747f73251ab59c53df2b1367db21234  platforms/out/iq-9075-evk-emmc/emmc/patch1.xml
 68af34100b7e5c28bb47f9aa0bb2cf2dd20fbe7e0401d04688e065d99c79c302  platforms/out/iq-9075-evk-emmc/emmc/rawprogram0.xml
@@ -504,7 +489,6 @@ f914ea371fb3a351ceebecea2a0af2ba93a27f3b6653be7bf7dc4802b27744ec  platforms/out/
 49304982c0def01e39143407010af3da2a8434adc622439ed9b78e2c1b2522cf  platforms/out/iq-9075-evk/ufs/gpt_main3.bin
 cc94b6fda4b3d443685a1f63dedc85d834b6aa3ef826f9946264b21b73bae46f  platforms/out/iq-9075-evk/ufs/gpt_main4.bin
 cee60cecbb40ec97a2971e0aefe13969a8bc67378c5ad05712071f02f46a7022  platforms/out/iq-9075-evk/ufs/gpt_main5.bin
-ed01536e8ef084c467d7b4890a11cd7790db33f55c780601ad51fac104c61346  platforms/out/iq-9075-evk/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/iq-9075-evk/ufs/patch0.xml
 b6269add7ddfc0bec68e1780f5b437b7c44a0d8bb266f90e678eae042d72e21b  platforms/out/iq-9075-evk/ufs/patch1.xml
 ae392f62c30cd879c8f704bee9b08918008e6a40e5c6f0882228f2f84a8a2739  platforms/out/iq-9075-evk/ufs/patch2.xml
@@ -543,7 +527,6 @@ fef21585f498a590d2bd958f8aa750bd62916116bd391c2f61e3e5b252447773  platforms/out/
 db2401014f34f7129ed8b316873b114b14e2f356fba8928f0aa0378549936217  platforms/out/iq-x7181-evk/nvme/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/iq-x7181-evk/nvme/gpt_empty0.bin
 7aaf46a801ab11d301e84d506c9cbec8ccff274d5cae5d25d4797b9897029af2  platforms/out/iq-x7181-evk/nvme/gpt_main0.bin
-c9d2ac2cb327232f3ac9e07832ef293300e7b8acc506ae3821e23f0eacd2c263  platforms/out/iq-x7181-evk/nvme/partitions.xml
 8f9c0d530d8e38720a89a12d2649620e1c8a495df61de75b91b23ee054d8836c  platforms/out/iq-x7181-evk/nvme/patch0.xml
 572c613c341231ddc04efb66caf36b0754ce93bf355621d77a0ac835d66cd78e  platforms/out/iq-x7181-evk/nvme/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/iq-x7181-evk/nvme/rawprogram0_BLANK_GPT.xml
@@ -562,7 +545,6 @@ f57511198cd295e9187ab5e6153bd837c4ee91d0217ea593d6b767ca37fa74c2  platforms/out/
 7cdcd7961a231c0951b4e46aa8bfe5be0c650d2e2c4e63822ff3f91f1773ce18  platforms/out/iq-x7181-evk/spinor/gpt_both0.bin
 296ad8f9dac8ae490e27fc296e68de9183a83efd638e4f05404c3de700e4cc05  platforms/out/iq-x7181-evk/spinor/gpt_empty0.bin
 3d8c41c4a6e31541ba0b08d592279e07faa1e79b73ad73e8dbd21ee8f0d73718  platforms/out/iq-x7181-evk/spinor/gpt_main0.bin
-b910dfe410005729d4fcf2d05fa81c80d9c4253f2e3c232f94f463ec17f91a6b  platforms/out/iq-x7181-evk/spinor/partitions.xml
 5e81ccbebcf2bb1ec760d4a3208e1c92972f79dac5f887b98205900681715ee9  platforms/out/iq-x7181-evk/spinor/patch0.xml
 1239eee5de2c16f81c2fd9263a4d5ba48119c6b8544d81f90e70bc09b80890e9  platforms/out/iq-x7181-evk/spinor/rawprogram0.xml
 bfd6149fca38b0d45a636f87be864562f321e5418b917120f4f350d6f5a11a7e  platforms/out/iq-x7181-evk/spinor/rawprogram0_BLANK_GPT.xml
@@ -585,7 +567,6 @@ f6f368c95efde64929e77b08a2f2c8785ff720ea24a45adae6ecc88b8538b377  platforms/out/
 296ad8f9dac8ae490e27fc296e68de9183a83efd638e4f05404c3de700e4cc05  platforms/out/iq-x7181-evk/ufs/gpt_empty1.bin
 672eed3b3dba2d1d1d521e078897e7f6412157e91432daff498e798ed381ee4d  platforms/out/iq-x7181-evk/ufs/gpt_main0.bin
 5cbbd95f3c7b63f9f422c1d49ca24176d65a06d7fcbef09dfe71885bdc69c2f2  platforms/out/iq-x7181-evk/ufs/gpt_main1.bin
-609b9e39509242906d8a116d8d44c3726cbaba3e345c157c151184689314a2b6  platforms/out/iq-x7181-evk/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/iq-x7181-evk/ufs/patch0.xml
 e7b6ca6948bf7c4be260b2ab7e9f260edf3bc04604e653038ee894f24bab89d1  platforms/out/iq-x7181-evk/ufs/patch1.xml
 fedee9a39cd1b3ed39dcae48fcb8efef6c32a81ef738b95c6eba9312d1668105  platforms/out/iq-x7181-evk/ufs/rawprogram0.xml
@@ -629,7 +610,6 @@ ee3a95ab2a03f20814cd94fa906376b808351572ca9c6a3f8473e0c05d2bb0b6  platforms/out/
 5eb465d8580f8b5be00dcc336bc719941e24f2f4552e8cf22b4ed640fd62ec18  platforms/out/kaanapali-mtp/ufs/gpt_main3.bin
 ff842789b4a4fd11812666fe22b421a050e4f0ece2c26b016868e40360cbf0ea  platforms/out/kaanapali-mtp/ufs/gpt_main4.bin
 d98277fe542d3c1b170d2ed8c3958b7aab97198604e25776ed9157051c6f6fe9  platforms/out/kaanapali-mtp/ufs/gpt_main5.bin
-4cdaeffbe1ac3d6af242252c4e2b0a80d44160ec5aac638c3c657baff6c41e1f  platforms/out/kaanapali-mtp/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/kaanapali-mtp/ufs/patch0.xml
 6651cf358a85e066992c29fc1953851681fb9f52f7be3881d51aaa2f3160dfb4  platforms/out/kaanapali-mtp/ufs/patch1.xml
 7e8d630cf0ed305df5184e1f082fa70b1b34fb83bdedb3a525ddaf753cf96eed  platforms/out/kaanapali-mtp/ufs/patch2.xml
@@ -689,7 +669,6 @@ be92dd8184e5513f117fd722a239abef791def6b1b0ecf908cab85447bbe8134  platforms/out/
 54e43d5ca51ad423c4ae6135a556695cc3f1072b0907d1872667025254ca87a4  platforms/out/maili-mtp/ufs/gpt_main3.bin
 6ba342c05df3c1b7a261702c06ede155c3236522b2394fb7e6af726170b738e0  platforms/out/maili-mtp/ufs/gpt_main4.bin
 5243b42ec9683ccf7c253fea78da6c94aa0bb4dfd3205757de3a7d8f151657e0  platforms/out/maili-mtp/ufs/gpt_main5.bin
-fa13272967d097712b643499d34a538c7558598563560ec8b660c48b4edecfc0  platforms/out/maili-mtp/ufs/partitions.xml
 3c847f33d531943f0540c68956fd7684508d8d69b3e9f3754a4ff05e6c691fc7  platforms/out/maili-mtp/ufs/patch0.xml
 dc22302caf4784fc2d13558d444998f2d435e5d552396b63eb64dc0abeb9751e  platforms/out/maili-mtp/ufs/patch1.xml
 38eec31a37f68076e907a8c84dc134a6d3000a25e177dec2e3cc116c022a461d  platforms/out/maili-mtp/ufs/patch2.xml
@@ -728,7 +707,6 @@ cc61635da46b2c9974335ea37e0b5fd660a5c8a42a89b271fa7ec2ac4b8b26f6  platforms/out/
 f9eee25df12999695f43c719f55e77dad1966eee5efeda305c41385ff8ade386  platforms/out/nord-rrd/spinor/gpt_both0.bin
 296ad8f9dac8ae490e27fc296e68de9183a83efd638e4f05404c3de700e4cc05  platforms/out/nord-rrd/spinor/gpt_empty0.bin
 ccd7badeb70837bc7bec9a5583e23b842fe55c269a70d9249567b9874057d03b  platforms/out/nord-rrd/spinor/gpt_main0.bin
-ac0bc7ff5faa020161a9757b8917d6142a91be4b64ad643b2ffd96465f3d0056  platforms/out/nord-rrd/spinor/partitions.xml
 a78a1c37a70ff2cecb450ce16b06bacf1d983ba7108134af2a589096a0594254  platforms/out/nord-rrd/spinor/patch0.xml
 17bcd316a24232554886856dfd1be47d59a872baf1295558492f0a02b0b8cdee  platforms/out/nord-rrd/spinor/rawprogram0.xml
 bfd6149fca38b0d45a636f87be864562f321e5418b917120f4f350d6f5a11a7e  platforms/out/nord-rrd/spinor/rawprogram0_BLANK_GPT.xml
@@ -768,7 +746,6 @@ b3f538919707f4040ecd4f1bb3742951753d74d27cc2de5327e3e2612f06ea42  platforms/out/
 5eb465d8580f8b5be00dcc336bc719941e24f2f4552e8cf22b4ed640fd62ec18  platforms/out/nord-rrd/ufs/gpt_main3.bin
 c216f3d58648c186e6aacaaca6e32bc474af3317787ceea10b2b8e7be1da165f  platforms/out/nord-rrd/ufs/gpt_main4.bin
 8043b402545c6e4227bbc5f0d695e9412df6d9ee922bf8cba59a4b1219a8ce03  platforms/out/nord-rrd/ufs/gpt_main5.bin
-09c78495987b3f43a9a7381843df866bf93187a096b987d6faaee4f3997d1dc0  platforms/out/nord-rrd/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/nord-rrd/ufs/patch0.xml
 6651cf358a85e066992c29fc1953851681fb9f52f7be3881d51aaa2f3160dfb4  platforms/out/nord-rrd/ufs/patch1.xml
 7e8d630cf0ed305df5184e1f082fa70b1b34fb83bdedb3a525ddaf753cf96eed  platforms/out/nord-rrd/ufs/patch2.xml
@@ -812,7 +789,6 @@ cc61635da46b2c9974335ea37e0b5fd660a5c8a42a89b271fa7ec2ac4b8b26f6  platforms/out/
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/qcm6490-idp/emmc/gpt_empty1.bin
 402fd523453cb7a5cd9b1ec5eb4ba95caf9b0120571bed8096c8f0a399eaf85a  platforms/out/qcm6490-idp/emmc/gpt_main0.bin
 7ca712a4a8d332543727db9c21ed54015c7122964dbe1e0d0c441151088041e7  platforms/out/qcm6490-idp/emmc/gpt_main1.bin
-309a21023c9f7f6145a012e00229495b35d9348a60b5cbbd2489a2348417c16e  platforms/out/qcm6490-idp/emmc/partitions.xml
 b51f95a4583d1ebb2de6bc810d8091d5b478bcc3d68bc24c9c8da76a70af460a  platforms/out/qcm6490-idp/emmc/patch0.xml
 7b885a56c95bd1497d2153c5d637ad874747f73251ab59c53df2b1367db21234  platforms/out/qcm6490-idp/emmc/patch1.xml
 967734803c20501f2171b7939aefd46573bd638b073f4e383fe28fae2ec265f1  platforms/out/qcm6490-idp/emmc/rawprogram0.xml
@@ -855,7 +831,6 @@ e9059e523ac9ddc640bd6f9024dee80403e0b24cb3c4a8f94a007e739f133a7c  platforms/out/
 bf51d6a26da8e0abcf2b14b8ef65ca093d4468165a77a5415c61b07b1f2e1b01  platforms/out/qcm6490-idp/ufs/gpt_main3.bin
 662787616f527a937023028a30eb9560752b259a8029efb6842545059cfb77e2  platforms/out/qcm6490-idp/ufs/gpt_main4.bin
 53c5bdd92ec47fa568d1f23587a1907d19d2c59a0a27d3c2237df343c4f223e5  platforms/out/qcm6490-idp/ufs/gpt_main5.bin
-9d70c93279a2b4dba2a2b6e08ba0e298a25ecdacce676c61d3371b073a6cec39  platforms/out/qcm6490-idp/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/qcm6490-idp/ufs/patch0.xml
 b6269add7ddfc0bec68e1780f5b437b7c44a0d8bb266f90e678eae042d72e21b  platforms/out/qcm6490-idp/ufs/patch1.xml
 ae392f62c30cd879c8f704bee9b08918008e6a40e5c6f0882228f2f84a8a2739  platforms/out/qcm6490-idp/ufs/patch2.xml
@@ -895,7 +870,6 @@ cc61635da46b2c9974335ea37e0b5fd660a5c8a42a89b271fa7ec2ac4b8b26f6  platforms/out/
 2b96707367f624ac645af05f2458707b5cef2811d6f5050bbfa067221f92c28f  platforms/out/qcs615-ride-emmc/emmc/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/qcs615-ride-emmc/emmc/gpt_empty0.bin
 8b686c2459635e6358acd34c4dcd5208663955a3a86cd9388d23e0056d0e2508  platforms/out/qcs615-ride-emmc/emmc/gpt_main0.bin
-ad4765aa5e850d7e1fe3dbd63d1121ae12b25c40fbad11e9ae7ee14594e41e1a  platforms/out/qcs615-ride-emmc/emmc/partitions.xml
 6b8b577c4b25179f0bd3473582e52833891bd71b3711a773d9912b7d62a6f40c  platforms/out/qcs615-ride-emmc/emmc/patch0.xml
 0bb511c39df8edf44110586ef144dc4114d8a496627e75707f9b6b8cf4f11d09  platforms/out/qcs615-ride-emmc/emmc/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/qcs615-ride-emmc/emmc/rawprogram0_BLANK_GPT.xml
@@ -934,7 +908,6 @@ e9059e523ac9ddc640bd6f9024dee80403e0b24cb3c4a8f94a007e739f133a7c  platforms/out/
 bf51d6a26da8e0abcf2b14b8ef65ca093d4468165a77a5415c61b07b1f2e1b01  platforms/out/qcs615-ride/ufs/gpt_main3.bin
 d54d34eb993e374f2c15f3918ec13144a5c0f818060276bf93e8eeb88ed46690  platforms/out/qcs615-ride/ufs/gpt_main4.bin
 fbc6450e013bac72860121aca4e69d219f314cbe3f33e0f0df3431019e31d32a  platforms/out/qcs615-ride/ufs/gpt_main5.bin
-33a478aaff167bd4f1c3017a223bb09fbeb52913a3a46618b2cd601adb20fe54  platforms/out/qcs615-ride/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/qcs615-ride/ufs/patch0.xml
 b6269add7ddfc0bec68e1780f5b437b7c44a0d8bb266f90e678eae042d72e21b  platforms/out/qcs615-ride/ufs/patch1.xml
 ae392f62c30cd879c8f704bee9b08918008e6a40e5c6f0882228f2f84a8a2739  platforms/out/qcs615-ride/ufs/patch2.xml
@@ -994,7 +967,6 @@ e9059e523ac9ddc640bd6f9024dee80403e0b24cb3c4a8f94a007e739f133a7c  platforms/out/
 bf51d6a26da8e0abcf2b14b8ef65ca093d4468165a77a5415c61b07b1f2e1b01  platforms/out/qcs6490-rb3gen2/ufs/gpt_main3.bin
 662787616f527a937023028a30eb9560752b259a8029efb6842545059cfb77e2  platforms/out/qcs6490-rb3gen2/ufs/gpt_main4.bin
 53c5bdd92ec47fa568d1f23587a1907d19d2c59a0a27d3c2237df343c4f223e5  platforms/out/qcs6490-rb3gen2/ufs/gpt_main5.bin
-9d70c93279a2b4dba2a2b6e08ba0e298a25ecdacce676c61d3371b073a6cec39  platforms/out/qcs6490-rb3gen2/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/qcs6490-rb3gen2/ufs/patch0.xml
 b6269add7ddfc0bec68e1780f5b437b7c44a0d8bb266f90e678eae042d72e21b  platforms/out/qcs6490-rb3gen2/ufs/patch1.xml
 ae392f62c30cd879c8f704bee9b08918008e6a40e5c6f0882228f2f84a8a2739  platforms/out/qcs6490-rb3gen2/ufs/patch2.xml
@@ -1058,7 +1030,6 @@ bf51d6a26da8e0abcf2b14b8ef65ca093d4468165a77a5415c61b07b1f2e1b01  platforms/out/
 662787616f527a937023028a30eb9560752b259a8029efb6842545059cfb77e2  platforms/out/qcs6490-thundercomm-rubikpi3/ufs/gpt_main4.bin
 53c5bdd92ec47fa568d1f23587a1907d19d2c59a0a27d3c2237df343c4f223e5  platforms/out/qcs6490-thundercomm-rubikpi3/ufs/gpt_main5.bin
 44649c561c2d805a59c90117beccefcfbfd7da1ca52652f1dee7879dd9ec1791  platforms/out/qcs6490-thundercomm-rubikpi3/ufs/gpt_main6.bin
-794c866b790810583bed17eee6ce8a17bfb59f7110aa68d9c0fabec3d72f14bb  platforms/out/qcs6490-thundercomm-rubikpi3/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/qcs6490-thundercomm-rubikpi3/ufs/patch0.xml
 b6269add7ddfc0bec68e1780f5b437b7c44a0d8bb266f90e678eae042d72e21b  platforms/out/qcs6490-thundercomm-rubikpi3/ufs/patch1.xml
 ae392f62c30cd879c8f704bee9b08918008e6a40e5c6f0882228f2f84a8a2739  platforms/out/qcs6490-thundercomm-rubikpi3/ufs/patch2.xml
@@ -1105,7 +1076,6 @@ ca90455374fb7b70cdc807a7bc909a6a845c599e4aed058e6f11afc9d68fd734  platforms/out/
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/qcs8275-monza/emmc/gpt_empty1.bin
 e03065651db3087fbe4eecadae0eccd17af04762d6b160a97a545f3a2dd7431b  platforms/out/qcs8275-monza/emmc/gpt_main0.bin
 4eb3cb03b584e89bdee0ee7557c2fc745c13a651137c3389af9eb8f516215cfa  platforms/out/qcs8275-monza/emmc/gpt_main1.bin
-79cfae0a0e73a182f75ef4b2e914f74e0faddafd6c7890720e6751169658b68c  platforms/out/qcs8275-monza/emmc/partitions.xml
 49116eca8f21a9e90cd165fb1685b842e6cd26d92577675c4fa4da00434a12db  platforms/out/qcs8275-monza/emmc/patch0.xml
 7b885a56c95bd1497d2153c5d637ad874747f73251ab59c53df2b1367db21234  platforms/out/qcs8275-monza/emmc/patch1.xml
 68af34100b7e5c28bb47f9aa0bb2cf2dd20fbe7e0401d04688e065d99c79c302  platforms/out/qcs8275-monza/emmc/rawprogram0.xml
@@ -1148,7 +1118,6 @@ f914ea371fb3a351ceebecea2a0af2ba93a27f3b6653be7bf7dc4802b27744ec  platforms/out/
 49304982c0def01e39143407010af3da2a8434adc622439ed9b78e2c1b2522cf  platforms/out/qcs8300-ride-sx/ufs/gpt_main3.bin
 cc94b6fda4b3d443685a1f63dedc85d834b6aa3ef826f9946264b21b73bae46f  platforms/out/qcs8300-ride-sx/ufs/gpt_main4.bin
 cee60cecbb40ec97a2971e0aefe13969a8bc67378c5ad05712071f02f46a7022  platforms/out/qcs8300-ride-sx/ufs/gpt_main5.bin
-db291cd2933dc723ecde30b448327112b76020dcfce53c0adf95ab7d7eb8bd0d  platforms/out/qcs8300-ride-sx/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/qcs8300-ride-sx/ufs/patch0.xml
 b6269add7ddfc0bec68e1780f5b437b7c44a0d8bb266f90e678eae042d72e21b  platforms/out/qcs8300-ride-sx/ufs/patch1.xml
 ae392f62c30cd879c8f704bee9b08918008e6a40e5c6f0882228f2f84a8a2739  platforms/out/qcs8300-ride-sx/ufs/patch2.xml
@@ -1208,7 +1177,6 @@ fcb03157a91cf34abb3aafcf05fb2869c440a5a653207fe0ab21517ecd415324  platforms/out/
 3b7e6f25a63839c5e1dec96f4adcca3a119a48fa640b57b517ab8ead8649836e  platforms/out/qcs8550-rb5gen2/ufs/gpt_main3.bin
 0f2d5dac67189b269c1aa3f4776ab05a5606390138796a4d52978cacfe02b867  platforms/out/qcs8550-rb5gen2/ufs/gpt_main4.bin
 e13d05f701588858f571c224716c03951b4a5b721090a97c2fe47432a80e4a80  platforms/out/qcs8550-rb5gen2/ufs/gpt_main5.bin
-e6ca567513194d96bfb84ca6244fcc479cb8b4f41cae279c01623830198d7c69  platforms/out/qcs8550-rb5gen2/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/qcs8550-rb5gen2/ufs/patch0.xml
 a877f0744b1260ef47b1ee9150e41ac51753867141383842ae8bcc49c4c084b1  platforms/out/qcs8550-rb5gen2/ufs/patch1.xml
 5b67c4a3d55f8a464ed40dbea3112440f398e20d540b9b4060e4fe1566316d37  platforms/out/qcs8550-rb5gen2/ufs/patch2.xml
@@ -1268,7 +1236,6 @@ f914ea371fb3a351ceebecea2a0af2ba93a27f3b6653be7bf7dc4802b27744ec  platforms/out/
 49304982c0def01e39143407010af3da2a8434adc622439ed9b78e2c1b2522cf  platforms/out/qcs9100-ride-sx/ufs/gpt_main3.bin
 cc94b6fda4b3d443685a1f63dedc85d834b6aa3ef826f9946264b21b73bae46f  platforms/out/qcs9100-ride-sx/ufs/gpt_main4.bin
 cee60cecbb40ec97a2971e0aefe13969a8bc67378c5ad05712071f02f46a7022  platforms/out/qcs9100-ride-sx/ufs/gpt_main5.bin
-ed01536e8ef084c467d7b4890a11cd7790db33f55c780601ad51fac104c61346  platforms/out/qcs9100-ride-sx/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/qcs9100-ride-sx/ufs/patch0.xml
 b6269add7ddfc0bec68e1780f5b437b7c44a0d8bb266f90e678eae042d72e21b  platforms/out/qcs9100-ride-sx/ufs/patch1.xml
 ae392f62c30cd879c8f704bee9b08918008e6a40e5c6f0882228f2f84a8a2739  platforms/out/qcs9100-ride-sx/ufs/patch2.xml
@@ -1308,7 +1275,6 @@ c3bba7e25185dddc4e4d7583564186545a3a8f1bc1b5ebe275058a86a4fcd3ef  platforms/out/
 ebfff8f3aeb726d33e5ec25d13d4aaff854c3b189f045c96f73be809b85484c0  platforms/out/qrb2210-rb1-abl/emmc/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/qrb2210-rb1-abl/emmc/gpt_empty0.bin
 c65f565ba146bd661b6cb8082bee9ccf6469c18c5761fd260d0bc5248784e015  platforms/out/qrb2210-rb1-abl/emmc/gpt_main0.bin
-e86ecfead48ad81b3212eebfa50458717fbbb65e063d53777d88f098d467cf40  platforms/out/qrb2210-rb1-abl/emmc/partitions.xml
 8582c444977a3e9b9a5e31cbe852d45f45b2c60558928582bd00b7a04497a202  platforms/out/qrb2210-rb1-abl/emmc/patch0.xml
 8a70ee0277b82d6fdc91685e906ee8b2b97e94330cfc1be75b305bd907a0317e  platforms/out/qrb2210-rb1-abl/emmc/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/qrb2210-rb1-abl/emmc/rawprogram0_BLANK_GPT.xml
@@ -1327,7 +1293,6 @@ a98f5db25938c235b2f2a5f36c3e7cf517e3f79097eefdc6117ff40d9d13e700  platforms/out/
 6d706b080c12ebb06c9e3e36f36790f9f620dd29d70905fc3e79150420f9777c  platforms/out/qrb2210-rb1/emmc/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/qrb2210-rb1/emmc/gpt_empty0.bin
 d8c73a8a61d3ff8c37153afc7220ed3997f6cedb38fc74fcb0b00d8cba10e516  platforms/out/qrb2210-rb1/emmc/gpt_main0.bin
-eb71b9b9eb4f69a5b397b5916bb3fccc78c4384ff263b6ea13db452e10d1400b  platforms/out/qrb2210-rb1/emmc/partitions.xml
 a7bea79a4b737922ffbc79bd63232515ca1ff7643bd611b81a8b77b93eb6c4b3  platforms/out/qrb2210-rb1/emmc/patch0.xml
 f851e6e328389b4e0720d7df2a9b727b39b3dcae8b3b2ed04c33bdb1099f0b0d  platforms/out/qrb2210-rb1/emmc/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/qrb2210-rb1/emmc/rawprogram0_BLANK_GPT.xml
@@ -1346,7 +1311,6 @@ fef81d7e288b68f5499991af478f98717f39f672057848ecb0755ddc2f6df1be  platforms/out/
 8c821d0c0e2cfb8910feb1a8f0e71700ca78eaff56b1ae3f9ca501b92ba43c29  platforms/out/qrb2210-unoq-abl-arduino/emmc/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/qrb2210-unoq-abl-arduino/emmc/gpt_empty0.bin
 64433270c194bbeeafea97023b463fe661c819d509d823eb50614d284762369a  platforms/out/qrb2210-unoq-abl-arduino/emmc/gpt_main0.bin
-bfaee81312489b180cda5ae0c862c989b66283e547fc43ffbfd35cbd19e59e30  platforms/out/qrb2210-unoq-abl-arduino/emmc/partitions.xml
 d3de9b3ab3cec5c704fe10913406e5b8d04c76a7bc86465f45f36f54425b2d5d  platforms/out/qrb2210-unoq-abl-arduino/emmc/patch0.xml
 80d4464546533a6578a953a80f01e170141167dfb61efcc2eeb45986fc428f9d  platforms/out/qrb2210-unoq-abl-arduino/emmc/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/qrb2210-unoq-abl-arduino/emmc/rawprogram0_BLANK_GPT.xml
@@ -1365,7 +1329,6 @@ c3bba7e25185dddc4e4d7583564186545a3a8f1bc1b5ebe275058a86a4fcd3ef  platforms/out/
 ebfff8f3aeb726d33e5ec25d13d4aaff854c3b189f045c96f73be809b85484c0  platforms/out/qrb2210-unoq-abl/emmc/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/qrb2210-unoq-abl/emmc/gpt_empty0.bin
 c65f565ba146bd661b6cb8082bee9ccf6469c18c5761fd260d0bc5248784e015  platforms/out/qrb2210-unoq-abl/emmc/gpt_main0.bin
-e86ecfead48ad81b3212eebfa50458717fbbb65e063d53777d88f098d467cf40  platforms/out/qrb2210-unoq-abl/emmc/partitions.xml
 8582c444977a3e9b9a5e31cbe852d45f45b2c60558928582bd00b7a04497a202  platforms/out/qrb2210-unoq-abl/emmc/patch0.xml
 8a70ee0277b82d6fdc91685e906ee8b2b97e94330cfc1be75b305bd907a0317e  platforms/out/qrb2210-unoq-abl/emmc/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/qrb2210-unoq-abl/emmc/rawprogram0_BLANK_GPT.xml
@@ -1384,7 +1347,6 @@ f57511198cd295e9187ab5e6153bd837c4ee91d0217ea593d6b767ca37fa74c2  platforms/out/
 1223834bf2069b8dd5b36e37b41a03707481003de617aa008c2a83398c992dac  platforms/out/qrb2210-unoq-arduino/emmc/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/qrb2210-unoq-arduino/emmc/gpt_empty0.bin
 7315b179c0f8885c02006aae3385d018adbff98fa23d76c429de295aec440570  platforms/out/qrb2210-unoq-arduino/emmc/gpt_main0.bin
-8ab8e002c120ac06fbb224c4bc7d6e541a381868524fa098796018e9636aa958  platforms/out/qrb2210-unoq-arduino/emmc/partitions.xml
 f32a73eba21c302ceb463343cd5ed8e2e747c578e9e68744985ec057d4266df5  platforms/out/qrb2210-unoq-arduino/emmc/patch0.xml
 7f1fac5c861eb5f1587af27272bfabeabd174d78d93eaa2aff777cd45aab4f40  platforms/out/qrb2210-unoq-arduino/emmc/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/qrb2210-unoq-arduino/emmc/rawprogram0_BLANK_GPT.xml
@@ -1403,7 +1365,6 @@ a98f5db25938c235b2f2a5f36c3e7cf517e3f79097eefdc6117ff40d9d13e700  platforms/out/
 6d706b080c12ebb06c9e3e36f36790f9f620dd29d70905fc3e79150420f9777c  platforms/out/qrb2210-unoq/emmc/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/qrb2210-unoq/emmc/gpt_empty0.bin
 d8c73a8a61d3ff8c37153afc7220ed3997f6cedb38fc74fcb0b00d8cba10e516  platforms/out/qrb2210-unoq/emmc/gpt_main0.bin
-eb71b9b9eb4f69a5b397b5916bb3fccc78c4384ff263b6ea13db452e10d1400b  platforms/out/qrb2210-unoq/emmc/partitions.xml
 a7bea79a4b737922ffbc79bd63232515ca1ff7643bd611b81a8b77b93eb6c4b3  platforms/out/qrb2210-unoq/emmc/patch0.xml
 f851e6e328389b4e0720d7df2a9b727b39b3dcae8b3b2ed04c33bdb1099f0b0d  platforms/out/qrb2210-unoq/emmc/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/qrb2210-unoq/emmc/rawprogram0_BLANK_GPT.xml
@@ -1421,7 +1382,6 @@ f57511198cd295e9187ab5e6153bd837c4ee91d0217ea593d6b767ca37fa74c2  platforms/out/
 3ed8e9514d8e3b1fefb9d4292e1dd97375e48b85ab57bf6b2671db40c2da7014  platforms/out/qrb4210-rb2/emmc/gpt_both0.bin
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/qrb4210-rb2/emmc/gpt_empty0.bin
 54051fd4eae6f9b504dd8f6b66c2366bcdb76d5ee1bb217f5505d3dbe2319df7  platforms/out/qrb4210-rb2/emmc/gpt_main0.bin
-4dbbe940ee393ffde2b2c1196e954aabfa125ab33df2f37a3fc907fcf6eeb4c9  platforms/out/qrb4210-rb2/emmc/partitions.xml
 63d74b16d5782611e568e0b61e89a538294ba74b02890ea3a03f28f0938c5b25  platforms/out/qrb4210-rb2/emmc/patch0.xml
 943c89df1320203b4a398442060847fb84a91c67f17ffa50e8f5c8df74994a5f  platforms/out/qrb4210-rb2/emmc/rawprogram0.xml
 e1087465464de3b9a56d7ae2eaf6a9f45586e2562cb995bff7f640f6cecd501d  platforms/out/qrb4210-rb2/emmc/rawprogram0_BLANK_GPT.xml
@@ -1459,7 +1419,6 @@ fa557735d697f7cdd06305227e355da7904fad4fb75b4456bc5035e47516889c  platforms/out/
 cadac85eca8793d3fd8b5f9d64be091c736fc901ed2e1b1570fc9658d194508f  platforms/out/qrb5165-rb5/ufs/gpt_main3.bin
 dfe4a4a5d8f3df36d660ea4516c42049d3e22146de940da3672d6b3bc4b99c77  platforms/out/qrb5165-rb5/ufs/gpt_main4.bin
 f53ba72ba87ddee153f546b7d0e8cdb74515b8df5978acc2e07166c0dfca20cb  platforms/out/qrb5165-rb5/ufs/gpt_main5.bin
-b9e1313e4ff9e28826a4eebcac7b456f5e37bddd276851e8ec383e18d041860a  platforms/out/qrb5165-rb5/ufs/partitions.xml
 7396c0fba0a3d35b22330b342057e7b16112a9477e5a112221446b40e726394d  platforms/out/qrb5165-rb5/ufs/patch0.xml
 59583d011aa3b7c446cdc5cddfc0311b94901fb33df7de193294029739fa6f12  platforms/out/qrb5165-rb5/ufs/patch1.xml
 a6bfc37ad3678453e75ec3377429486c4bda460f95aba3c8d3f2c6539ff12233  platforms/out/qrb5165-rb5/ufs/patch2.xml
@@ -1518,7 +1477,6 @@ fa557735d697f7cdd06305227e355da7904fad4fb75b4456bc5035e47516889c  platforms/out/
 90f327965237c8e97259d11809a9f2a29f1ab724f4d8eaf2d666941ae105e3d7  platforms/out/sdm845-db845c/ufs/gpt_main3.bin
 b787aacaf406e5ee697ea2dcf53dcd24c3bcaee7fff846a1f61794777fc95315  platforms/out/sdm845-db845c/ufs/gpt_main4.bin
 fc0a2780694fe58bb5848feac592a3966f1c7873a4c5b08fee04fbfbe8a1fabf  platforms/out/sdm845-db845c/ufs/gpt_main5.bin
-a63d0fd23431fd38f5bc8ca15639a1f9e4fafaee821cbd38a595f6dec70fb982  platforms/out/sdm845-db845c/ufs/partitions.xml
 7396c0fba0a3d35b22330b342057e7b16112a9477e5a112221446b40e726394d  platforms/out/sdm845-db845c/ufs/patch0.xml
 59583d011aa3b7c446cdc5cddfc0311b94901fb33df7de193294029739fa6f12  platforms/out/sdm845-db845c/ufs/patch1.xml
 a6bfc37ad3678453e75ec3377429486c4bda460f95aba3c8d3f2c6539ff12233  platforms/out/sdm845-db845c/ufs/patch2.xml
@@ -1562,7 +1520,6 @@ cc61635da46b2c9974335ea37e0b5fd660a5c8a42a89b271fa7ec2ac4b8b26f6  platforms/out/
 65b63c1bae6e614a126713b3635886c64e6c61c5b5fd907caca2ab88e55723b4  platforms/out/shikra-evk/emmc/gpt_empty1.bin
 376a6eb731c0bd1f9053c3ff2cc38ab27db528cdf39697c4d4836ddc0d1355fa  platforms/out/shikra-evk/emmc/gpt_main0.bin
 38118efd1140c9449139cfa3dda4f62a66f9c59ba5eecf88aeba645589130890  platforms/out/shikra-evk/emmc/gpt_main1.bin
-f27e0067df3b779ffa5eec04b8d61e229b86de26366a8d4c7081bc18d7531418  platforms/out/shikra-evk/emmc/partitions.xml
 f81d941117465214b0148a5503f8aef915a93e33d86f41d910836e46e9610979  platforms/out/shikra-evk/emmc/patch0.xml
 7b885a56c95bd1497d2153c5d637ad874747f73251ab59c53df2b1367db21234  platforms/out/shikra-evk/emmc/patch1.xml
 5aaf0d6f9545311515cab317c465480e4621b4b192e58b28113b7a650f3d48b5  platforms/out/shikra-evk/emmc/rawprogram0.xml
@@ -1605,7 +1562,6 @@ fd084495388f38c860dcf1df38634ba5d6c6fb6d659929673702e583a9452825  platforms/out/
 c534217e0c5290dc7a927226676009100159f3f4d2616edb54765b5d7a7385bf  platforms/out/sm8750-mtp/ufs/gpt_main3.bin
 4b0e75a0c73a6097b5b638b265a858cc290ab8cfc84db5945f9ac2452e4ba78d  platforms/out/sm8750-mtp/ufs/gpt_main4.bin
 66f23ad389a205c944361608af4069caf88f93e169975dbf03ec918fd67c78a8  platforms/out/sm8750-mtp/ufs/gpt_main5.bin
-c67f308fab3e96f6527f5ca15d49c3db518d5fd2e955370aef3ded38e0098931  platforms/out/sm8750-mtp/ufs/partitions.xml
 17e926bf598a781a766319cd1a0e2b84563ef0850d565b83479294be518d160a  platforms/out/sm8750-mtp/ufs/patch0.xml
 b31e366e630eef16ecdd74ed9fbcf7eafdb9f86bd240fcbf34fe2599b14a88dc  platforms/out/sm8750-mtp/ufs/patch1.xml
 3503dc1337a9d6c2153e48307ff304cffd634f6545fd165f02bd2063bd82ec27  platforms/out/sm8750-mtp/ufs/patch2.xml

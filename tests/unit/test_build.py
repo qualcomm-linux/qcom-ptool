@@ -32,8 +32,9 @@ def test_platform_builds_every_configuration(tmp_path, monkeypatch):
     rc = build.main(["build", "-o", str(tmp_path), str(PLATFORMS / "iq-615-evk.yaml")])
     assert rc == 0
     for out in ("iq-615-evk/ufs", "iq-615-evk-emmc/emmc"):
-        for name in ("partitions.xml", "gpt_main0.bin", "rawprogram0.xml", "patch0.xml"):
+        for name in ("gpt_main0.bin", "rawprogram0.xml", "patch0.xml"):
             assert (tmp_path / out / name).is_file()
+        assert not (tmp_path / out / "partitions.xml").exists()
 
 
 def test_board_and_flavors_match_the_platform(tmp_path, monkeypatch):

@@ -3,8 +3,8 @@
 """
 Internal representation shared by all input loaders.
 
-Every loader (``loaders/yaml.py``) returns a ``LoadedSpec`` so the rest of
-``gen_partition.py`` is independent of the source format.
+Every loader (``loaders/yaml.py``) and the board resolver reduce a layout
+to one ``LoadedSpec`` per storage, which the artifact generators consume.
 
 ``DiskParams`` and ``PartitionEntry`` are type aliases for ``dict[str, str]``
 rather than ``TypedDict``s; the XML emitter passes the dicts straight to

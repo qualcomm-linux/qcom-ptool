@@ -25,7 +25,6 @@ from collections.abc import Mapping, Sequence
 from qcom_ptool.artifacts import write_storage
 from qcom_ptool.board import Configuration, config_to_specs, resolve, resolve_platform
 from qcom_ptool.gen_contents import generate_configuration
-from qcom_ptool.gen_partition import generate_partition_xml
 from qcom_ptool.layout import Placement, geometry
 from qcom_ptool.spec import LoadedSpec
 
@@ -125,10 +124,6 @@ def build(
             for sid, spec in config_to_specs(config, image_map=image_map)
         ]
         for storage_dir, spec in specs:
-            os.makedirs(storage_dir, exist_ok=True)
-            generate_partition_xml(
-                spec["disk"], spec["partitions"], os.path.join(storage_dir, "partitions.xml")
-            )
             layout = write_storage(spec, storage_dir)
             print(summary(storage_dir, spec, layout))
             if verbose:
