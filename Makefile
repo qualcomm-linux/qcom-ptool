@@ -4,7 +4,7 @@ TOPDIR := $(PWD)
 # uv.lock. Without uv on PATH, make first installs it with pip into
 # $(UV_DIR). Generating partition tables installs only qcom-ptool's
 # runtime dependencies (--no-dev); the development tools (ruff, mypy,
-# pytest) come from the dev group, or from PATH with RUN=.
+# pymarkdown, pytest) come from the dev group, or from PATH with RUN=.
 PYTHON ?= python3
 UV_DIR ?= $(CURDIR)/.uv
 UV ?= $(or $(shell command -v uv 2>/dev/null),$(UV_DIR)/bin/uv)
@@ -91,6 +91,7 @@ $(UDEV_RULES): $(wildcard platforms/*.yaml) $(YAML_SHARED) \
 lint:
 	$(RUN) ruff check qcom_ptool
 	$(RUN) mypy qcom_ptool
+	$(RUN) pymarkdown scan $(wildcard *.md)
 
 unit-test:
 	$(RUN) pytest

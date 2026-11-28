@@ -22,6 +22,7 @@ test = ["pytest"]
 [dependency-groups]
 dev = [
     "mypy<2",  # mypy 2.x flags new errors; bump separately
+    "pymarkdownlnt>=0.9.26",
     "pytest",
     "ruff",
     "types-PyYAML",
@@ -81,3 +82,11 @@ check_untyped_defs = false
 # from the source tree.
 pythonpath = ["."]
 testpaths = ["tests/unit"]
+
+[tool.pymarkdown]
+extensions.markdown-tables.enabled = true
+# Code blocks and tables cannot be wrapped.
+plugins.md013.code_blocks = false
+plugins.md013.tables = false
+# README.md keeps its sections (Installation, Development, ...) at the top level.
+plugins.md025.enabled = false
