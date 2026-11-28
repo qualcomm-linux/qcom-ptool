@@ -1,6 +1,13 @@
 # qcom-ptool
 
-qcom-ptool contains various device partitioning utilities like ptool.py, gen_partitions.py and various sample partition configuration files needed for Qualcomm SoCs. Qualcomm Linux currently supports two reference Linux based OSes (Yocto with [meta-qcom](https://github.com/qualcomm-linux/meta-qcom) and Debian with [qcom-deb-images](https://github.com/qualcomm-linux/qcom-deb-images)) which uses this tool to generate partition table layouts. The partition GUIDs, names and size budgets are picked to support boot flows as follows:
+qcom-ptool generates the GPT partition tables and flashing artifacts
+(rawprogram/patch XML, GPT images, contents.xml) for Qualcomm SoCs from the
+YAML board, flavor and platform descriptions under `platforms/`. Qualcomm
+Linux currently supports two reference Linux based OSes (Yocto with
+[meta-qcom](https://github.com/qualcomm-linux/meta-qcom) and Debian with
+[qcom-deb-images](https://github.com/qualcomm-linux/qcom-deb-images)) which
+uses this tool to generate partition table layouts. The partition GUIDs,
+names and size budgets are picked to support boot flows as follows:
 
 - (preferred) "edk2/UEFI": PBL => XBL => edk2/UEFI => high-level OS (Linux)
 - (legacy) "U-Boot/UEFI": PBL => XBL => ABL => U-Boot/UEFI => high-level OS (Linux)
@@ -17,13 +24,11 @@ pip install .
 Once installed, the tool is invoked as:
 
 ```sh
-qcom-ptool build         [-I dir]... [-o out/] platforms/<platform>.yaml
-qcom-ptool build         [-I dir]... [-o out/] -b <board.yaml> [-f <flavor.yaml>]
-qcom-ptool show          [-I dir]... [-o out/] platforms/<platform>.yaml
-qcom-ptool gen_partition --platform platforms/<platform>.yaml -C out/
-qcom-ptool gen_contents  [-o out/] platforms/<platform>.yaml
+qcom-ptool build          [-I dir]... [-o out/] platforms/<platform>.yaml
+qcom-ptool build          [-I dir]... [-o out/] -b <board.yaml> [-f <flavor.yaml>]
+qcom-ptool show           [-I dir]... [-o out/] platforms/<platform>.yaml
 qcom-ptool gen_udev_rules platforms/ [-o 55-qcom-raw-partitions-noblkid.rules]
-qcom-ptool msp           -r rawprogram0.xml -d /dev/sdX -p patch0.xml
+qcom-ptool msp            -r rawprogram0.xml -d /dev/sdX -p patch0.xml
 ```
 
 `build` writes the GPT and flashing artifacts of every storage a

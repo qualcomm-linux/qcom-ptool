@@ -1,13 +1,15 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Tests for qcom_ptool.gen_partition."""
+"""Tests for the partitions.xml emitter (qcom_ptool.gen_partition)."""
 
-import subprocess
-import sys
 import xml.etree.ElementTree as ET
 
 import pytest
+
+from qcom_ptool.gen_partition import generate_partition_xml
+from qcom_ptool.loaders import load
+from qcom_ptool.loaders.yaml import YamlParseError
 
 GUID = "00000000-0000-0000-0000-000000000001"
 DISK = "disk: {type: emmc, size: 16777216, sector-size: 512}\n"
@@ -20,34 +22,19 @@ partitions:
 """
 
 
-def run_gen_partition(tmp_path, yaml_text, extra_args=()):
+def run_gen_partition(tmp_path, yaml_text, image_map=None):
+    """Load a partitions YAML and emit its partitions.xml; return the XML root."""
     source = tmp_path / "partitions.yaml"
     out = tmp_path / "partitions.xml"
     source.write_text(yaml_text, encoding="utf-8")
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "qcom_ptool.gen_partition",
-            "-i",
-            str(source),
-            "-o",
-            str(out),
-            *extra_args,
-        ],
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
-    return result, out
+    spec = load(str(source), image_map=image_map)
+    generate_partition_xml(spec["disk"], spec["partitions"], str(out))
+    return ET.parse(out).getroot()
 
 
 @pytest.fixture(scope="module")
 def basic_output(tmp_path_factory):
-    tmp_path = tmp_path_factory.mktemp("gen_partition")
-    result, out = run_gen_partition(tmp_path, BASIC_YAML)
-    assert result.returncode == 0, result.stdout + result.stderr
-    return ET.parse(out).getroot()
+    return run_gen_partition(tmp_path_factory.mktemp("gen_partition"), BASIC_YAML)
 
 
 def get_partitions(root):
@@ -80,9 +67,7 @@ def test_size_suffix_parsing(basic_output, label, expected_kb):
 
 def test_plain_size_is_interpreted_as_bytes(tmp_path):
     source = DISK + 'partitions:\n  - {name: data, size: "4096", type-guid: "%s"}\n' % GUID
-    result, out = run_gen_partition(tmp_path, source)
-    assert result.returncode == 0, result.stdout + result.stderr
-    part = get_partitions(ET.parse(out).getroot())["data"]
+    part = get_partitions(run_gen_partition(tmp_path, source))["data"]
     assert part.get("size_in_kb") == "4"
 
 
@@ -103,11 +88,8 @@ def test_filename_passthrough(basic_output):
 
 
 def test_partition_image_map_overrides_filename(tmp_path):
-    result, out = run_gen_partition(
-        tmp_path, BASIC_YAML, extra_args=["-m", "cdt=other.bin,boot=boot.img"]
-    )
-    assert result.returncode == 0, result.stdout + result.stderr
-    parts = get_partitions(ET.parse(out).getroot())
+    root = run_gen_partition(tmp_path, BASIC_YAML, {"cdt": "other.bin", "boot": "boot.img"})
+    parts = get_partitions(root)
     assert parts["cdt"].get("filename") == "other.bin"
     assert parts["boot"].get("filename") == "boot.img"
     assert parts["rootfs"].get("filename") == ""
@@ -120,10 +102,7 @@ partitions:
   - {name: late, lun: 2, size: "1KB", type-guid: "%s"}
   - {name: early, lun: 0, size: "1KB", type-guid: "%s"}
 """ % (GUID, GUID)
-    result, out = run_gen_partition(tmp_path, source)
-    assert result.returncode == 0, result.stdout + result.stderr
-    root = ET.parse(out).getroot()
-    luns = root.findall("physical_partition")
+    luns = run_gen_partition(tmp_path, source).findall("physical_partition")
     assert len(luns) == 2
     # physical partitions must be emitted in ascending LUN order
     assert luns[0].find("partition").get("label") == "early"
@@ -132,30 +111,5 @@ partitions:
 
 def test_invalid_source_fails(tmp_path):
     source = DISK + 'partitions:\n  - {name: a, size: "1.5MB", type-guid: "%s"}\n' % GUID
-    result, _ = run_gen_partition(tmp_path, source)
-    assert result.returncode == 1
-    assert "schema validation failed" in result.stdout + result.stderr
-
-
-def test_conf_input_is_rejected(tmp_path):
-    source = tmp_path / "partitions.conf"
-    source.write_text("--disk --type=emmc --size=1\n", encoding="utf-8")
-    result = subprocess.run(
-        [sys.executable, "-m", "qcom_ptool.gen_partition", "-i", str(source), "-o", "x.xml"],
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
-    assert result.returncode == 1
-    assert "no longer supported" in result.stdout + result.stderr
-
-
-def test_missing_arguments_shows_usage():
-    result = subprocess.run(
-        [sys.executable, "-m", "qcom_ptool.gen_partition"],
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
-    assert result.returncode == 1
-    assert "Usage" in result.stdout + result.stderr
+    with pytest.raises(YamlParseError, match="schema validation failed"):
+        run_gen_partition(tmp_path, source)

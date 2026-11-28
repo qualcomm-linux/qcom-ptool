@@ -3,32 +3,11 @@
 
 from __future__ import annotations
 
-import getopt
 import os
-import sys
 from xml.etree import ElementTree as ET
 
 from qcom_ptool.board import is_platform_file, resolve_file
 from qcom_ptool.contents_yaml import build_contents_root, contents_paths, default_storage
-
-
-def usage():
-    print(
-        (
-            "\n\tUsage:\n"
-            "\t  %s [--name <name>] [-o <outdir>] [-b <build_id>] "
-            "<platform.yaml | board.yaml>\n"
-            "\n\tA platform generates every configuration with contents "
-            "metadata to\n"
-            "\t<outdir>/<name>/<storage>/contents.xml, or to "
-            "<outdir>/<name>/contents.xml\n"
-            "\twith 'location: /'; --name builds one configuration. A "
-            "self-contained board\n"
-            "\tgenerates <outdir>/<storage>/contents.xml.\n"
-            "\tVersion 0.1\n" % sys.argv[0]
-        )
-    )
-    sys.exit(1)
 
 
 def ParseXML(XMLFile):
@@ -205,46 +184,3 @@ def generate_from_file(path, name, outdir, build_id):
         print("Error: %s defines no contents metadata" % path)
         return 1
     return 0
-
-
-def main(argv=None):
-    if argv is None:
-        argv = sys.argv
-
-    if len(argv) < 3:
-        usage()
-
-    try:
-        if argv[1] == "-h" or argv[1] == "--help":
-            usage()
-        try:
-            build_id = ""
-            outdir = None
-            name = None
-            opts, rem = getopt.getopt(argv[1:], "o:b:", ["name="])
-            for opt, arg in opts:
-                if opt in ["-o"]:
-                    outdir = arg
-                elif opt in ["-b"]:
-                    build_id = arg
-                elif opt == "--name":
-                    name = arg
-                else:
-                    usage()
-        except Exception as argerr:
-            print(str(argerr))
-            usage()
-
-        if len(rem) != 1:
-            print("Error: pass exactly one platform or board file")
-            usage()
-        return generate_from_file(rem[0], name, outdir, build_id)
-    except Exception as e:
-        print(("Error: ", e))
-        return 1
-
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
