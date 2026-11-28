@@ -1,6 +1,13 @@
 # qcom-ptool
 
-qcom-ptool contains various device partitioning utilities like ptool.py, gen_partitions.py and various sample partition configuration files needed for Qualcomm SoCs. Qualcomm Linux currently supports two reference Linux based OSes (Yocto with [meta-qcom](https://github.com/qualcomm-linux/meta-qcom) and Debian with [qcom-deb-images](https://github.com/qualcomm-linux/qcom-deb-images)) which uses this tool to generate partition table layouts. The partition GUIDs, names and size budgets are picked to support boot flows as follows:
+qcom-ptool contains various device partitioning utilities like ptool.py,
+gen_partitions.py and various sample partition configuration files needed
+for Qualcomm SoCs. Qualcomm Linux currently supports two reference Linux
+based OSes (Yocto with
+[meta-qcom](https://github.com/qualcomm-linux/meta-qcom) and Debian with
+[qcom-deb-images](https://github.com/qualcomm-linux/qcom-deb-images)) which
+uses this tool to generate partition table layouts. The partition GUIDs,
+names and size budgets are picked to support boot flows as follows:
 
 - (preferred) "edk2/UEFI": PBL => XBL => edk2/UEFI => high-level OS (Linux)
 - (legacy) "U-Boot/UEFI": PBL => XBL => ABL => U-Boot/UEFI => high-level OS (Linux)
@@ -108,7 +115,8 @@ qcom-ptool build -I <qcom-ptool>/platforms/flavors -o out/ -b my-board.yaml
 ## udev rules
 
 By default, the generator scans all `platforms/*.yaml` platforms. Repeatable
-`-i` options can select specific layouts, self-contained boards included. It skips known filesystem
+`-i` options can select specific layouts, self-contained boards included. It
+skips known filesystem
 partition names and emits exact `PARTNAME` rules for the others. Unknown names
 retain normal blkid probing. Matched partitions are marked with
 `QCOM_RAW_PARTITION=1` so later udev rules can reuse the generated
@@ -130,8 +138,9 @@ automatically by `pip install .`.
 Development needs only [uv](https://docs.astral.sh/uv/), on any Linux
 distribution, macOS or Windows: install it from its standalone installer,
 with `pipx install uv`, or from your distribution's packages where
-available. The development tools (`ruff`, `mypy`, `pytest`) are declared
-in the `dev` dependency group of `pyproject.toml` and pinned in `uv.lock`;
+available. The development tools (`ruff`, `mypy`, `pymarkdown`, `pytest`)
+are declared in the `dev` dependency group of `pyproject.toml` and pinned
+in `uv.lock`;
 uv fetches them from PyPI into a project-local `.venv` on first use.
 Generating partition tables (`make all`) needs none of them: it installs
 only qcom-ptool's runtime dependencies.
@@ -146,7 +155,7 @@ with pip.
 | Target             | Description                                                |
 |--------------------|------------------------------------------------------------|
 | `all`              | Generate partition XML, GPT binaries and contents.xml      |
-| `lint`             | Run ruff (linter) and mypy (type checker) on the package   |
+| `lint`             | Run ruff and mypy on the package, pymarkdown on the docs   |
 | `unit-test`        | Run the pytest suite under `tests/unit/`                   |
 | `integration`      | Build all platforms and verify generated files are present |
 | `check-dev`        | qcom-ptool development checks: `lint` and `unit-test`      |
@@ -156,9 +165,9 @@ with pip.
 
 The Makefile runs `qcom-ptool` and the development tools through
 `uv run`, always from this checkout, so no installation step is needed.
-To use your own `ruff`, `mypy` and `pytest` from `PATH` instead (e.g.
-distribution packages or pipx), pass `RUN=`; CI checks against the
-versions pinned in `uv.lock`.
+To use your own `ruff`, `mypy`, `pymarkdown` and `pytest` from `PATH`
+instead (e.g. distribution packages or pipx), pass `RUN=`; CI checks
+against the versions pinned in `uv.lock`.
 Generated files go to `platforms/out/`; pass `OUT=<dir>` to build
 elsewhere.
 
