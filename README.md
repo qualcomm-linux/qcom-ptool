@@ -26,6 +26,11 @@ qcom-ptool gen_udev_rules platforms/ [-o 55-qcom-raw-partitions-noblkid.rules]
 qcom-ptool msp           -r rawprogram0.xml -d /dev/sdX -p patch0.xml
 ```
 
+`build` writes the GPT and flashing artifacts of every storage a
+configuration flashes, plus its `contents.xml`. `-m name=file,...`
+overrides the image file of the named partitions, and `--build-id`
+records a build id in `contents.xml`.
+
 ## Boards, flavors and platforms
 
 Partition layouts are described by three kinds of YAML file under
