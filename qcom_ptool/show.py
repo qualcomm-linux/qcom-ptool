@@ -14,14 +14,17 @@ would write each storage and contents.xml.
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 
 import yaml  # type: ignore[import-untyped]
 
 from qcom_ptool.board import Configuration
-from qcom_ptool.build import check_target, resolve_target, target_parser
+from qcom_ptool.build import add_target_arguments, check_target, resolve_target
 from qcom_ptool.contents_yaml import contents_paths
+
+NAME = "show"
 
 
 def _document(config: Configuration) -> dict[str, object]:
@@ -43,22 +46,23 @@ def output_paths(targets: list[tuple[str, Configuration]], outdir: str) -> list[
     return paths
 
 
-def main(argv: list[str] | None = None) -> int:
-    if argv is None:
-        argv = sys.argv
-    parser = target_parser(
-        "qcom-ptool show",
-        "Print the resolved configurations as YAML, or with -o the paths "
-        "build would write.",
+def register(subparsers: argparse._SubParsersAction) -> None:
+    parser = subparsers.add_parser(
+        NAME,
+        help="print resolved configurations, or with -o the paths build writes",
+        description="Print the resolved configurations as YAML, or with -o the "
+        "paths build -o would write.",
     )
-    parser.set_defaults(outdir=None)
-    args = parser.parse_args(argv[1:])
-    check_target(parser, args)
+    add_target_arguments(parser, "list the directories and files build -o OUTDIR writes")
+    parser.set_defaults(run=run)
 
+
+def run(args: argparse.Namespace) -> int:
+    check_target(args)
     try:
         targets = resolve_target(args)
     except Exception as e:
-        print("Error: ", e, file=sys.stderr)
+        print("error: %s" % e, file=sys.stderr)
         return 1
 
     if args.outdir is not None:
@@ -68,7 +72,3 @@ def main(argv: list[str] | None = None) -> int:
         [_document(c) for _, c in targets], sys.stdout, sort_keys=False, default_flow_style=False
     )
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

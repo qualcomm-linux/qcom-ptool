@@ -28,24 +28,25 @@ from qcom_ptool.gen_contents import generate_configuration
 from qcom_ptool.layout import Placement, geometry
 from qcom_ptool.spec import LoadedSpec
 
+NAME = "build"
 
-def target_parser(prog: str, description: str) -> argparse.ArgumentParser:
+
+def add_target_arguments(parser: argparse.ArgumentParser, outdir_help: str) -> None:
     """Arguments shared by build and show: what to resolve, and where."""
-    parser = argparse.ArgumentParser(prog=prog, description=description)
     parser.add_argument("platform", nargs="?", help="platform file (platforms/<platform>.yaml)")
     parser.add_argument("-b", dest="board", metavar="BOARD", help="board file, instead of a platform")
     parser.add_argument("-f", dest="flavor", metavar="FLAVOR", action="append",
                         help="flavor to put on the board (omit for a self-contained board)")
-    parser.add_argument("-o", dest="outdir", metavar="OUTDIR", default=".",
-                        help="output directory (default: .)")
+    parser.add_argument("-o", dest="outdir", metavar="OUTDIR", help=outdir_help)
     parser.add_argument("-I", dest="include_dirs", metavar="DIR", action="append", default=[],
                         help="look up references that do not resolve relative to their "
                         "own file in DIR; repeatable, searched in order")
-    return parser
+    parser.set_defaults(parser=parser)
 
 
-def check_target(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+def check_target(args: argparse.Namespace) -> None:
     """Exactly one of a platform or -b, and at most one -f, only with -b."""
+    parser = args.parser
     if (args.platform is None) == (args.board is None):
         parser.error("pass a platform file, or -b <board> [-f <flavor>]")
     if args.flavor and args.board is None:
@@ -140,31 +141,30 @@ def build(
     return 0
 
 
-def main(argv: list[str] | None = None) -> int:
-    if argv is None:
-        argv = sys.argv
-    parser = target_parser(
-        "qcom-ptool build",
-        "Write the GPT and flashing artifacts of every flashed storage - a "
+def register(subparsers: argparse._SubParsersAction) -> None:
+    parser = subparsers.add_parser(
+        NAME,
+        help="write the GPT and flashing artifacts of a platform or board",
+        description="Write the GPT and flashing artifacts of every flashed storage - a "
         "platform's to OUTDIR/<name>/<storage-id>/, a board's to "
         "OUTDIR/<storage-id>/ - plus contents.xml for configurations with "
         "contents metadata.",
     )
+    add_target_arguments(parser, "output directory (default: .)")
     parser.add_argument("-m", dest="image_map", metavar="NAME=FILE,...",
                         help="override the image file of the named partitions")
     parser.add_argument("--build-id", default="", help="build_id recorded in contents.xml")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="print the partition table of every storage")
-    args = parser.parse_args(argv[1:])
-    check_target(parser, args)
+    parser.set_defaults(run=run)
 
+
+def run(args: argparse.Namespace) -> int:
+    check_target(args)
     try:
         targets = resolve_target(args)
     except Exception as e:
         print("error: %s" % e, file=sys.stderr)
         return 1
-    return build(targets, args.outdir, parse_image_map(args.image_map), args.build_id, args.verbose)
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    outdir = args.outdir if args.outdir is not None else "."
+    return build(targets, outdir, parse_image_map(args.image_map), args.build_id, args.verbose)

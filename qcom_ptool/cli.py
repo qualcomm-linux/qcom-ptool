@@ -1,54 +1,58 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
+"""
+``qcom-ptool`` - the command line, and its only entry point.
+
+Every subcommand module exposes ``register(subparsers)``, which declares
+its arguments and binds them to its ``run(args) -> int``. The exception
+is ``msp``, a legacy script that reads ``sys.argv`` itself: its arguments
+are passed through unparsed.
+"""
+
+from __future__ import annotations
 
 import argparse
 import runpy
 import sys
 
-from qcom_ptool import __version__
+from qcom_ptool import __version__, build, gen_udev_rules, show
 
-SUBCOMMANDS = {
-    "build": "qcom_ptool.build",
-    "show": "qcom_ptool.show",
-    "gen_udev_rules": "qcom_ptool.gen_udev_rules",
-    "msp": "qcom_ptool.msp",
-}
+COMMANDS = (build, show, gen_udev_rules)
+LEGACY = "msp"
+SUBCOMMANDS = (*(command.NAME for command in COMMANDS), LEGACY)
 
 
-def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
+def _run_legacy(args: argparse.Namespace) -> int:
+    sys.argv = [f"qcom-ptool {LEGACY}", *args.rest]
+    runpy.run_module(f"qcom_ptool.{LEGACY}", run_name="__main__")
+    return 0
+
+
+def parser() -> argparse.ArgumentParser:
+    root = argparse.ArgumentParser(
         prog="qcom-ptool",
-        description=(
-            "Qualcomm partition tool - GPT partition table generator and "
-            "mass storage programmer."
-        ),
-        epilog=(
-            "Run 'qcom-ptool <subcommand> -h' to see the options accepted by "
-            "each subcommand."
-        ),
+        description="Qualcomm partition tool - GPT partition table and flashing artifact generator.",
     )
-    parser.add_argument(
-        "-V", "--version", action="version", version=f"%(prog)s {__version__}"
+    root.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
+    subparsers = root.add_subparsers(dest="subcommand", metavar="subcommand", required=True)
+    for command in COMMANDS:
+        command.register(subparsers)
+    legacy = subparsers.add_parser(
+        LEGACY, help="write rawprogram/patch XML to a block device", add_help=False
     )
-    parser.add_argument(
-        "subcommand",
-        choices=sorted(SUBCOMMANDS),
-        metavar="subcommand",
-        help="one of: " + ", ".join(sorted(SUBCOMMANDS)),
-    )
-    return parser
+    legacy.set_defaults(run=_run_legacy)
+    return root
 
 
-def main() -> None:
-    parser = _build_parser()
-    args, rest = parser.parse_known_args()
-
-    module_name = SUBCOMMANDS[args.subcommand]
-    # Present argv to the legacy script as if it had been invoked directly as
-    # "<subcommand> <args...>". The scripts read sys.argv via getopt.
-    sys.argv = [f"qcom-ptool {args.subcommand}", *rest]
-    runpy.run_module(module_name, run_name="__main__")
+def main(argv: list[str] | None = None) -> int:
+    root = parser()
+    args, rest = root.parse_known_args(argv)
+    if rest and args.subcommand != LEGACY:
+        root.error("unrecognized arguments: " + " ".join(rest))
+    args.rest = rest
+    result: int = args.run(args)
+    return result
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

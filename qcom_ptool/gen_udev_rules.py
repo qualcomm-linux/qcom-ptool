@@ -22,6 +22,7 @@ FILESYSTEM_NAMES_FILE = DATA_DIR / "filesystem-partition-names.list"
 TEMPLATE_FILE = DATA_DIR / "55-qcom-raw-partitions-noblkid.rules.in"
 RULES_PLACEHOLDER = "@QCOM_RAW_PARTITION_RULES@"
 RULES_FILE = "55-qcom-raw-partitions-noblkid.rules"
+NAME = "gen_udev_rules"
 NAME_RE = re.compile(r"[A-Za-z0-9_.+-]+")
 
 
@@ -130,8 +131,9 @@ def generate_rules(paths: list[Path]) -> str:
     return render_rules(load_raw_partition_names(discover_inputs(paths)))
 
 
-def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(prog="qcom-ptool gen_udev_rules", description=__doc__)
+def register(subparsers: argparse._SubParsersAction) -> None:
+    parser = subparsers.add_parser(NAME, help="generate udev rules for raw partitions",
+                                   description=__doc__)
     parser.add_argument(
         "paths",
         nargs="+",
@@ -144,11 +146,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "-o", "--output", type=Path, default=Path(RULES_FILE),
         help=f"rules file to write (default: {RULES_FILE})",
     )
-    return parser.parse_args(argv)
+    parser.set_defaults(run=run)
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = parse_args(argv)
+def run(args: argparse.Namespace) -> int:
     try:
         content = generate_rules(args.paths)
         args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -159,7 +160,3 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"generated: {args.output}")
     return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

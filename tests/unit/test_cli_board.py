@@ -10,7 +10,7 @@ import textwrap
 
 import pytest
 
-from qcom_ptool import show
+from qcom_ptool import cli
 
 GUID_A = "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
 GUID_B = "B921B045-1DF0-41C3-AF44-4C6F280D3FAE"
@@ -66,7 +66,7 @@ def _tree(tmp_path) -> str:
 
 def test_show_prints_resolved_spec(tmp_path, capsys):
     root = _tree(tmp_path)
-    rc = show.main(["show", root + "/demo.yaml"])
+    rc = cli.main(["show", root + "/demo.yaml"])
     assert rc == 0
     out = capsys.readouterr().out
     assert "name: demo" in out
@@ -77,7 +77,7 @@ def test_show_prints_resolved_spec(tmp_path, capsys):
 
 def test_show_board_and_flavor(tmp_path, capsys):
     root = _tree(tmp_path)
-    rc = show.main(
+    rc = cli.main(
         ["show", "-b", root + "/boards/demo.yaml", "-f", root + "/flavors/demo.yaml"]
     )
     assert rc == 0
@@ -86,7 +86,7 @@ def test_show_board_and_flavor(tmp_path, capsys):
 
 def test_show_o_lists_platform_storages(tmp_path, capsys):
     root = _tree(tmp_path)
-    rc = show.main(["show", "-o", "out", root + "/demo.yaml"])
+    rc = cli.main(["show", "-o", "out", root + "/demo.yaml"])
     assert rc == 0
     assert capsys.readouterr().out == "out/demo/nvme0/\nout/demo/spinor0/\nout/demo-nor/spinor0/\n"
 
@@ -94,7 +94,7 @@ def test_show_o_lists_platform_storages(tmp_path, capsys):
 def test_show_o_board_writes_storages_at_the_top(tmp_path, capsys):
     root = _tree(tmp_path)
     args = ["-b", root + "/boards/demo.yaml", "-f", root + "/flavors/demo.yaml"]
-    assert show.main(["show", "-o", "out", *args]) == 0
+    assert cli.main(["show", "-o", "out", *args]) == 0
     assert capsys.readouterr().out == "out/nvme0/\nout/spinor0/\n"
 
 
@@ -115,7 +115,7 @@ def test_show_o_lists_contents(tmp_path, capsys):
             """
         )
     )
-    rc = show.main(["show", "-o", "out", root + "/demo.yaml"])
+    rc = cli.main(["show", "-o", "out", root + "/demo.yaml"])
     assert rc == 0
     assert capsys.readouterr().out.splitlines() == [
         "out/demo/nvme0/",
@@ -142,14 +142,14 @@ def test_show_self_contained_board(tmp_path, capsys):
             % GUID_A
         )
     )
-    assert show.main(["show", "-b", str(board)]) == 0
+    assert cli.main(["show", "-b", str(board)]) == 0
     out = capsys.readouterr().out
     assert "name: board" in out and "name: efi" in out and "chip: OUT" in out
 
 
 def test_show_requires_a_source():
     with pytest.raises(SystemExit):
-        show.main(["show"])
+        cli.main(["show"])
 
 
 @pytest.mark.parametrize(
@@ -162,4 +162,4 @@ def test_show_requires_a_source():
 )
 def test_show_takes_the_build_arguments(args):
     with pytest.raises(SystemExit):
-        show.main(["show", *args])
+        cli.main(["show", *args])

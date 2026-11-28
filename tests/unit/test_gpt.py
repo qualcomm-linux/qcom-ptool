@@ -16,7 +16,7 @@ import zlib
 
 import pytest
 
-from qcom_ptool import build
+from qcom_ptool import build, cli
 from qcom_ptool.artifacts import write_storage
 from qcom_ptool.gpt import build_tables
 from qcom_ptool.layout import Geometry, WriteProtect, place_lun, validate
@@ -210,7 +210,7 @@ def test_build_prints_a_summary_and_with_v_a_table(tmp_path, capsys):
         '      - {name: efi, size: "512MB", type-guid: "%s", filename: efi.bin}\n'
         '      - {name: rootfs, size: "4KB", type-guid: "%s"}\n' % (EFI, DATA)
     )
-    assert build.main(["build", "-v", "-o", str(tmp_path / "out"), "-b", str(board)]) == 0
+    assert cli.main(["build", "-v", "-o", str(tmp_path / "out"), "-b", str(board)]) == 0
     out = capsys.readouterr().out
     assert "ufs: ufs, 2 partitions on 1 LUN" in out
     assert "512 MiB" in out and "rest of disk" in out and "efi.bin" in out

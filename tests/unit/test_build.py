@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 import yaml  # type: ignore[import-untyped]
 
-from qcom_ptool import build
+from qcom_ptool import cli
 from qcom_ptool.board import resolve_platform
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -29,7 +29,7 @@ def _artifacts(outdir: Path) -> dict[str, bytes]:
 
 def test_platform_builds_every_configuration(tmp_path, monkeypatch):
     monkeypatch.setenv("PTOOL_SEED", "qcom-ptool-test")
-    rc = build.main(["build", "-o", str(tmp_path), str(PLATFORMS / "iq-615-evk.yaml")])
+    rc = cli.main(["build", "-o", str(tmp_path), str(PLATFORMS / "iq-615-evk.yaml")])
     assert rc == 0
     for out in ("iq-615-evk/ufs", "iq-615-evk-emmc/emmc"):
         for name in ("gpt_main0.bin", "rawprogram0.xml", "patch0.xml"):
@@ -39,10 +39,10 @@ def test_platform_builds_every_configuration(tmp_path, monkeypatch):
 
 def test_board_and_flavors_match_the_platform(tmp_path, monkeypatch):
     monkeypatch.setenv("PTOOL_SEED", "qcom-ptool-test")
-    assert build.main(
+    assert cli.main(
         ["build", "-o", str(tmp_path / "p"), str(PLATFORMS / "qcs6490-rb3gen2.yaml")]
     ) == 0
-    assert build.main(
+    assert cli.main(
         [
             "build",
             "-o", str(tmp_path / "bf"),
@@ -65,7 +65,7 @@ def _manifest() -> dict[str, str]:
 def test_platform_build_matches_the_manifest(tmp_path, monkeypatch, platform):
     """Byte-identical to the make pipeline, contents.xml included."""
     monkeypatch.setenv("PTOOL_SEED", "qcom-ptool-ci")
-    assert build.main(["build", "-o", str(tmp_path), str(PLATFORMS / (platform + ".yaml"))]) == 0
+    assert cli.main(["build", "-o", str(tmp_path), str(PLATFORMS / (platform + ".yaml"))]) == 0
     manifest = _manifest()
     built = {
         "platforms/out/" + path: hashlib.sha256(data).hexdigest()
@@ -83,8 +83,8 @@ def test_self_contained_board_matches_the_platform(tmp_path, monkeypatch):
     board = tmp_path / "glymur-crd.yaml"
     document = {"storage": config["storage"], "contents": config["contents"]}
     board.write_text(yaml.safe_dump(document, sort_keys=False))
-    assert build.main(["build", "-o", str(tmp_path / "b"), "-b", str(board)]) == 0
-    assert build.main(["build", "-o", str(tmp_path / "p"), str(PLATFORMS / "glymur-crd.yaml")]) == 0
+    assert cli.main(["build", "-o", str(tmp_path / "b"), "-b", str(board)]) == 0
+    assert cli.main(["build", "-o", str(tmp_path / "p"), str(PLATFORMS / "glymur-crd.yaml")]) == 0
     built = _artifacts(tmp_path / "b")
     assert "spinor/contents.xml" in built
     assert built == _artifacts(tmp_path / "p" / "glymur-crd")
@@ -93,7 +93,7 @@ def test_self_contained_board_matches_the_platform(tmp_path, monkeypatch):
 def test_flavor_on_another_board(tmp_path, monkeypatch):
     """Flavors are board-agnostic: any board with a UFS storage takes one."""
     monkeypatch.setenv("PTOOL_SEED", "qcom-ptool-test")
-    rc = build.main(
+    rc = cli.main(
         [
             "build",
             "-o", str(tmp_path),
@@ -106,7 +106,7 @@ def test_flavor_on_another_board(tmp_path, monkeypatch):
 
 
 def test_unresolvable_input_returns_1(tmp_path):
-    rc = build.main(
+    rc = cli.main(
         [
             "build",
             "-o", str(tmp_path),
@@ -128,7 +128,7 @@ def test_unresolvable_input_returns_1(tmp_path):
 )
 def test_bad_arguments_print_usage(args):
     with pytest.raises(SystemExit):
-        build.main(["build", *args])
+        cli.main(["build", *args])
 
 
 def test_include_dirs_let_out_of_tree_files_reuse_the_tree(tmp_path, monkeypatch):
@@ -138,11 +138,11 @@ def test_include_dirs_let_out_of_tree_files_reuse_the_tree(tmp_path, monkeypatch
     platform.parent.mkdir()
     platform.write_text((PLATFORMS / "qcs6490-rb3gen2.yaml").read_text())
 
-    assert build.main(["build", "-o", str(tmp_path / "x"), str(platform)]) == 1
-    assert build.main(
+    assert cli.main(["build", "-o", str(tmp_path / "x"), str(platform)]) == 1
+    assert cli.main(
         ["build", "-I", str(PLATFORMS), "-o", str(tmp_path / "x"), str(platform)]
     ) == 0
-    assert build.main(
+    assert cli.main(
         ["build", "-o", str(tmp_path / "p"), str(PLATFORMS / "qcs6490-rb3gen2.yaml")]
     ) == 0
     assert _artifacts(tmp_path / "x") == _artifacts(tmp_path / "p")
