@@ -21,8 +21,8 @@ DATA_DIR = Path(__file__).with_name("data")
 FILESYSTEM_NAMES_FILE = DATA_DIR / "filesystem-partition-names.list"
 TEMPLATE_FILE = DATA_DIR / "55-qcom-raw-partitions-noblkid.rules.in"
 RULES_PLACEHOLDER = "@QCOM_RAW_PARTITION_RULES@"
+RULES_FILE = "55-qcom-raw-partitions-noblkid.rules"
 NAME_RE = re.compile(r"[A-Za-z0-9_.+-]+")
-PLATFORM_LAYOUT_GLOB = "platforms/*.yaml"
 
 
 def load_filesystem_names() -> set[str]:
@@ -97,18 +97,20 @@ def load_raw_partition_names(inputs: list[Path]) -> list[str]:
     return sorted(load_partition_names(inputs) - load_filesystem_names())
 
 
-def discover_inputs(inputs: list[Path] | None) -> list[Path]:
-    """Use explicit layouts or discover all layouts in the current repo."""
-    if inputs:
-        return inputs
-
-    discovered = sorted(Path.cwd().glob(PLATFORM_LAYOUT_GLOB))
-    if not discovered:
-        raise ValueError(
-            "no partition layouts found; run from the qcom-ptool repository "
-            "or provide one or more -i/--input paths"
-        )
-    return discovered
+def discover_inputs(paths: list[Path]) -> list[Path]:
+    """Expand directories to the layouts (``*.yaml``) directly inside them."""
+    layouts: list[Path] = []
+    for path in paths:
+        if path.is_dir():
+            found = sorted(path.glob("*.yaml"))
+            if not found:
+                raise ValueError(f"{path}: no *.yaml layouts in this directory")
+            layouts += found
+        else:
+            layouts.append(path)
+    if not layouts:
+        raise ValueError("no partition layouts given")
+    return layouts
 
 
 def render_rules(names: list[str]) -> str:
@@ -123,29 +125,32 @@ def render_rules(names: list[str]) -> str:
     return template.replace(RULES_PLACEHOLDER, rules)
 
 
-def generate_rules(inputs: list[Path] | None = None) -> str:
+def generate_rules(paths: list[Path]) -> str:
     """Render rules for raw partitions in all supplied layouts."""
-    return render_rules(load_raw_partition_names(discover_inputs(inputs)))
+    return render_rules(load_raw_partition_names(discover_inputs(paths)))
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog="qcom-ptool gen_udev_rules", description=__doc__)
     parser.add_argument(
-        "-i",
-        "--input",
-        action="append",
+        "paths",
+        nargs="+",
         type=Path,
-        help="partition layout (platform, self-contained board or partitions .yaml) to scan; "
-        "may be repeated (defaults to platforms/*.yaml)",
+        metavar="PATH",
+        help="platform, self-contained board or partitions .yaml to scan, or a "
+        "directory whose *.yaml files are scanned (e.g. platforms/)",
     )
-    parser.add_argument("-o", "--output", required=True, type=Path)
+    parser.add_argument(
+        "-o", "--output", type=Path, default=Path(RULES_FILE),
+        help=f"rules file to write (default: {RULES_FILE})",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
-        content = generate_rules(args.input)
+        content = generate_rules(args.paths)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(content, encoding="utf-8")
     except (OSError, ValueError) as error:

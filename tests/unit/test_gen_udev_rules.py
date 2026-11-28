@@ -9,7 +9,6 @@ import pytest
 
 from qcom_ptool import gen_udev_rules
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 LAYOUT = REPO_ROOT / "platforms" / "qcs6490-rb3gen2.yaml"
 
@@ -72,9 +71,7 @@ def test_generate_rules_resolves_yaml_platforms(tmp_path: Path) -> None:
     assert "last_parti" not in rules
 
 
-def test_discovery_includes_yaml_platforms(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_directory_scans_its_platforms(tmp_path: Path) -> None:
     _write_platform(
         tmp_path / "platforms",
         "demo",
@@ -85,9 +82,7 @@ def test_discovery_includes_yaml_platforms(
         '      - {name: raw_board, size: "1KB",\n'
         '         type-guid: "00000000-0000-0000-0000-000000000001"}\n',
     )
-    monkeypatch.chdir(tmp_path)
-
-    rules = gen_udev_rules.generate_rules()
+    rules = gen_udev_rules.generate_rules([tmp_path / "platforms"])
 
     assert 'ENV{PARTNAME}=="raw_board"' in rules
 
@@ -167,25 +162,29 @@ def test_load_filesystem_names_rejects_invalid_policy(
 def test_main_writes_rules(tmp_path: Path) -> None:
     output = tmp_path / "rules.d" / "55-qcom.rules"
 
-    assert gen_udev_rules.main(["-i", str(LAYOUT), "-o", str(output)]) == 0
+    assert gen_udev_rules.main([str(LAYOUT), "-o", str(output)]) == 0
     assert 'ENV{PARTNAME}=="cdt"' in output.read_text(encoding="utf-8")
 
 
-def test_main_discovers_repo_layouts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.chdir(REPO_ROOT)
+def test_main_scans_the_platforms_directory(tmp_path: Path) -> None:
     output = tmp_path / "rules"
 
-    assert gen_udev_rules.main(["-o", str(output)]) == 0
+    assert gen_udev_rules.main([str(REPO_ROOT / "platforms"), "-o", str(output)]) == 0
     rules = output.read_text(encoding="utf-8")
     assert 'ENV{PARTNAME}=="xbl_a"' in rules
     # Defined only in a derived flavor, so discovery must resolve platforms.
     assert 'ENV{PARTNAME}=="rubikpi_con"' in rules
 
 
-def test_generate_rules_rejects_missing_default_layouts(
+def test_generate_rules_rejects_a_directory_without_layouts(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match=r"no \*\.yaml layouts"):
+        gen_udev_rules.generate_rules([tmp_path])
+
+
+def test_main_defaults_to_the_rules_file_name(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.chdir(tmp_path)
 
-    with pytest.raises(ValueError, match="no partition layouts found"):
-        gen_udev_rules.generate_rules()
+    assert gen_udev_rules.main([str(LAYOUT)]) == 0
+    assert (tmp_path / gen_udev_rules.RULES_FILE).is_file()

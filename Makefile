@@ -86,7 +86,7 @@ $(foreach p,$(YAML_PLATFORMS),$(if $($(p)_CONTENTS),$(eval $(call yaml-contents-
 $(UDEV_RULES): $(wildcard platforms/*.yaml) $(YAML_SHARED) \
     qcom_ptool/data/filesystem-partition-names.list \
     qcom_ptool/data/55-qcom-raw-partitions-noblkid.rules.in
-	$(QCOM_PTOOL) gen_udev_rules -o $@
+	$(QCOM_PTOOL) gen_udev_rules platforms -o $@
 
 lint:
 	$(RUN) ruff check qcom_ptool

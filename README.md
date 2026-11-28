@@ -22,7 +22,7 @@ qcom-ptool build         [-I dir]... [-o out/] -b <board.yaml> [-f <flavor.yaml>
 qcom-ptool show          --platform platforms/<platform>.yaml
 qcom-ptool gen_partition --platform platforms/<platform>.yaml -C out/
 qcom-ptool gen_contents  [-o out/] platforms/<platform>.yaml
-qcom-ptool gen_udev_rules -o 55-qcom-raw-partitions-noblkid.rules
+qcom-ptool gen_udev_rules platforms/ [-o 55-qcom-raw-partitions-noblkid.rules]
 qcom-ptool msp           -r rawprogram0.xml -d /dev/sdX -p patch0.xml
 ```
 
@@ -107,8 +107,9 @@ qcom-ptool build -I <qcom-ptool>/platforms/flavors -o out/ -b my-board.yaml
 
 ## udev rules
 
-By default, the generator scans all `platforms/*.yaml` platforms. Repeatable
-`-i` options can select specific layouts, self-contained boards included. It skips known filesystem
+The generator scans the given layouts: platform files, self-contained
+boards, or a directory such as `platforms/`, whose `*.yaml` files are all
+scanned. It skips known filesystem
 partition names and emits exact `PARTNAME` rules for the others. Unknown names
 retain normal blkid probing. Matched partitions are marked with
 `QCOM_RAW_PARTITION=1` so later udev rules can reuse the generated
