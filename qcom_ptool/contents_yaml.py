@@ -176,18 +176,18 @@ def default_storage(config: Mapping[str, Any]) -> str:
 
 
 def contents_paths(config: Mapping[str, Any]) -> tuple[str, str] | None:
-    """A configuration's (contents.xml, partitions.xml) paths.
+    """A configuration's contents.xml path and the storage it describes.
 
-    Both are relative to the configuration's directory (``<name>/`` for a
-    platform, the output directory itself for a board): contents.xml lands
-    in the default storage's directory, or at the configuration directory
-    with 'location: /'. Returns ``None`` without contents metadata.
+    The path is relative to the configuration's directory (``<name>/`` for
+    a platform, the output directory itself for a board): contents.xml
+    lands in the default storage's directory, or at the configuration
+    directory with 'location: /'. Returns ``None`` without contents
+    metadata.
     """
     meta = config.get("contents")
     if not meta:
         return None
     storage = default_storage(config)
-    partitions = "%s/partitions.xml" % storage
     if meta.get("location") == "/":
-        return "contents.xml", partitions
-    return "%s/contents.xml" % storage, partitions
+        return "contents.xml", storage
+    return "%s/contents.xml" % storage, storage

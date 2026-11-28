@@ -71,8 +71,8 @@ check_untyped_defs = true
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["qcom_ptool.msp", "qcom_ptool.ptool"]
-# Legacy scripts - enable gradually
+module = ["qcom_ptool.msp"]
+# Legacy script - enable gradually
 check_untyped_defs = false
 
 [tool.pytest.ini_options]

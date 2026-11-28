@@ -24,7 +24,6 @@ from qcom_ptool.board import (
     resolve,
     resolve_platform,
 )
-from qcom_ptool.gen_partition import generate_partition_xml
 from qcom_ptool.loaders import load as load_spec
 
 GUID_A = "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
@@ -862,12 +861,7 @@ def test_platform_reduces_to_byte_identical_xml(tmp_path):
     (sid, spec) = config_to_specs(_resolve(root, "flavors/f.yaml"))[0]
     assert sid == "nvme0"
 
-    platform_xml = tmp_path / "platform.xml"
-    single_xml = tmp_path / "single.xml"
-    generate_partition_xml(spec["disk"], spec["partitions"], str(platform_xml))
-    single_spec = load_spec(str(single))
-    generate_partition_xml(single_spec["disk"], single_spec["partitions"], str(single_xml))
-    assert platform_xml.read_bytes() == single_xml.read_bytes()
+    assert spec == load_spec(str(single))
 
 
 def test_image_map_flows_through_reduction(tmp_path):

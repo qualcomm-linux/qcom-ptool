@@ -1,6 +1,13 @@
 # qcom-ptool
 
-qcom-ptool contains various device partitioning utilities like ptool.py, gen_partitions.py and various sample partition configuration files needed for Qualcomm SoCs. Qualcomm Linux currently supports two reference Linux based OSes (Yocto with [meta-qcom](https://github.com/qualcomm-linux/meta-qcom) and Debian with [qcom-deb-images](https://github.com/qualcomm-linux/qcom-deb-images)) which uses this tool to generate partition table layouts. The partition GUIDs, names and size budgets are picked to support boot flows as follows:
+qcom-ptool generates the GPT partition tables and flashing artifacts
+(rawprogram/patch XML, GPT images, contents.xml) for Qualcomm SoCs from the
+YAML board, flavor and platform descriptions under `platforms/`. Qualcomm
+Linux currently supports two reference Linux based OSes (Yocto with
+[meta-qcom](https://github.com/qualcomm-linux/meta-qcom) and Debian with
+[qcom-deb-images](https://github.com/qualcomm-linux/qcom-deb-images)) which
+uses this tool to generate partition table layouts. The partition GUIDs,
+names and size budgets are picked to support boot flows as follows:
 
 - (preferred) "edk2/UEFI": PBL => XBL => edk2/UEFI => high-level OS (Linux)
 - (legacy) "U-Boot/UEFI": PBL => XBL => ABL => U-Boot/UEFI => high-level OS (Linux)
@@ -17,14 +24,20 @@ pip install .
 Once installed, the tool is invoked as:
 
 ```sh
-qcom-ptool build         [-I dir]... [-o out/] platforms/<platform>.yaml
-qcom-ptool build         [-I dir]... [-o out/] -b <board.yaml> [-f <flavor.yaml>]
-qcom-ptool show          --platform platforms/<platform>.yaml
-qcom-ptool gen_partition --platform platforms/<platform>.yaml -C out/
-qcom-ptool gen_contents  [-o out/] platforms/<platform>.yaml
-qcom-ptool gen_udev_rules -o 55-qcom-raw-partitions-noblkid.rules
-qcom-ptool msp           -r rawprogram0.xml -d /dev/sdX -p patch0.xml
+qcom-ptool build          [-I dir]... [-o out/] platforms/<platform>.yaml
+qcom-ptool build          [-I dir]... [-o out/] -b <board.yaml> [-f <flavor.yaml>]
+qcom-ptool show           [-I dir]... [-o out/] platforms/<platform>.yaml
+qcom-ptool gen_udev_rules platforms/ [-o 55-qcom-raw-partitions-noblkid.rules]
+qcom-ptool msp            -r rawprogram0.xml -d /dev/sdX -p patch0.xml
 ```
+
+`build` writes the GPT and flashing artifacts of every storage a
+configuration flashes, plus its `contents.xml`. `-m name=file,...`
+overrides the image file of the named partitions, `--build-id`
+records a build id in `contents.xml`, and `-v` prints the partition
+table of every storage. `show` takes the same arguments
+and prints the resolved configurations as YAML, or with `-o` the
+directories and files `build -o` would write.
 
 ## Boards, flavors and platforms
 
@@ -107,8 +120,9 @@ qcom-ptool build -I <qcom-ptool>/platforms/flavors -o out/ -b my-board.yaml
 
 ## udev rules
 
-By default, the generator scans all `platforms/*.yaml` platforms. Repeatable
-`-i` options can select specific layouts, self-contained boards included. It skips known filesystem
+The generator scans the given layouts: platform files, self-contained
+boards, or a directory such as `platforms/`, whose `*.yaml` files are all
+scanned. It skips known filesystem
 partition names and emits exact `PARTNAME` rules for the others. Unknown names
 retain normal blkid probing. Matched partitions are marked with
 `QCOM_RAW_PARTITION=1` so later udev rules can reuse the generated

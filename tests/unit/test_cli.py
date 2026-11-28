@@ -57,7 +57,7 @@ def test_unknown_subcommand_rejected():
 
 @pytest.mark.parametrize("name", sorted(SUBCOMMANDS))
 def test_subcommand_dispatch(name, tmp_path):
-    # Scripts exit non-zero without args; tmp_path because ptool writes files to CWD.
+    # Subcommands exit non-zero with a usage message when given no arguments.
     result = subprocess.run(
         [sys.executable, "-m", "qcom_ptool.cli", name],
         capture_output=True,
@@ -67,5 +67,4 @@ def test_subcommand_dispatch(name, tmp_path):
         timeout=10,
     )
     assert result.returncode != 0
-    if name != "ptool":
-        assert "usage" in (result.stdout + result.stderr).lower()
+    assert "usage" in (result.stdout + result.stderr).lower()
