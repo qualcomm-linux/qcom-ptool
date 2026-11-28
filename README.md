@@ -19,7 +19,7 @@ Once installed, the tool is invoked as:
 ```sh
 qcom-ptool build         [-I dir]... [-o out/] platforms/<platform>.yaml
 qcom-ptool build         [-I dir]... [-o out/] -b <board.yaml> [-f <flavor.yaml>]
-qcom-ptool show          --platform platforms/<platform>.yaml
+qcom-ptool show          [-I dir]... [-o out/] platforms/<platform>.yaml
 qcom-ptool gen_partition --platform platforms/<platform>.yaml -C out/
 qcom-ptool gen_contents  [-o out/] platforms/<platform>.yaml
 qcom-ptool gen_udev_rules platforms/ [-o 55-qcom-raw-partitions-noblkid.rules]
@@ -29,7 +29,9 @@ qcom-ptool msp           -r rawprogram0.xml -d /dev/sdX -p patch0.xml
 `build` writes the GPT and flashing artifacts of every storage a
 configuration flashes, plus its `contents.xml`. `-m name=file,...`
 overrides the image file of the named partitions, and `--build-id`
-records a build id in `contents.xml`.
+records a build id in `contents.xml`. `show` takes the same arguments
+and prints the resolved configurations as YAML, or with `-o` the
+directories and files `build -o` would write.
 
 ## Boards, flavors and platforms
 

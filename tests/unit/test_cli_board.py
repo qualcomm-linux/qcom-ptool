@@ -1,7 +1,8 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 """
-CLI tests for platform-mode ``gen_partition`` and the ``show`` subcommand.
+CLI tests for platform-mode ``gen_partition`` and the ``show`` subcommand,
+which takes the same targets as ``build``.
 """
 
 from __future__ import annotations
@@ -173,7 +174,7 @@ def test_legacy_single_storage_still_works(tmp_path):
 
 def test_show_prints_resolved_spec(tmp_path, capsys):
     root = _tree(tmp_path)
-    rc = show.main(["show", "--platform", root + "/demo.yaml"])
+    rc = show.main(["show", root + "/demo.yaml"])
     assert rc == 0
     out = capsys.readouterr().out
     assert "name: demo" in out
@@ -185,20 +186,27 @@ def test_show_prints_resolved_spec(tmp_path, capsys):
 def test_show_board_and_flavor(tmp_path, capsys):
     root = _tree(tmp_path)
     rc = show.main(
-        ["show", "--board", root + "/boards/demo.yaml", "--flavor", root + "/flavors/demo.yaml"]
+        ["show", "-b", root + "/boards/demo.yaml", "-f", root + "/flavors/demo.yaml"]
     )
     assert rc == 0
     assert "efi.bin" in capsys.readouterr().out
 
 
-def test_show_outputs_lists_platform_storages(tmp_path, capsys):
+def test_show_o_lists_platform_storages(tmp_path, capsys):
     root = _tree(tmp_path)
-    rc = show.main(["show", "--outputs", root + "/demo.yaml"])
+    rc = show.main(["show", "-o", "out", root + "/demo.yaml"])
     assert rc == 0
-    assert capsys.readouterr().out == "demo:demo/nvme0:demo/spinor0:demo-nor/spinor0\n"
+    assert capsys.readouterr().out == "out/demo/nvme0/\nout/demo/spinor0/\nout/demo-nor/spinor0/\n"
 
 
-def test_show_contents_lists_contents_outputs(tmp_path, capsys):
+def test_show_o_board_writes_storages_at_the_top(tmp_path, capsys):
+    root = _tree(tmp_path)
+    args = ["-b", root + "/boards/demo.yaml", "-f", root + "/flavors/demo.yaml"]
+    assert show.main(["show", "-o", "out", *args]) == 0
+    assert capsys.readouterr().out == "out/nvme0/\nout/spinor0/\n"
+
+
+def test_show_o_lists_contents(tmp_path, capsys):
     root = _tree(tmp_path)
     board = tmp_path / "platforms" / "boards" / "demo.yaml"
     board.write_text(board.read_text() + "contents: {chip: DEMO}\n")
@@ -215,12 +223,15 @@ def test_show_contents_lists_contents_outputs(tmp_path, capsys):
             """
         )
     )
-    rc = show.main(["show", "--contents", root + "/demo.yaml"])
+    rc = show.main(["show", "-o", "out", root + "/demo.yaml"])
     assert rc == 0
-    assert capsys.readouterr().out == (
-        "demo:demo/spinor0/contents.xml^demo/spinor0/partitions.xml"
-        ":demo-nor/contents.xml^demo-nor/spinor0/partitions.xml\n"
-    )
+    assert capsys.readouterr().out.splitlines() == [
+        "out/demo/nvme0/",
+        "out/demo/spinor0/",
+        "out/demo/spinor0/contents.xml",
+        "out/demo-nor/spinor0/",
+        "out/demo-nor/contents.xml",
+    ]
 
 
 def test_show_self_contained_board(tmp_path, capsys):
@@ -239,7 +250,7 @@ def test_show_self_contained_board(tmp_path, capsys):
             % GUID_A
         )
     )
-    assert show.main(["show", "--board", str(board)]) == 0
+    assert show.main(["show", "-b", str(board)]) == 0
     out = capsys.readouterr().out
     assert "name: board" in out and "name: efi" in out and "chip: OUT" in out
 
@@ -247,3 +258,16 @@ def test_show_self_contained_board(tmp_path, capsys):
 def test_show_requires_a_source():
     with pytest.raises(SystemExit):
         show.main(["show"])
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ["-b", "board.yaml", "-f", "a.yaml", "-f", "b.yaml"],
+        ["-f", "flavor.yaml", "platform.yaml"],
+        ["-b", "board.yaml", "platform.yaml"],
+    ],
+)
+def test_show_takes_the_build_arguments(args):
+    with pytest.raises(SystemExit):
+        show.main(["show", *args])
